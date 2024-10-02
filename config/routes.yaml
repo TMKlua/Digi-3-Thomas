@@ -3,3 +3,11 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+parameters :
+    path: /parameters
+
+parameters_index:
+    path : /
+    controller: App\Controller\ParameterController::index
+    methods : [GET]

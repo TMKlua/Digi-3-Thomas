@@ -1,0 +1,47 @@
+/***************************REGLES GENERALES*************************/
+html {
+    scroll-behavior: smooth;
+  }
+  :root {
+    --white: #fffef9;
+    --black: #000000;
+    --black-light: #292929;
+    --blue: #1CDAFF;
+    --green: #00FCA8;
+    --rose: #ffa4bb;
+    --yellow: #fde82e;
+    --orange: rgb(254, 99, 16);
+  }
+  * {
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    list-style: none;
+    font-family: "Varela Round", sans-serif;
+  }
+  body {
+    background-color: var(--black-light);
+    width: 100vw;
+    height: 100vh;
+    justify-content: space-between !important;
+    overflow-x: hidden;
+  }
+  .flex-col {
+    flex-direction: column;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button {
+    cursor: pointer;
+    border: 0;
+    outline: 0;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }

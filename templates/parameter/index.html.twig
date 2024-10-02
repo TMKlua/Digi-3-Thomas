@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello ParameterController!{% endblock %}
+
+{% block body %}
+    <h1>Liste des parametres</h1>
+  {# Afficher le formulaire pour créer un nouveau paramètre #}
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit" >Créer un paramètre</button>
+    {{ form_end(form) }}
+
+    <table>
+      <thead>
+        <tr>
+          <th>Clée</th>
+          <th>Valeur</th>
+          <th>DateDebut</th>
+          <th>DateFin</th>
+          <th>Utilisateur</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for parameter in parameters %}
+        <tr>
+         <td>{{ parameter.cle }}</td>
+        <td>{{ parameter.valeur }}</td>
+        <td>{{ parameter.dateDebut|date('Y-m-d') }}</td>
+        <td>{{ parameter.dateFin|date('Y-m-d') }}</td>
+        <td>{{ parameter.utilisateur }}</td>
+        <td>
+                {# Formulaire pour modifier le paramètre #}
+                 {{ form_start(parameter.editForm) }}
+                    {{ form_widget(parameter.editForm) }} {# Ceci inclura le champ caché pour l'ID #}
+                    <button type="submit" class="btn btn-primary">Modifier</button>
+                {{ form_end(parameter.editForm) }}
+                
+                {# Formulaire pour supprimer le paramètre #}
+                {{ form_start(parameter.deleteForm) }}
+                    <button type="submit">Supprimer</button>
+                {{ form_end(parameter.deleteForm) }}
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion / Inscription{% endblock %}
+
+{% block body %}
+    <div class="auth-container">
+        <div class="auth-section">
+            <h2>Se connecter</h2>
+            {{ form_start(loginForm) }}
+                {{ form_widget(loginForm) }}
+                <button type="submit">Connexion</button>
+            {{ form_end(loginForm) }}
+        </div>
+
+        <div class="auth-section">
+            <h2>S'inscrire</h2>
+            {{ form_start(registrationForm) }}
+                {{ form_widget(registrationForm) }}
+                <button type="submit">Inscription</button>
+            {{ form_end(registrationForm) }}
+        </div>
+    </div>
+{% endblock %}
