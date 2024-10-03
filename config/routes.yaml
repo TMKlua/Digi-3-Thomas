@@ -11,3 +11,8 @@ parameters_index:
     path : /
     controller: App\Controller\ParameterController::index
     methods : [GET]
+
+app_ajax_search:
+    path: /parameter/search
+    controller: App\Controller\ParameterController::search
+    methods: [POST]

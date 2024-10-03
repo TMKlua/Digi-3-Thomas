@@ -7,27 +7,24 @@
     <header class="home-header">
         <nav class="flex">
          <div class="header-logo">
-                <img src="/path/to/your/image.jpg" alt="Logo Digi-3" class="">
-                <p>DIGI-3<br>.</br></p>
+            <a href="{{path('home_index')}}" class="flex">
+                <img src="/img/home-logo.png" alt="Logo Digi-3">
+                <p>DIGI-3 <p class="header-logo-dot">.</p></p>
+            </a> 
             </div>
             <div class="header-buttons flex">
-                <a href="{{ path('app_auth') }}" class="">Se connecter ou s'inscrire</a>
-                
+                <a href="{{ path('app_auth') }}" >Se connecter ou s'inscrire</a>
             </div>
-       
         </nav>
     </header>
     <section class="flex-col">
        <div class="home-section flex-col">
-            <div>
+            <div class="flex-col">
                 <h1>Simplifiez le suivi des <br> salariés et des missions</h1>
                 <p>Notre application enregistre et chiffre efficacement les activités réalisées par vos salariés</p>
             </div>
-              <img src="/path/to/your/image.jpg" alt="Image gestion de projets" class="">
-            
+              <img src="/img/gestion.png" alt="Image gestion de projets" >
         </div>
     </section>
-   
-
 {% endblock %}
 

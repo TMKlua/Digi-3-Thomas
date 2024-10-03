@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\AppEntityParameter;
+use App\Entity\Parameter;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<AppEntityParameter>
+ * @extends ServiceEntityRepository<Parameter>
  */
-class AppEntityParameterRepository extends ServiceEntityRepository
+class ParameterRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, AppEntityParameter::class);
+        parent::__construct($registry, Parameter::class);
     }
 
     //    /**
-    //     * @return AppEntityParameter[] Returns an array of AppEntityParameter objects
+    //     * @return Parameter[] Returns an array of Parameter objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class AppEntityParameterRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?AppEntityParameter
+    //    public function findOneBySomeField($value): ?Parameter
     //    {
     //        return $this->createQueryBuilder('a')
     //            ->andWhere('a.exampleField = :val')

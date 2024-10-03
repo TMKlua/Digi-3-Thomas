@@ -3,13 +3,30 @@
 {% block title %}Hello ParameterController!{% endblock %}
 
 {% block body %}
-    <h1>Liste des parametres</h1>
+
+
+<section class="parameter_landing">
+  <h1>Liste des parametres</h1>
   {# Afficher le formulaire pour créer un nouveau paramètre #}
     {{ form_start(form) }}
         {{ form_widget(form) }}
-        <button type="submit" >Créer un paramètre</button>
+        <button type="submit" class="parameter_create" >Créer un paramètre</button>
     {{ form_end(form) }}
 
+
+    <form id="searchForm" method="POST">
+      <input type="text" id="searchInput" name="search_term" placeholder="Rechercher un paramètre">
+      <button type="submit">Rechercher</button>
+  </form>
+<!-- Zone pour afficher les résultats -->
+<div id="parametersContainer">
+  {% for parameter in parameters %}
+      <div class="parameter-item">
+          <h3>{{ parameter.paramKey }}</h3>
+          <p>{{ parameter.paramValue }}</p>
+      </div>
+  {% endfor %}
+</div>
     <table>
       <thead>
         <tr>
@@ -23,11 +40,11 @@
       <tbody>
         {% for parameter in parameters %}
         <tr>
-         <td>{{ parameter.cle }}</td>
-        <td>{{ parameter.valeur }}</td>
-        <td>{{ parameter.dateDebut|date('Y-m-d') }}</td>
-        <td>{{ parameter.dateFin|date('Y-m-d') }}</td>
-        <td>{{ parameter.utilisateur }}</td>
+         <td>{{ parameter.paramKey }}</td>
+        <td>{{ parameter.paramValue }}</td>
+        <td>{{ parameter.paramDateFrom|date('Y-m-d') }}</td>
+        <td>{{ parameter.paramDateTo|date('Y-m-d') }}</td>
+        <td>{{ parameter.paramUser }}</td>
         <td>
                 {# Formulaire pour modifier le paramètre #}
                  {{ form_start(parameter.editForm) }}
@@ -44,5 +61,7 @@
         {% endfor %}
       </tbody>
     </table>
+</section>
+    
   
 {% endblock %}

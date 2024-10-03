@@ -1,23 +1,63 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Connexion / Inscription{% endblock %}
+{% block title %}Digi-3 - Page d'authentification{% endblock %}
 
 {% block body %}
     <div class="auth-container">
-        <div class="auth-section">
-            <h2>Se connecter</h2>
+        <div class="auth-section flex" id="loginSection">
             {{ form_start(loginForm) }}
+            <h2>Connecte toi à Digi-3</h2>
                 {{ form_widget(loginForm) }}
-                <button type="submit">Connexion</button>
             {{ form_end(loginForm) }}
+            <div class="auth-decorate flex-col">
+                <h3>Bonjour mon ami !</h3>
+                <p>Entrez vos informations personnelles et commencez l'aventure avec nous</p>
+                <a href="#" id="switchToRegister">S'inscrire</a>
+            </div>
         </div>
-
-        <div class="auth-section">
-            <h2>S'inscrire</h2>
+        <div class="auth-section flex" style="display:none;" id="registerSection">
+            <div class="auth-decorate flex-col">
+                <h3>Content de te revoir !</h3>
+                <p>Pour rester dans l'aventure avec nous connectez-vous avec vos informations personnelles</p>
+                <a href="#" id="switchToLogin">Se connecter</a>
+            </div>
             {{ form_start(registrationForm) }}
+            <h2>Bienvenue sur Digi-3</h2>
                 {{ form_widget(registrationForm) }}
-                <button type="submit">Inscription</button>
             {{ form_end(registrationForm) }}
-        </div>
+        </div>  
     </div>
+{% endblock %}
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Étape 1 : Cibler les éléments
+            const loginSection = document.getElementById('loginSection');
+            const registerSection = document.getElementById('registerSection');
+            const switchToRegister = document.getElementById('switchToRegister');
+            const switchToLogin = document.getElementById('switchToLogin');
+
+            // Étape 2 : Ajouter des événements de clic
+            switchToRegister.addEventListener('click', function(event) {
+                event.preventDefault(); // Empêche le lien de recharger la page
+                showRegisterSection();   // Appelle la fonction pour afficher la section d'inscription
+            });
+
+            switchToLogin.addEventListener('click', function(event) {
+                event.preventDefault(); // Empêche le lien de recharger la page
+                showLoginSection();      // Appelle la fonction pour afficher la section de connexion
+            });
+
+            // Étape 3 : Fonctions pour afficher/masquer les sections
+            function showRegisterSection() {
+                loginSection.style.display = 'none'; // Masque la section de connexion
+                registerSection.style.display = 'flex'; // Affiche la section d'inscription
+            }
+
+            function showLoginSection() {
+                registerSection.style.display = 'none'; // Masque la section d'inscription
+                loginSection.style.display = 'flex'; // Affiche la section de connexion
+            }
+        });
+    </script>
 {% endblock %}

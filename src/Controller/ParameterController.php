@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\AppEntityParameter;
+use App\Entity\Parameter;
 use App\Form\AppFormParameterType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,13 +16,13 @@ class ParameterController extends AbstractController
     public function index(Request $request,EntityManagerInterface $entityManager): Response
     {
         $parameters = $entityManager
-            ->getRepository(AppEntityParameter::class)
+            ->getRepository(Parameter::class)
             ->findAll(
             // ->findBy(['dateFin' => null] // Ou une condition plus complexe pour gérer les dates
         );
 
          // Créer un nouveau paramètre
-         $parameter = new AppEntityParameter();
+         $parameter = new Parameter();
          $form = $this->createForm(AppFormParameterType::class, $parameter);
        
         // Traiter le formulaire pour l'ajout d'un paramètre
@@ -68,6 +68,36 @@ class ParameterController extends AbstractController
             // 'controller_name' => 'ParameterController',
         ]);
     }
+    #[Route('/parameter/search', name: 'app_ajax_search', methods: ['POST'])]
+public function search(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $searchTerm = $request->request->get('search_term');
+    var_dump($searchTerm);
+    // Rechercher les paramètres correspondant à la recherche
+    $parameters = $entityManager
+        ->getRepository(Parameter::class)
+        ->createQueryBuilder('p')
+        ->where('p.paramKey LIKE :searchTerm') // Ajuste le champ selon ta structure
+        ->setParameter('searchTerm', '%' . $searchTerm . '%')
+        ->getQuery()
+        ->getResult();
+    
+    // Renvoyer les résultats en JSON
+    return $this->json([
+        'parameters' => array_map(function ($parameter) {
+            return [
+          'id' => $parameter->getId(),
+            'paramKey' => $parameter->getParamKey(),  // Assurez-vous que cela correspond bien à votre méthode
+            'paramValue' => $parameter->getParamValue(),
+            'paramDateFrom' => $parameter->getDateFrom() ? $parameter->getDateFrom()->format('Y-m-d') : null, // Formatage de la date
+            'paramDateTo' => $parameter->getDateTo() ? $parameter->getDateTo()->format('Y-m-d') : null, // Formatage de la date
+            'paramUser' => $parameter->getParamUser(),
+            ];
+        }, $parameters),
+    ]);
 }
+
+
+}   
 
 
