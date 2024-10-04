@@ -3,12 +3,14 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+    
+app_parameter_generaux:                      
+    path: /parameter/generaux
+    controller: App\Controller\ParameterController::generaux
+    methods: [GET]
 
-parameters :
-    path: /parameters
-
-parameters_index:
-    path : /
+app_parameter_app_configuration:
+    path: /parameter/app-configuration
     controller: App\Controller\ParameterController::index
     methods : [GET]
 
@@ -16,3 +18,9 @@ app_ajax_search:
     path: /parameter/search
     controller: App\Controller\ParameterController::search
     methods: [POST]
+
+app_parameter_about:
+    path: /parameter/about
+    controller: App\Controller\ParameterController::about
+    methods: [GET]
+

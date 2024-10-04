@@ -55,7 +55,7 @@ html {
   /****************************HEADER**************************/
   header nav{
     justify-content: space-between !important;
-    padding: 2rem 4rem;
+    padding: 2rem 3rem;
   }
   /*LINKS*/
   header nav ul{
@@ -131,7 +131,10 @@ html {
 }
 /***********************PARAMETER*******************/
 .parameter_landing{
+  height: 100vh;
+  padding: 5rem 3rem;
   color: var(--white);
+  justify-content: space-between;
 }
 .parameter_landing td, .parameter_landing th{
   color: var(--white);
@@ -139,6 +142,67 @@ html {
 .parameter_create{
   color: var(--white);
 }
+
+
+/*PARAMETER MENU*/
+.parameter_menu{
+  padding: 3rem 1rem;
+  width: 19%;
+  height: 100%;
+  border-radius: 2rem;
+  background: linear-gradient(-130deg, var(--blue), var(--green));
+}
+.parameter_menu ul{
+  height: 100%;
+  gap: 1rem;
+  justify-content: flex-start;
+}
+.parameter_menu ul li{
+  padding: 1rem;
+  width: 90%;
+  border-radius: 1.5rem;
+  border: 2px solid rgba(41, 41, 41, 0.15);
+  background-color: rgba(41, 41, 41, 0.15);
+  cursor: pointer;
+}
+.parameter_menu_active{
+  background-color: var(--black-light) !important;
+}
+.parameter_menu_active a{
+  color: var(--white) !important;
+}
+.parameter_menu ul li a{
+  font-size: 1.5rem;
+  text-align: start;
+  color: var(--black-light);
+}
+/*PARAMETER CONTENT*/
+.parameter_content{
+  padding: 3rem 1rem;
+  width: 75%;
+  height: 100%;
+  border-radius: 2rem;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*************************AUTHENTIFICATION LOGIN & SIGN UP****************************/
 .auth-section{
   background-image: url(/img/bg.png);

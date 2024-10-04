@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+{% block title %}Digi-3 - Configuration de l'application{% endblock %} 
+{% block body %}
+{%include 'includes/header.html.twig' %}
+<section class="parameter_landing flex">
+  <div class="parameter_menu">
+    <ul class="flex-col">
+      <li><a href="{{ path('app_parameter_generaux') }}">GENERAUX</a></li>
+      <li><a href="">GESTION USER</a></li>
+      <li><a href="">GESTION PROJET</a></li>
+      <li><a href="">GESTION CLIENTS</a></li>
+      <li class="parameter_menu_active"><a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a></li>
+      <li><a href="{{ path('app_parameter_about') }}">A PROPOS</a></li>
+      <li><a href="">MON COMPTE</a></li>
+    </ul>
+  </div>
+  <div class="parameter_content">
+    <h3>Configuration de l'application</h3>
+
+  {# Afficher le formulaire pour créer un nouveau paramètre #}
+  {{ form_start(form) }}
+  {{ form_widget(form) }}
+  <button type="submit" class="parameter_create">Créer un paramètre</button>
+  {{ form_end(form) }}
+
+  <form id="searchForm" method="POST">
+    <input
+      type="text"
+      id="searchInput"
+      name="search_term"
+      placeholder="Rechercher un paramètre"
+    />
+    <button type="submit">Rechercher</button>
+  </form>
+  <!-- Zone pour afficher les résultats -->
+  <div id="parametersContainer">
+    {% for parameter in parameters %}
+    <div class="parameter-item">
+      <h3>{{ parameter.paramKey }}</h3>
+      <p>{{ parameter.paramValue }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Clée</th>
+        <th>Valeur</th>
+        <th>DateDebut</th>
+        <th>DateFin</th>
+        <th>Utilisateur</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for parameter in parameters %}
+      <tr>
+        <td>{{ parameter.paramKey }}</td>
+        <td>{{ parameter.paramValue }}</td>
+        <td>{{ parameter.paramDateFrom|date('Y-m-d') }}</td>
+        <td>{{ parameter.paramDateTo|date('Y-m-d') }}</td>
+        <td>{{ parameter.paramUser }}</td>
+        <td>
+          {# Formulaire pour modifier le paramètre #}
+          {{ form_start(parameter.editForm) }}
+          {{ form_widget(parameter.editForm) }} {# Ceci inclura le champ caché
+          pour l'ID #}
+          <button type="submit" class="btn btn-primary">Modifier</button>
+          {{ form_end(parameter.editForm) }}
+
+          {# Formulaire pour supprimer le paramètre #}
+          {{ form_start(parameter.deleteForm) }}
+          <button type="submit">Supprimer</button>
+          {{ form_end(parameter.deleteForm) }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

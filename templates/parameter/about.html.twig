@@ -1,21 +1,20 @@
-{% extends 'base.html.twig' %} {% block title %}Digi-3 - Paramètres généraux{% endblock %} {% block body %} {# Inclusion du header #} {%
+{% extends 'base.html.twig' %} {% block title %}Digi-3 - A propos{% endblock %} {% block body %} {# Inclusion du header #} {%
 include 'includes/header.html.twig' %}
 
 <section class="parameter_landing flex">
   <div class="parameter_menu">
     <ul class="flex-col">
-      <li class="parameter_menu_active"><a href="{{ path('app_parameter_generaux') }}">GENERAUX</a></li>
+      <li><a href="{{ path('app_parameter_generaux') }}">GENERAUX</a></li>
       <li><a href="">GESTION USER</a></li>
       <li><a href="">GESTION PROJET</a></li>
       <li><a href="">GESTION CLIENTS</a></li>
       <li><a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a></li>
-      <li><a href="{{ path('app_parameter_about') }}">A PROPOS</a></li>
+      <li class="parameter_menu_active"><a href="{{ path('app_parameter_about') }}">A PROPOS</a></li>
       <li><a href="">MON COMPTE</a></li>
     </ul>
   </div>
   <div class="parameter_content">
-    <h3>Mon compte</h3>
+    <h3>A propos</h3>
   </div>
 </section>
-
 {% endblock %}

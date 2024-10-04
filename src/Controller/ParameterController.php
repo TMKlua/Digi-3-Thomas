@@ -12,7 +12,18 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ParameterController extends AbstractController
 {
-    #[Route('/parameter', name: 'app_parameter_index', methods: ['GET','POST'])]
+    
+    #[Route('/parameter/generaux', name: 'app_parameter_generaux')]
+    public function generaux(): Response
+    {
+        return $this->render('parameter/index.html.twig'); // Assurez-vous de créer ce fichier Twig
+    }
+    #[Route('/parameter/about', name: 'app_parameter_about')]
+    public function about(): Response
+    {
+        return $this->render('parameter/about.html.twig'); // Assurez-vous de créer ce fichier Twig
+    }
+    #[Route('/parameter/app_configuration', name: 'app_parameter_app_configuration', methods: ['GET','POST'])]
     public function index(Request $request,EntityManagerInterface $entityManager): Response
     {
         $parameters = $entityManager
@@ -30,7 +41,7 @@ class ParameterController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($parameter);
             $entityManager->flush();
-            return $this->redirectToRoute('app_parameter_index');
+            return $this->redirectToRoute('app_parameter_app_configuration');
         }
 
             // Traiter les formulaires d'édition et de suppression
@@ -41,11 +52,11 @@ class ParameterController extends AbstractController
                 
                 if ($editForm->isSubmitted() && $editForm->isValid()) {
                     $entityManager->flush();
-                    return $this->redirectToRoute('app_parameter_index');
+                    return $this->redirectToRoute('app_parameter_app_configuration');
                 }
                 // Formulaire pour la suppression
                 $deleteForm = $this->createFormBuilder()
-                    ->setAction($this->generateUrl('app_parameter_index', ['id' => $existingParameter->getId()]))
+                    ->setAction($this->generateUrl('app_parameter_app_configuration', ['id' => $existingParameter->getId()]))
                     ->setMethod('POST')
                     ->getForm();
                 
@@ -53,7 +64,7 @@ class ParameterController extends AbstractController
                 if ($request->isMethod('POST') && $request->request->has($deleteForm->getName())) {
                     $entityManager->remove($existingParameter);
                     $entityManager->flush();
-                    return $this->redirectToRoute('app_parameter_index');
+                    return $this->redirectToRoute('app_parameter_app_configuration');
                 }
 
                 $existingParameter->editForm = $editForm->createView();
@@ -62,7 +73,7 @@ class ParameterController extends AbstractController
 
 
 
-        return $this->render('parameter/index.html.twig', [
+        return $this->render('parameter/config.html.twig', [
             'parameters' => $parameters,  // Transmets les paramètres ici
             'form' => $form->createView(),
             // 'controller_name' => 'ParameterController',
