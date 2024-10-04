@@ -72,16 +72,18 @@ class ParameterController extends AbstractController
 public function search(Request $request, EntityManagerInterface $entityManager): Response
 {
     $searchTerm = $request->request->get('search_term');
-    var_dump($searchTerm);
     // Rechercher les paramètres correspondant à la recherche
     $parameters = $entityManager
         ->getRepository(Parameter::class)
         ->createQueryBuilder('p')
-        ->where('p.paramKey LIKE :searchTerm') // Ajuste le champ selon ta structure
-        ->setParameter('searchTerm', '%' . $searchTerm . '%')
+        // ->where('p.paramKey LIKE :searchTerm') // Ajuste le champ selon ta structure
+        // ->setParameter('searchTerm', '%' . $searchTerm . '%')
+        ->where('p.paramKey = :searchTerm') // Remplacez LIKE par =
+        ->setParameter('searchTerm', $searchTerm) // Utilisez simplement searchTerm sans '%' pour l'égalité
         ->getQuery()
         ->getResult();
-    
+        dump($parameters);
+      
     // Renvoyer les résultats en JSON
     return $this->json([
         'parameters' => array_map(function ($parameter) {
@@ -89,15 +91,13 @@ public function search(Request $request, EntityManagerInterface $entityManager):
           'id' => $parameter->getId(),
             'paramKey' => $parameter->getParamKey(),  // Assurez-vous que cela correspond bien à votre méthode
             'paramValue' => $parameter->getParamValue(),
-            'paramDateFrom' => $parameter->getDateFrom() ? $parameter->getDateFrom()->format('Y-m-d') : null, // Formatage de la date
-            'paramDateTo' => $parameter->getDateTo() ? $parameter->getDateTo()->format('Y-m-d') : null, // Formatage de la date
+            'paramDateFrom' => $parameter->getParamDateFrom() ? $parameter->getParamDateFrom()->format('Y-m-d') : null, // Formatage de la date
+            'paramDateTo' => $parameter->getParamDateTo() ? $parameter->getParamDateTo()->format('Y-m-d') : null, // Formatage de la date
             'paramUser' => $parameter->getParamUser(),
             ];
         }, $parameters),
     ]);
 }
-
-
 }   
 
 

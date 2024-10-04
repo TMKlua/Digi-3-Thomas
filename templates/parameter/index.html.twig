@@ -1,12 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello ParameterController!{% endblock %}
+{% block title %}Digi-3 - Configuration de l'application{% endblock %}
 
 {% block body %}
-
+ {# Inclusion du header #}
+ {% include 'includes/header.html.twig' %}
 
 <section class="parameter_landing">
-  <h1>Liste des parametres</h1>
+  <h1>Configuration de l'application</h1>
   {# Afficher le formulaire pour créer un nouveau paramètre #}
     {{ form_start(form) }}
         {{ form_widget(form) }}

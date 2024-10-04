@@ -1,0 +1,22 @@
+<header>
+    <nav class="flex">
+        <div class="header-logo">
+            <a href="{{path('home_index')}}" class="flex">
+                <img src="/img/header/home-logo.png" alt="Logo Digi-3">
+                <p>DIGI-3 <p class="header-logo-dot">.</p></p>
+            </a> 
+        </div>
+        <ul class="flex">
+            <li><a href="">Dashboard</a></li>
+            <li><a href="">Gestion de projets</a></li>
+            <li><a href="{{ path('app_parameter_index') }}">Paramètres</a></li>
+        </ul>
+        <div class="header-search">
+            <input type="text" placeholder="Rechercher" class="search-input">
+            {# <img src="/img/loupe.png" alt="Recherche" class="search-icon"> #}
+        </div>
+        <a href="{{ path('app_parameter_index') }}">
+            <img src="/img/header/account-icon.png" alt="Icone de compte">
+        </a>
+    </nav>
+</header>

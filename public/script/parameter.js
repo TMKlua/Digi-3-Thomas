@@ -1,49 +1,35 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     const searchForm = document.getElementById('searchForm');
     const parametersContainer = document.getElementById('parametersContainer');
 
-    searchForm.addEventListener('submit', function (event) {
-        event.preventDefault();
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // Empêche le rechargement de la page lors de la soumission du formulaire
 
-        // Récupérer la valeur du champ de recherche
-        const searchTerm = document.getElementById('searchInput').value;
+        const searchTerm = document.getElementById('searchInput').value; // Récupère la valeur de la recherche
+        console.log("L'utilisateur a recherché "+ searchTerm)
 
-        // Envoyer la requête AJAX
         fetch('/parameter/search', {
-            method: 'POST',                                                                                           
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                'search_term': searchTerm,
-            })
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // Déclare le type de contenu
+            body: new URLSearchParams({ 'search_term': searchTerm }) // Formate les données pour l'envoi
         })
-        .then(response => response.text())
+        .then(response => response.ok ? response.json() : Promise.reject('Erreur réseau : ' + response.status)) // Vérifie si la réponse est OK, sinon rejette l'erreur
         .then(data => {
-            console.log(data);
-            // Nettoyer la zone des paramètres actuels
-            parametersContainer.innerHTML = '';
-            console.log("toto " + data.parameters);
+            parametersContainer.innerHTML = ''; // Vide l'affichage actuel
 
-            try {
-                const jsonData = JSON.parse(data);
-                jsonData.parameters.forEach(parameter => {
+            if (Array.isArray(data.parameters)) {
+                console.log("ad"); // Vérifie que les paramètres sont un tableau
+                data.parameters.forEach(parameter => { // Pour chaque paramètre, crée un nouvel élément
                     const parameterItem = document.createElement('div');
+                   
                     parameterItem.classList.add('parameter-item');
                     parameterItem.innerHTML = `<h3>${parameter.paramKey}</h3><p>${parameter.paramValue}</p>`;
-                    parametersContainer.appendChild(parameterItem);
+                    parametersContainer.appendChild(parameterItem); // Ajoute l'élément au conteneur
                 });
-            } catch (error) {
-                console.error('Error parsing JSON:', error);
+            } else {
+                console.error('Aucun paramètre trouvé ou format incorrect.');
             }
-            // Afficher les résultats
-            data.parameters.forEach(parameter => {
-                const parameterItem = document.createElement('div');
-                parameterItem.classList.add('parameter-item');
-                parameterItem.innerHTML = `<h3>${parameter.ParamKey}</h3><p>${parameter.ParamValue}</p>`;
-                parametersContainer.appendChild(parameterItem);
-            });
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Erreur:', error)); // Capture toute erreur et l'affiche dans la console
     });
-});
+}); 

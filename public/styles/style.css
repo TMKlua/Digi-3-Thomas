@@ -8,6 +8,7 @@ html {
     --black-light: #292929;
     --blue: #1CDAFF;
     --green: #00FCA8;
+    --grey:#D9D9D9;
   }
   * {
     margin: 0;
@@ -51,6 +52,37 @@ html {
     text-align: center;
     color: var(--white);
   }
+  /****************************HEADER**************************/
+  header nav{
+    justify-content: space-between !important;
+    padding: 2rem 4rem;
+  }
+  /*LINKS*/
+  header nav ul{
+    width: 45vw;
+    justify-content: space-between !important;
+  }
+  header nav ul li a{
+    font-size: 1.5rem;
+  }
+  /*LOGO*/
+  .header-logo img{
+    height: 6rem;
+  }
+  .header-logo p{
+    font-size: 3rem;
+  }
+  /*SEARCHBAR*/
+  .header-search input{
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    border: 2px solid var(--grey);
+    background-color: transparent;
+    font-size: 1rem;
+  }
+  .header-search input::placeholder, .header-search input{
+    color: rgba(217,217,217,0.4);
+  }
 /****************************HOME PAGE**************************/
 .home-section{
   width: 100vw;
@@ -61,17 +93,7 @@ html {
   padding-top: 6rem;
   gap: 4rem;
 }
-.home-header nav{
-  justify-content: space-between;
-  padding: 2rem 5rem;
-}
-/*LOGO*/
-.header-logo img{
-  height: 6rem;
-}
-.header-logo p{
-  font-size: 3rem;
-}
+
 /*TEXT GRADIENT*/
 .header-logo-dot, .header-buttons a, .home-section p{
   background: linear-gradient(90deg, var(--blue), var(--green));
