@@ -1,5 +1,6 @@
-{% extends 'base.html.twig' %} {% block title %}Digi-3 - A propos{% endblock %} {% block body %} {# Inclusion du header #} {%
-include 'includes/header.html.twig' %}
+{% extends 'base.html.twig' %} {% block title %}Digi-3 - A propos{% endblock %}
+{% block body %} {# Inclusion du header #} {% include
+'includes/header.html.twig' %}
 
 <section class="parameter_landing flex">
   <div class="parameter_menu">
@@ -8,13 +9,93 @@ include 'includes/header.html.twig' %}
       <li><a href="">GESTION USER</a></li>
       <li><a href="">GESTION PROJET</a></li>
       <li><a href="">GESTION CLIENTS</a></li>
-      <li><a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a></li>
-      <li class="parameter_menu_active"><a href="{{ path('app_parameter_about') }}">A PROPOS</a></li>
-      <li><a href="">MON COMPTE</a></li>
+      <li>
+        <a href="{{ path('app_parameter_app_configuration') }}"
+          >CONFIGURATION</a
+        >
+      </li>
+      <li class="parameter_menu_active">
+        <a href="{{ path('app_parameter_about') }}">A PROPOS</a>
+      </li>
     </ul>
   </div>
   <div class="parameter_content">
     <h3>A propos</h3>
+    <div class="about-page">
+      <!-- Section Mentions légales -->
+      <div class="legal-mentions">
+        <h3>Mentions légales</h3>
+        <p>
+          <strong>Nom de l'entreprise :</strong> Digi-3<br />
+          <strong>Adresse :</strong> 123 Rue des Innovations, 75001 Paris,
+          France<br />
+          <strong>Numéro de SIRET :</strong> 123 456 789 00010<br />
+          <strong>Directeur de publication :</strong> John Doe<br />
+          <strong>Contact :</strong> contact@digi-3.com<br />
+          <strong>Hébergeur :</strong> OVH, 2 Rue Kellermann, 59100 Roubaix,
+          France
+        </p>
+      </div>
+
+      <!-- Section Conditions Générales d'Utilisation -->
+      <div class="terms-of-service">
+        <h3>Conditions Générales d'Utilisation (CGU)</h3>
+        <p>
+          Les présentes conditions générales d'utilisation régissent
+          l'utilisation de l'application Digi-3. En utilisant l'application,
+          vous acceptez les présentes conditions. Nous nous réservons le droit
+          de modifier ces conditions à tout moment, et les modifications
+          prendront effet dès leur publication sur cette page.
+        </p>
+        <h4>1. Accès à l'application</h4>
+        <p>
+          L'accès à l'application Digi-3 est gratuit pour tous les utilisateurs
+          disposant d'un compte. Certaines fonctionnalités peuvent être
+          réservées aux administrateurs et aux utilisateurs autorisés.
+        </p>
+        <h4>2. Propriété intellectuelle</h4>
+        <p>
+          L'ensemble des contenus disponibles sur l'application, y compris les
+          textes, images, logos, et vidéos, sont protégés par le droit d'auteur.
+          Toute reproduction ou utilisation sans autorisation est interdite.
+        </p>
+        <h4>3. Responsabilité</h4>
+        <p>
+          Digi-3 décline toute responsabilité en cas de dommage résultant de
+          l'utilisation de l'application, notamment en cas d'interruption ou
+          d'inaccessibilité du service.
+        </p>
+      </div>
+
+      <!-- Section Politique de confidentialité -->
+      <div class="privacy-policy">
+        <h3>Politique de confidentialité</h3>
+        <p>
+          Digi-3 s'engage à protéger la vie privée de ses utilisateurs et à
+          respecter la réglementation en vigueur, notamment le RGPD.
+        </p>
+        <h4>1. Données collectées</h4>
+        <p>
+          Nous collectons des données personnelles telles que votre nom, adresse
+          e-mail, et préférences d'utilisation dans le cadre de la gestion de
+          votre compte et de l'utilisation des services Digi-3.
+        </p>
+        <h4>2. Utilisation des données</h4>
+        <p>
+          Les données collectées sont utilisées pour améliorer l'expérience
+          utilisateur, assurer la sécurité des comptes, et vous fournir un
+          service personnalisé. Nous ne partageons pas vos données avec des
+          tiers sans votre consentement.
+        </p>
+        <h4>3. Droits des utilisateurs</h4>
+        <p>
+          Conformément au RGPD, vous disposez d'un droit d'accès, de
+          modification, de suppression et de portabilité de vos données
+          personnelles. Vous pouvez exercer ces droits en nous contactant à
+          l'adresse suivante : <strong>privacy@digi-3.com</strong>.
+        </p>
+      </div>
+    </div>
   </div>
 </section>
 {% endblock %}

@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const searchForm = document.getElementById('searchForm');
     const parametersContainer = document.getElementById('parametersContainer');
+    const createForm = document.getElementById('createForm');
 
+    // Gestion de la recherche
     searchForm.addEventListener('submit', (event) => {
         event.preventDefault(); // Empêche le rechargement de la page lors de la soumission du formulaire
 
@@ -31,5 +33,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(error => console.error('Erreur:', error)); // Capture toute erreur et l'affiche dans la console
+    });
+
+     // Gestion de la création de nouveaux paramètres
+     createForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(createForm); // Récupère les données du formulaire
+
+        fetch('/parameter/create', {
+            method: 'POST',
+            body: formData // Envoie les données du formulaire
+        })
+        .then(response => response.ok ? response.json() : Promise.reject('Erreur réseau : ' + response.status))
+        .then(data => {
+            if (data.success) {
+                // Ajouter le nouveau paramètre à la liste
+                const parameterItem = document.createElement('div');
+                parameterItem.classList.add('parameter-item');
+                parameterItem.innerHTML = `<h3>${data.parameter.paramKey}</h3><p>${data.parameter.paramValue}</p>`;
+                parametersContainer.appendChild(parameterItem);
+                
+                // Réinitialiser le formulaire
+                createForm.reset();
+            } else {
+                console.error('Erreur lors de la création du paramètre.');
+            }
+        })
+        .catch(error => console.error('Erreur:', error));
     });
 }); 

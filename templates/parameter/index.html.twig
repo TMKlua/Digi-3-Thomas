@@ -10,11 +10,102 @@ include 'includes/header.html.twig' %}
       <li><a href="">GESTION CLIENTS</a></li>
       <li><a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a></li>
       <li><a href="{{ path('app_parameter_about') }}">A PROPOS</a></li>
-      <li><a href="">MON COMPTE</a></li>
+      
     </ul>
   </div>
   <div class="parameter_content">
     <h3>Mon compte</h3>
+    <div class="account-page">
+      <div class="account-header flex">
+          <div class="account-info flex">
+              <img src="/path/to/current-profile-picture.jpg" alt="Photo de profil de " class="profile-picture">
+              <div>
+                  <h1></h1>
+                  <p class="role"></p>
+              </div>
+          </div>
+      </div>
+  
+      <h2>Modifier mes infos personnelles</h2>
+      
+      <form method="post" action="" enctype="multipart/form-data">
+          <div class="form-group">
+              <label for="current_email">Adresse e-mail actuelle</label>
+              <input type="email" id="current_email" name="current_email"  readonly>
+          </div>
+  
+          <div class="form-group">
+              <label for="new_email">Nouvelle adresse e-mail</label>
+              <input type="email" id="new_email" name="new_email" placeholder="Entrez la nouvelle adresse e-mail">
+          </div>
+  
+          <div class="form-group">
+              <label for="current_password">Mot de passe actuel</label>
+              <input type="password" id="current_password" name="current_password" placeholder="Entrez votre mot de passe actuel">
+          </div>
+  
+          <div class="form-group">
+              <label for="new_password">Nouveau mot de passe</label>
+              <input type="password" id="new_password" name="new_password" placeholder="Entrez le nouveau mot de passe">
+          </div>
+  
+          <div class="form-group">
+              <label>Photo de profil actuelle</label>
+              <img src="/path/to/current-profile-picture.jpg" alt="Photo de profil actuelle" class="profile-picture-small">
+          </div>
+  
+          <div class="form-group">
+              <label for="new_profile_picture">Nouvelle photo de profil</label>
+              <input type="file" id="new_profile_picture" name="new_profile_picture">
+          </div>
+  
+          <button type="submit" class="btn">Enregistrer les modifications</button>
+      </form>
+  </div>
+  <div class="general-settings">
+    <h3>Paramètres généraux</h3>
+    <form method="post" action="">
+        <!-- Choix du thème -->
+        <div class="theme-selection">
+            <h4>Choix du thème</h4>
+            <div class="theme-option">
+                <input type="radio" id="themeNoir" name="theme" value="noir">
+                <label for="themeNoir">
+                    <img src="/img/themes/noir.png" alt="Thème noir">
+                    Thème noir 
+                </label>
+            </div>
+            <div class="theme-option">
+                <input type="radio" id="themeBlanc" name="theme" value="blanc">
+                <label for="themeBlanc">
+                    <img src="/img/themes/blanc.png" alt="Thème blanc">
+                    Thème blanc
+                </label>
+            </div>
+            <div class="theme-option">
+                <input type="radio" id="themeAppareil" name="theme" value="appareil">
+                <label for="themeAppareil">
+                    <img src="/img/themes/appareil.png" alt="Thème appareil">
+                    Thème appareil
+                </label>
+            </div>
+        </div>
+
+        <!-- Préférences pour les e-mails -->
+        <div class="email-preferences">
+            <h4>Préférences pour les e-mails</h4>
+            <div class="form-group">
+                <input type="checkbox" id="emailActivity" name="emailActivity">
+                <label for="emailActivity">Autoriser les e-mails sur l'activité du ticket</label>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="emailChanges" name="emailChanges">
+                <label for="emailChanges">Recevoir des e-mails en cas de changements apportés aux tickets</label>
+            </div>
+        </div>
+        <button type="submit" class="btn-submit">Enregistrer les paramètres</button>
+    </form>
+</div>
   </div>
 </section>
 

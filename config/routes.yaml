@@ -19,6 +19,11 @@ app_ajax_search:
     controller: App\Controller\ParameterController::search
     methods: [POST]
 
+app_ajax_create:
+    path: /parameter/create
+    controller: App\Controller\ParameterController::create
+    methods: [POST]
+
 app_parameter_about:
     path: /parameter/about
     controller: App\Controller\ParameterController::about
