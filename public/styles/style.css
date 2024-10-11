@@ -51,7 +51,10 @@ a,
 p,
 h1,
 h2,
-h3 {
+h3, 
+label,
+th,
+td {
   text-align: center;
   color: var(--white);
 }
@@ -143,22 +146,15 @@ header nav ul li a {
 .parameter_landing {
   height: 100vh;
   padding: 3rem;
-  color: var(--white);
   justify-content: space-between;
 }
-.parameter_landing td,
-.parameter_landing th {
-  color: var(--white);
-}
-.parameter_create {
-  color: var(--white);
-}
+
 
 /*PARAMETER MENU*/
 .parameter_menu {
   padding: 2rem 1rem;
-  width: 19%;
   height: 100%;
+  width: 19%;
   border-radius: 2rem;
   background: linear-gradient(-130deg, var(--blue), var(--green));
 }
@@ -189,17 +185,16 @@ header nav ul li a {
 /*PARAMETER CONTENT*/
 .parameter_content {
   padding: 2rem 1rem;
-  width: 75%;
   height: 100%;
+  width: 75%;
   border-radius: 2rem;
   border: 2px solid rgba(255, 255, 255, 0.15);
   background-color: rgba(255, 255, 255, 0.15);
 }
 .parameter_content h2, .parameter_content h3 {
-  text-align: start;
   font-size: 2rem;
 }
-/*GENERAUX*/
+/**GENERAL-SETTINGS PAGE**/
 .account-header {
   justify-content: space-between;
 }
@@ -216,21 +211,19 @@ header nav ul li a {
 }
 /*ACCOUNT-TOP*/
 .account-info,
-.account-info div {
+.account-info div,
+.account-top-form div{
   gap: 1rem;
 }
 .account-top-form {
   justify-content: space-between;
-}
-.account-top-form div {
-  gap: 0.5rem;
 }
 .account-top-form div label {
   width: 100%;
   text-align: start;
 }
 .account-top-form div input {
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem;
   border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.15);
   background-color: var(--grey);
@@ -261,17 +254,14 @@ header nav ul li a {
   border: 2px solid rgba(255, 255, 255, 0.15);
   background: linear-gradient(-130deg, var(--blue), var(--green));
 }
-
 /*GENERAL-SETTINGS*/
 .general-settings {
-  display: flex;
-  flex-direction: column;
-  margin-top: 2rem;
-  gap: 2rem;
+  margin-top: 4rem;
 }
-.general-settings form, .email-preferences{
+.general-settings,.general-settings form, .email-preferences{
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2rem;
 }
 /*THEME-SELECTION*/
@@ -283,6 +273,53 @@ header nav ul li a {
   gap: 1rem;
 }
 
+/**ABOUT-PAGE**/
+.about-page{
+  gap: 2rem;
+  align-items: flex-start;
+}
+.about-page p, .about-page h4{
+  text-align: start;
+  width: 100%;
+}
+.legal-mentions, .terms-of-service, .privacy-policy{
+  gap: 1rem;
+}
+/*LEGAL-MENTIONS*/
+.legal-mentions{
+  align-items: flex-start;
+}
+/*SCROLLBAR ABOUT PAGE*/
+.need-scrollbar{
+  overflow-y: scroll;
+}
+/* Global */
+.need-scrollbar::-webkit-scrollbar {
+  width: 9px;
+  border-radius: 5px;
+  border: 1px solid rgba(41,41,41,0.15);
+  background: rgba(41, 41, 41, 0.15);
+}
+/* Ascenseur */
+.need-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background:  rgba(41,41,41,0.56);
+  border: 1px solid rgba(41,41,41,0.15);
+}
+/* Handle on hover */
+.need-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -293,27 +330,55 @@ header nav ul li a {
   background-position: center center;
   background-size: cover;
 }
+.auth-container form h2 {
+  font-size: 3rem;
+}
+/**Formulaire**/
 .auth-container form {
   width: 50vw;
   gap: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
-.auth-container form h2 {
-  font-size: 3rem;
-  color: var(--white);
-}
-/**Formulaire**/
 #login_form,
 #registration_form {
+  display: flex;
+  flex-direction: column;
   width: 65%;
   gap: 2rem;
 }
+/*FORM-1  DIV CONTAINER*/
 #login_form div,
 #registration_form div {
   width: 100%;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
-/*Rester connecté, mdp oublié*/
+/*FORM-2 TEXT / INPUT*/
+#login_form input,
+#registration_form input    {
+  padding: 1rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--white);
+  background-color: transparent;
+}
+#login_form input,
+#registration_form input,
+#login_form label,
+#registration_form label {
+  font-size: 1.5rem;
+  text-align: start;
+}
+#login_form input,
+#registration_form input,
+#login_form input::placeholder,
+#registration_form input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+/*FORM-3 STAY AUTHENTIFICATED*/
 #login_form div:nth-child(3) {
   display: flex;
   flex-direction: row;
@@ -329,42 +394,22 @@ header nav ul li a {
   font-size: 1rem;
   order: 1;
   padding: 0;
-}
-#login_form,
-#registration_form,
-.auth-container form {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-#login_form div label,
-#registration_form div label {
-  font-size: 1.5rem;
-  color: var(--white);
-  padding-bottom: 1rem;
-}
-#login_form div input,
-#login_form div button,
-#registration_form div input,
-#registration_form div button {
-  padding: 1rem 0.5rem;
-  border-radius: 10px;
-  border: 1px solid var(--white);
-  background-color: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1.5rem;
-}
-#login_form div input::placeholder,
-#registration_form div input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
-}
-#login_form div button,
-#registration_form div button {
+} 
+/*FORM-4 LOGIN/REGISTER BUTTON*/
+.auth-submit {
   background-image: linear-gradient(var(--green), var(--blue));
-  border: 0;
   color: var(--black);
+  padding: 1rem 3rem;
+  border-radius: 10px;
+  background-color: transparent;
+  font-size: 1.5rem;
 }
+
+
+
+
+
+
 /**AUTHENTIFICATION DECORATE**/
 .auth-decorate {
   height: 100vh;
