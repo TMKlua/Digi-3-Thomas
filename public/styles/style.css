@@ -1,90 +1,94 @@
 /***************************REGLES GENERALES*************************/
 html {
-    scroll-behavior: smooth;
-  }
-  :root {
-    --white: #fffef9;
-    --black: #000000;
-    --black-light: #292929;
-    --blue: #1CDAFF;
-    --green: #00FCA8;
-    --grey:#D9D9D9;
-  }
-  * {
-    margin: 0;
-    padding: 0;
-    text-decoration: none;
-    list-style: none;
-    font-family: "Varela Round", sans-serif;
-    font-weight: 400
-    ;
-  }
-  body {
-    background-color: var(--black-light);
-    width: 100vw;
-    height: 100vh;
-    justify-content: space-between !important;
-    overflow-x: hidden;
-  }
-  .flex-col {
-    flex-direction: column;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .flex {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  button {
-    cursor: pointer;
-    border: 0;
-    outline: 0;
-    margin: 0;
-    padding: 0;
-    background: none;
-  }
-  a{
-    cursor: pointer;
-  }
-  a,p,h1,h2,h3{
-    text-align: center;
-    color: var(--white);
-  }
-  /****************************HEADER**************************/
-  header nav{
-    justify-content: space-between !important;
-    padding: 2rem 3rem;
-  }
-  /*LINKS*/
-  header nav ul{
-    width: 45vw;
-    justify-content: space-between !important;
-  }
-  header nav ul li a{
-    font-size: 1.5rem;
-  }
-  /*LOGO*/
-  .header-logo img{
-    height: 6rem;
-  }
-  .header-logo p{
-    font-size: 3rem;
-  }
-  /*SEARCHBAR*/
-  .header-search input{
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
-    border: 2px solid var(--grey);
-    background-color: transparent;
-    font-size: 1rem;
-  }
-  .header-search input::placeholder, .header-search input{
-    color: rgba(217,217,217,0.4);
-  }
+  scroll-behavior: smooth;
+}
+:root {
+  --white: #fffef9;
+  --black: #000000;
+  --black-light: #292929;
+  --blue: #1cdaff;
+  --green: #00fca8;
+  --grey: #d9d9d9;
+}
+* {
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+  list-style: none;
+  font-family: "Varela Round", sans-serif;
+  font-weight: 400;
+}
+body {
+  background-color: var(--black-light);
+  width: 100vw;
+  height: 100vh;
+  justify-content: space-between !important;
+  overflow-x: hidden;
+}
+.flex-col {
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+button {
+  cursor: pointer;
+  border: 0;
+  outline: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+a {
+  cursor: pointer;
+}
+a,
+p,
+h1,
+h2,
+h3 {
+  text-align: center;
+  color: var(--white);
+}
+/****************************HEADER**************************/
+header nav {
+  justify-content: space-between !important;
+  padding: 2rem 3rem;
+}
+/*LINKS*/
+header nav ul {
+  width: 45vw;
+  justify-content: space-between !important;
+}
+header nav ul li a {
+  font-size: 1.5rem;
+}
+/*LOGO*/
+.header-logo img {
+  height: 6rem;
+}
+.header-logo p {
+  font-size: 3rem;
+}
+/*SEARCHBAR*/
+.header-search input {
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: 2px solid var(--grey);
+  background-color: transparent;
+  font-size: 1rem;
+}
+.header-search input::placeholder,
+.header-search input {
+  color: rgba(217, 217, 217, 0.4);
+}
 /****************************HOME PAGE**************************/
-.home-section{
+.home-section {
   width: 100vw;
   background-image: url(/img/bg.png);
   background-repeat: no-repeat;
@@ -95,7 +99,9 @@ html {
 }
 
 /*TEXT GRADIENT*/
-.header-logo-dot, .header-buttons a, .home-section p{
+.header-logo-dot,
+.header-buttons a,
+.home-section p {
   background: linear-gradient(90deg, var(--blue), var(--green));
   -webkit-background-clip: text; /* Pour Safari */
   -webkit-text-fill-color: transparent; /* Pour Safari */
@@ -103,61 +109,65 @@ html {
   color: transparent; /* Pour d'autres navigateurs */
 }
 /*LOGIN / SIGN UP*/
-.header-buttons{
+.header-buttons {
   border-radius: 15px;
   border: 2px solid transparent;
   padding: 0.5rem 1rem;
-  background: linear-gradient(var(--black-light), var(--black-light)) padding-box, linear-gradient(to right, var(--blue), var(--green)) border-box;
+  background: linear-gradient(var(--black-light), var(--black-light))
+      padding-box,
+    linear-gradient(to right, var(--blue), var(--green)) border-box;
 }
-.header-buttons a{
+.header-buttons a {
   font-size: 1.5rem;
 }
 /**HOME-SECTION**/
-.home-section div{
+.home-section div {
   gap: 2rem;
 }
-.home-section div,.home-section img, .home-section p{
+.home-section div,
+.home-section img,
+.home-section p {
   width: 85%;
 }
 
-.home-section h1{
+.home-section h1 {
   font-size: 5rem;
 }
-.home-section p{
+.home-section p {
   font-size: 2rem;
 }
-.home-section img{
+.home-section img {
   border-radius: 20px;
 }
 /***********************PARAMETER*******************/
-.parameter_landing{
+.parameter_landing {
   height: 100vh;
-  padding: 5rem 3rem;
+  padding: 3rem;
   color: var(--white);
   justify-content: space-between;
 }
-.parameter_landing td, .parameter_landing th{
+.parameter_landing td,
+.parameter_landing th {
   color: var(--white);
 }
-.parameter_create{
+.parameter_create {
   color: var(--white);
 }
-
 
 /*PARAMETER MENU*/
-.parameter_menu{
-  padding: 3rem 1rem;
+.parameter_menu {
+  padding: 2rem 1rem;
   width: 19%;
   height: 100%;
   border-radius: 2rem;
   background: linear-gradient(-130deg, var(--blue), var(--green));
 }
-.parameter_menu ul{
+.parameter_menu ul {
   height: 100%;
   gap: 1rem;
   justify-content: flex-start;
 }
-.parameter_menu ul li{
+.parameter_menu ul li {
   padding: 1rem;
   width: 90%;
   border-radius: 1.5rem;
@@ -165,98 +175,179 @@ html {
   background-color: rgba(41, 41, 41, 0.15);
   cursor: pointer;
 }
-.parameter_menu_active{
+.parameter_menu_active {
   background-color: var(--black-light) !important;
 }
-.parameter_menu_active a{
+.parameter_menu_active a {
   color: var(--white) !important;
 }
-.parameter_menu ul li a{
+.parameter_menu ul li a {
   font-size: 1.5rem;
   text-align: start;
   color: var(--black-light);
 }
 /*PARAMETER CONTENT*/
-.parameter_content{
-  padding: 3rem 1rem;
+.parameter_content {
+  padding: 2rem 1rem;
   width: 75%;
   height: 100%;
   border-radius: 2rem;
   border: 2px solid rgba(255, 255, 255, 0.15);
   background-color: rgba(255, 255, 255, 0.15);
 }
+.parameter_content h2, .parameter_content h3 {
+  text-align: start;
+  font-size: 2rem;
+}
+/*GENERAUX*/
+.account-header {
+  justify-content: space-between;
+}
+.account-header img {
+  border-radius: 10px;
+  height: 70px;
+  width: 70px;
+}
+.account-page,
+.account-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+/*ACCOUNT-TOP*/
+.account-info,
+.account-info div {
+  gap: 1rem;
+}
+.account-top-form {
+  justify-content: space-between;
+}
+.account-top-form div {
+  gap: 0.5rem;
+}
+.account-top-form div label {
+  width: 100%;
+  text-align: start;
+}
+.account-top-form div input {
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background-color: var(--grey);
+}
+/*ACCOUNT-BOTTOM*/
+.account-bottom-form {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 7rem;
+}
+.account-bottom-form div {
+  align-items: flex-start;
+  gap: 1rem;
+}
+.account-bottom-form div div {
+  align-items: flex-end;
+}
+.account-bottom-form div img {
+  border-radius: 10px;
+  height: 70px;
+  width: 70px;
+}
+.btn-submit {
+  font-size: 1rem;
+  width: 300px;
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: linear-gradient(-130deg, var(--blue), var(--green));
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*GENERAL-SETTINGS*/
+.general-settings {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2rem;
+  gap: 2rem;
+}
+.general-settings form, .email-preferences{
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+/*THEME-SELECTION*/
+.theme-selection {
+  justify-content: flex-start;
+  gap: 2rem;
+}
+.theme-option, .email-preferences{
+  gap: 1rem;
+}
 
 
 
 
 /*************************AUTHENTIFICATION LOGIN & SIGN UP****************************/
-.auth-section{
+.auth-section {
   background-image: url(/img/bg.png);
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
 }
-.auth-container form{
+.auth-container form {
   width: 50vw;
   gap: 4rem;
 }
-.auth-container form h2{
+.auth-container form h2 {
   font-size: 3rem;
   color: var(--white);
 }
 /**Formulaire**/
-#login_form, #registration_form{
+#login_form,
+#registration_form {
   width: 65%;
   gap: 2rem;
 }
-#login_form div, #registration_form div{
+#login_form div,
+#registration_form div {
   width: 100%;
   display: flex;
   flex-direction: column;
 }
 /*Rester connecté, mdp oublié*/
-#login_form div:nth-child(3){
+#login_form div:nth-child(3) {
   display: flex;
-  flex-direction:row;
+  flex-direction: row;
   align-items: center;
   gap: 1rem;
 }
-#login_form div:nth-child(3) input{
+#login_form div:nth-child(3) input {
   order: 0;
   height: 20px;
   width: 20px;
 }
-#login_form div:nth-child(3) label{
+#login_form div:nth-child(3) label {
   font-size: 1rem;
   order: 1;
   padding: 0;
 }
-#login_form, #registration_form, .auth-container form{
+#login_form,
+#registration_form,
+.auth-container form {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
-#login_form div label, #registration_form div label{
+#login_form div label,
+#registration_form div label {
   font-size: 1.5rem;
   color: var(--white);
   padding-bottom: 1rem;
 }
-#login_form div input,#login_form div button, #registration_form div input, #registration_form div button{
+#login_form div input,
+#login_form div button,
+#registration_form div input,
+#registration_form div button {
   padding: 1rem 0.5rem;
   border-radius: 10px;
   border: 1px solid var(--white);
@@ -264,35 +355,40 @@ html {
   color: rgba(255, 255, 255, 0.7);
   font-size: 1.5rem;
 }
-#login_form div input::placeholder, #registration_form div input::placeholder{
+#login_form div input::placeholder,
+#registration_form div input::placeholder {
   color: rgba(255, 255, 255, 0.7);
 }
-#login_form div button, #registration_form div button{
+#login_form div button,
+#registration_form div button {
   background-image: linear-gradient(var(--green), var(--blue));
   border: 0;
   color: var(--black);
 }
 /**AUTHENTIFICATION DECORATE**/
-.auth-decorate{
+.auth-decorate {
   height: 100vh;
   width: 50vw;
   background-image: linear-gradient(var(--green), var(--blue));
   gap: 3rem;
 }
 /*TEXT*/
-.auth-decorate h3, .auth-decorate p, .auth-decorate a{
+.auth-decorate h3,
+.auth-decorate p,
+.auth-decorate a {
   color: var(--black-light);
 }
-.auth-decorate p, .auth-decorate a{
+.auth-decorate p,
+.auth-decorate a {
   font-size: 1.5rem;
 }
-.auth-decorate h3{
+.auth-decorate h3 {
   font-size: 3rem;
 }
-.auth-decorate p{
+.auth-decorate p {
   width: 75%;
 }
-.auth-decorate a{
+.auth-decorate a {
   padding: 0.5rem 1.5rem;
   border-radius: 15px;
   border: 2px solid var(--black-light);
