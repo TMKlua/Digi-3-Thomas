@@ -195,7 +195,7 @@ header nav ul li a {
 .parameter_content h2, .parameter_content h3 {
   font-size: 2rem;
 }
-/**GENERAL-SETTINGS PAGE**/
+/********GENERAL PAGE**************/
 .account-header {
   justify-content: space-between;
 }
@@ -274,7 +274,7 @@ header nav ul li a {
   gap: 1rem;
 }
 
-/**ABOUT-PAGE**/
+/**************ABOUT-PAGE***************/
 .about-page{
   gap: 2rem;
   align-items: flex-start;
@@ -312,9 +312,69 @@ header nav ul li a {
   background: #555;
 }
 
+/******************CONFIG DIGI-3*****************/
+.config{
+  display: flex;
+  flex-direction: column;
 
+}
+.config h3{
+  padding-bottom: 4rem;
+}
 
+/*SEARCHBAR*/
+.searchBar{
+  align-self: flex-start;
+  gap: 1rem;
+}
+.searchBar select{
+  font-size: 1rem;
+}
+#searchForm{
+  width: 200px;
+  gap: 1rem;
+}
+#searchForm, .searchBar select{
+  color: var(--grey);
+  border: 2px solid var(--grey);
+  background-color: transparent;
+  padding: 0.5rem 2rem;
+  border-radius: 10px;
+}
+#searchForm input{
+  background-color: transparent;
+  font-size: 1rem;
+  border: transparent;
+}
+#searchForm button img {
+  height: 20px;
+}
 
+/*TABLEAU*/
+.config table{
+  margin-top: 1rem;
+  padding: 1.5rem 1rem;
+
+  border-radius: 30px;
+  border: 2px solid rgba(41,41,41,0.56);
+  background-color: rgba(41,41,41,0.15);
+}
+.config thead{
+  width: 100%;
+}
+.config table tr{
+  width: 100%;
+  justify-content: space-between;
+}
+.config table th{
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: 2px solid rgba(41,41,41,0.56);
+  background-color: rgba(41,41,41,0.56);
+  font-size: 1rem;
+  color: var(--grey);
+  width: 20%;
+}
 
 
 

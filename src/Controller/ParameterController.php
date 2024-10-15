@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Form\SearchFormType;
-use App\Entity\Parameter;
 use App\Form\AppFormParameterType;
+use App\Entity\Parameter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,15 +18,17 @@ class ParameterController extends AbstractController
     {
          // Créez le formulaire de recherche ici
     $searchForm = $this->createForm(SearchFormType::class);
+    $createForm = $this->createForm(AppFormParameterType::class);
+
 
     // Autres logiques de traitement (ex: affichage des paramètres par défaut)
     $parameters = $entityManager->getRepository(Parameter::class)->findAll();
 
     return $this->render('parameter/config.html.twig', [
         'searchForm' => $searchForm->createView(), // Passer le formulaire à la vue
+        'createForm' => $createForm->createView(),
         'parameters' => $parameters
     ]);
-        // $parameters = $entityManager->getRepository(Parameter::class)->findAll();
 
         // // Traiter les formulaires d'édition et de suppression
         // foreach ($parameters as $existingParameter) {
@@ -43,9 +45,10 @@ class ParameterController extends AbstractController
         //     $existingParameter->deleteForm = $deleteForm->createView();
         // }
 
-        // return $this->render('parameter/config.html.twig', [
-        //     'parameters' => $parameters,  // Transmets les paramètres ici
-        // ]); 
+        return $this->render('parameter/config.html.twig', [
+            'form' => $form->createView(), // On passe le formulaire à la vue
+            'parameters' => $parameters,  // Transmets les paramètres ici
+        ]); 
     }
 
     
@@ -94,7 +97,6 @@ class ParameterController extends AbstractController
                    ->orWhere('p.paramValue LIKE :searchTerm')
                    ->orWhere('p.paramDateFrom LIKE :searchTerm')
                    ->orWhere('p.paramDateTo LIKE :searchTerm')
-                   ->orWhere('p.paramUser LIKE :searchTerm')
                    ->setParameter('searchTerm', '%' . $searchTerm . '%')
                    ->getQuery()
                    ->getResult();
@@ -116,17 +118,11 @@ class ParameterController extends AbstractController
         return $this->render('parameter/index.html.twig'); // Assurez-vous de créer ce fichier Twig
     }
 
-    
-
-
     #[Route('/parameter/about', name: 'app_parameter_about')]
     public function about(): Response
     {
         return $this->render('parameter/about.html.twig'); // Assurez-vous de créer ce fichier Twig
     }
-
-
-
 }   
 
 
