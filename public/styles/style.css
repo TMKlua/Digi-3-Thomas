@@ -354,19 +354,19 @@ header nav ul li a {
 .config table{
   margin-top: 1rem;
   padding: 1.5rem 1rem;
-
   border-radius: 30px;
   border: 2px solid rgba(41,41,41,0.56);
   background-color: rgba(41,41,41,0.15);
+  gap: 1rem;
 }
 .config thead{
   width: 100%;
 }
-.config table tr{
-  width: 100%;
-  justify-content: space-between;
+.config thead tr{
+  width: 90%;
+  gap: 1rem;
 }
-.config table th{
+.config thead tr th{
   padding: 0.5rem 1rem;
   border-radius: 10px;
   border: 2px solid rgba(41,41,41,0.56);
@@ -375,10 +375,36 @@ header nav ul li a {
   color: var(--grey);
   width: 20%;
 }
+#parameter_table{
+  align-self: flex-start;
+  width: 100%;
+  justify-content: space-between;
+  gap: 1rem;
+}
+#parameter_table tr{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+#parameter_table td{
+  padding: 0.5rem 1rem;
+    border-radius: 10px;
+    border: 2px solid rgba(41, 41, 41, 0.16);
+    background-color: rgba(41, 41, 41, 0.16);
+    font-size: 1rem;
+  color: var(--grey);
+  width: 20%;
+}
+#parameter_table td:nth-child(5){
+  width: 5%;
+}
 
-
-
-
+/*DELETEBTN*/
+#deleteBtn img{
+  height: 25px;
+}
 
 
 

@@ -17,11 +17,13 @@ class AppFormParameterType extends AbstractType
             ->add('paramValue')
             ->add('paramDateFrom', DateTimeType::class, [
                 'widget' => 'single_text',
-                'input'  => 'datetime',
+                'input'  => 'datetime',  // Assurez-vous que cela correspond au type attendu par votre entité
+                'html5'  => true,
             ])
             ->add('paramDateTo', DateTimeType::class, [
                 'widget' => 'single_text',
-                'input'  => 'datetime',
+                'input'  => 'datetime',  // Assurez-vous que cela correspond au type attendu par votre entité
+                'html5'  => true,
             ]); 
     }
 

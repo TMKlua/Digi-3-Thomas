@@ -9,109 +9,101 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Psr\Log\LoggerInterface;
 
 class ParameterController extends AbstractController
 {
-   #[Route('/parameter/app_configuration', name: 'app_parameter_app_configuration', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): Response
+    #[Route('/parameter/app_configuration', name: 'app_parameter_app_configuration', methods: ['GET', 'POST'])]
+    public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
-         // Créez le formulaire de recherche ici
-    $searchForm = $this->createForm(SearchFormType::class);
-    $createForm = $this->createForm(AppFormParameterType::class);
+        $searchForm = $this->createForm(SearchFormType::class);
 
-
-    // Autres logiques de traitement (ex: affichage des paramètres par défaut)
-    $parameters = $entityManager->getRepository(Parameter::class)->findAll();
-
-    return $this->render('parameter/config.html.twig', [
-        'searchForm' => $searchForm->createView(), // Passer le formulaire à la vue
-        'createForm' => $createForm->createView(),
-        'parameters' => $parameters
-    ]);
-
-        // // Traiter les formulaires d'édition et de suppression
-        // foreach ($parameters as $existingParameter) {
-        //     // Formulaire pour la modification
-        //     $editForm = $this->createForm(AppFormParameterType::class, $existingParameter);
-            
-        //     // Formulaire pour la suppression
-        //     $deleteForm = $this->createFormBuilder()
-        //         ->setAction($this->generateUrl('app_parameter_app_configuration', ['id' => $existingParameter->getId()]))
-        //         ->setMethod('POST')
-        //         ->getForm();
-
-        //     $existingParameter->editForm = $editForm->createView();
-        //     $existingParameter->deleteForm = $deleteForm->createView();
-        // }
+        // $createForm = $this->createForm(AppFormParameterType::class);
+        $parameters = $entityManager->getRepository(Parameter::class)->findAll();
 
         return $this->render('parameter/config.html.twig', [
-            'form' => $form->createView(), // On passe le formulaire à la vue
-            'parameters' => $parameters,  // Transmets les paramètres ici
-        ]); 
+            'searchForm' => $searchForm->createView(), // Passer le formulaire à la vue
+            // 'createForm' => $createForm->createView(),
+            'parameters' => $parameters
+        ]);
     }
 
-    
-
-    #[Route('/parameter/create', name: 'app_parameter_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $parameter = new Parameter();
-        $form = $this->createForm(AppFormParameterType::class, $parameter);
-        $form->handleRequest($request);
-    
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($parameter);
-            $entityManager->flush();
-    
-            // Renvoie une réponse JSON pour confirmer la création
-            return $this->json(['status' => 'success', 'parameter' => [
-                'paramKey' => $parameter->getParamKey(),
-                'paramValue' => $parameter->getParamValue(),
-                // Ajoute d'autres propriétés si nécessaire
-            ]]);
-        }
-    
-        return $this->json(['status' => 'error', 'errors' => (string) $form->getErrors(true, false)]);
-    }
-    
 
     #[Route('/parameter/search', name: 'app_ajax_search', methods: ['POST'])]
     public function search(Request $request, EntityManagerInterface $entityManager): Response
     {
-           // Créer le formulaire
-           $form = $this->createForm(SearchFormType::class);
-           $form->handleRequest($request); // Gère la requête
-   
-           $parameters = [];
-   
-           if ($form->isSubmitted() && $form->isValid()) {
-               // Récupère les données du formulaire
-               $searchTerm = $form->get('searchTerm')->getData();
-   
-               // Rechercher les paramètres correspondant à la recherche
-               $parameters = $entityManager
-                   ->getRepository(Parameter::class)
-                   ->createQueryBuilder('p')
-                   ->where('p.paramKey LIKE :searchTerm')
-                   ->orWhere('p.paramValue LIKE :searchTerm')
-                   ->orWhere('p.paramDateFrom LIKE :searchTerm')
-                   ->orWhere('p.paramDateTo LIKE :searchTerm')
-                   ->setParameter('searchTerm', '%' . $searchTerm . '%')
-                   ->getQuery()
-                   ->getResult();
-           }
-        // Générer le HTML avec le fichier Twig
+        // Créer le formulaire
+        $form = $this->createForm(SearchFormType::class);
+        $form->handleRequest($request);
+
+        // Initialiser la variable des paramètres
+        $parameters = [];
+        $currentDateTime = new \DateTime();
+
+        // Vérifier si le formulaire est soumis et valide
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer les données du formulaire
+            $searchTerm = $form->get('searchTerm')->getData();
+            $showAll = $form->get('showAll')->getData();
+
+            // Construire la requête QueryBuilder
+            $qb = $entityManager->getRepository(Parameter::class)->createQueryBuilder('p');
+
+            // Appliquer les filtres selon le terme de recherche
+            if ($searchTerm) {
+                $qb->andWhere('p.paramKey LIKE :searchTerm')
+                    ->setParameter('searchTerm', '%' . $searchTerm . '%');
+            }
+
+            // Filtrer les enregistrements actifs si "showAll" n'est pas coché
+            if (!$showAll) {
+                $qb->andWhere('p.paramDateFrom <= :currentDate')
+                    ->andWhere('p.paramDateTo >= :currentDate')
+                    ->setParameter('currentDate', $currentDateTime);
+            }
+
+            // Exécuter la requête pour obtenir les résultats
+            $parameters = $qb->getQuery()->getResult();
+        }
+
+        // Générer le HTML avec Twig, même si le tableau est vide
         $html = $this->renderView('parameter/tableau_parameter.html.twig', [
-            'parameters' => $parameters
+            'parameters' => $parameters,
         ]);
-    
-        // Renvoyer le HTML sous forme de réponse JSON
+
+        // Retourner la réponse JSON contenant les résultats et le HTML généré
         return $this->json([
-            'html' => $html
+            'parameters' => $parameters, // Retourne les paramètres trouvés
+            'html' => $html, // HTML à afficher dans le tableau
         ]);
     }
-        
+
+    #[Route('/parameter/delete/{id}', name: 'app_parameter_delete', methods: ['DELETE'])]
+    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        // Récupérer le paramètre à supprimer
+        $parameter = $entityManager->getRepository(Parameter::class)->find($id);
+
+        if (!$parameter) {
+            return $this->json(['success' => false, 'message' => 'Paramètre non trouvé.'], 404);
+        }
+
+        // Supprimer le paramètre
+        $entityManager->remove($parameter);
+        $entityManager->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+
+    #[Route('/parameter/create', name: 'app_parameter_create', methods: ['POST'])]
+    public function create(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        return $this->render('parameter/config.html.twig'); // Assurez-vous de créer ce fichier Twig
+    }
+
     #[Route('/parameter/generaux', name: 'app_parameter_generaux')]
     public function generaux(): Response
     {
@@ -123,6 +115,4 @@ class ParameterController extends AbstractController
     {
         return $this->render('parameter/about.html.twig'); // Assurez-vous de créer ce fichier Twig
     }
-}   
-
-
+}

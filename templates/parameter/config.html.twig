@@ -1,6 +1,5 @@
-{% extends 'base.html.twig' %} 
-{% block title %}Digi-3 - Configuration de l'application{% endblock %} 
-{% block body %} 
+{% extends 'base.html.twig' %} {% block title %}Digi-3 - Configuration de
+l'application{% endblock %} {% block body %}
 {%include'includes/header.html.twig' %}
 <section class="parameter_landing flex">
   <div class="parameter_menu">
@@ -20,16 +19,19 @@
   <div class="parameter_content config">
     <h3>Configuration de l'application</h3>
     <div class="searchBar flex">
-      {{ form_start(searchForm, { attr: { id: "searchForm", class: "flex" } }) }}
-      {{ form_widget(searchForm.searchTerm) }}
+      {{
+        form_start(searchForm, {
+          action: path("app_ajax_search"),
+          method: "POST",
+          attr: { id: "searchForm", class: "flex" }
+        })
+      }}
+      {{ form_widget(searchForm.searchTerm) }} 
+      {{ form_widget(searchForm.showAll) }} 
       <button type="submit" class="flex">
         <img src="/img/search.png" alt="icon rechercher" />
       </button>
       {{ form_end(searchForm) }}
-      <select name="date_select">
-        <option value="">Date</option>
-        <option value=""></option>
-      </select>
     </div>
     <table class="flex-col">
       <thead>
@@ -40,15 +42,21 @@
           <th>DateFin</th>
         </tr>
       </thead>
-      <tbody id="parameter_table">
+      <tbody id="parameter_table" class="flex-col">
         {% include 'parameter/tableau_parameter.html.twig' with { 'parameter':
         parameters } %}
       </tbody>
     </table>
-    {{ form_start(createForm, {'action': path('app_parameter_create'), 'method': 'POST'}) }}
+    {#
+    {{
+      form_start(createForm, {
+        action: path("app_parameter_create"),
+        method: "POST"
+      })
+    }}
     {{ form_widget(createForm) }}
     <button type="submit" class="parameter_create">Créer un paramètre</button>
-    {{ form_end(createForm) }}
+    {{ form_end(createForm) }} #}
   </div>
 </section>
 {% endblock %}

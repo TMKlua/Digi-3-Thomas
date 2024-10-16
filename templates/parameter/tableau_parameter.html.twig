@@ -9,11 +9,8 @@
     {{ form_widget(parameter.editForm) }}
   
     {{ form_end(parameter.editForm) }} #}
-    <button type="submit">Modifier</button>
-    <button type="submit">Supprimer</button>
-    {# {{ form_start(parameter.deleteForm) }}
-  
-    {{ form_end(parameter.deleteForm) }} #}
+    {# <button type="submit">M</button> #}
+    <button type="submit" id="deleteBtn" class="flex" data-id="{{ parameter.id }}"><img src="/img/settings/supprimer.png" alt=""></button>
   </td>
 </tr>
 {% endfor %}
