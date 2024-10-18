@@ -392,6 +392,7 @@ header nav ul li a {
   gap: 1rem;
 }
 #parameter_table td{
+  height: 1.2rem;
   padding: 0.5rem 1rem;
     border-radius: 10px;
     border: 2px solid rgba(41, 41, 41, 0.16);
@@ -406,7 +407,7 @@ header nav ul li a {
 
 /*DELETEBTN*/
 #deleteBtn img{
-  height: 25px;
+  height: 20px;
 }
 
 

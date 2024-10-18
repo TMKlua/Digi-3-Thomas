@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchForm = document.getElementById("searchForm");
   const parameterTable = document.getElementById("parameter_table");
   const deleteBtns = document.querySelectorAll("#deleteBtn");
-  const createForm = document.getElementById('createForm');
+  const createForm = document.getElementById("createForm");
 
   searchForm.addEventListener("input", (event) => {
     event.preventDefault(); // Empêche le rechargement de la page lors de la soumission du formulaire
@@ -77,23 +77,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-  
-   createForm.addEventListener('submit', (event) => {
-      event.preventDefault();
 
-      const formData = new FormData(createForm); // Récupère les données du formulaire
-       // Log pour vérifier les données avant envoi
-    for (var pair of formData.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
-  }
-      fetch('/parameter/create', {
-          method: 'POST',
-          body: formData ,// Envoie les données du formulaire
-          headers: {
-            "Content-Type": "application/json",
-            "X-Requested-With": "XMLHttpRequest", // Indique que c'est une requête AJAX
-          },
-      })
+  createForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(createForm);
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+    fetch("/parameter/create", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error(
@@ -102,21 +100,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return response.json();
       })
-      .then(data => {
+      .then((data) => {
         console.log(data);
-          if (data.success) {
-              // Ajouter le nouveau paramètre à la liste
-              const parameterItem = document.createElement('div');
-              parameterItem.classList.add('parameter-item');
-              parameterItem.innerHTML = `<h3>${data.parameter.paramKey}</h3><p>${data.parameter.paramValue}</p>`;
-              parameterTable.appendChild(parameterItem);
-
-              // Réinitialiser le formulaire
-              createForm.reset();
-          } else {
-              console.error('Erreur lors de la création du paramètre.');
-          }
+        if (data.success) {
+          parameterTable.innerHTML = data.html; // Met à jour le tableau avec les résultats
+          createForm.reset();
+        } else {
+          console.error("Erreur lors de la création du paramètre.");
+        }
       })
-      .catch(error => console.error('Erreur:', error));
+      .catch((error) => console.error("Erreur:", error));
   });
 });

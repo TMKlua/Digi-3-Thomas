@@ -27,12 +27,10 @@ class Parameter
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Assert\NotBlank(message: "Le champ paramDateFrom ne doit pas être vide.")]
-    #[Assert\DateTime(message: "La date de début doit être valide.")]
     private ?\DateTimeInterface $paramDateFrom = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Assert\NotBlank(message: "Le champ paramDateTo ne doit pas être vide.")]
-    #[Assert\DateTime(message: "La date de fin doit être valide.")]
     private ?\DateTimeInterface $paramDateTo = null;
 
 

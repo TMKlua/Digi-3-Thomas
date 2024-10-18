@@ -20,6 +20,19 @@ class ParameterController extends AbstractController
     {
         $createForm = $this->createForm(AppFormParameterType::class);
         $searchForm = $this->createForm(SearchFormType::class);
+
+        // $showAll = $searchForm->get('showAll')->getData();
+        // $currentDateTime = new \DateTime();
+        // // Construire la requête QueryBuilder
+        // $parameters = $entityManager->getRepository(Parameter::class)->createQueryBuilder('p');
+
+        // // Filtrer les enregistrements actifs si "showAll" n'est pas coché
+        // $parameters->andWhere('p.paramDateFrom <= :currentDate')
+        //     ->andWhere('p.paramDateTo >= :currentDate')
+        //     ->setParameter('currentDate', $currentDateTime)
+        //     ->getQuery()
+        //     ->getResult();
+
         // Récupérer la date actuelle
         $currentDateTime = new \DateTime();
         $parameters = $entityManager->getRepository(Parameter::class)
@@ -128,13 +141,12 @@ class ParameterController extends AbstractController
         ]);
     }
 
-
     #[Route('/parameter/create', name: 'app_parameter_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         // Créer une nouvelle instance de Parameter
         $parameter = new Parameter();
-     
+
 
         // Créer le formulaire et gérer la requête
         $form = $this->createForm(AppFormParameterType::class, $parameter);
@@ -143,29 +155,51 @@ class ParameterController extends AbstractController
         // Si le formulaire est soumis et valide
         if ($form->isSubmitted()) {
             if ($form->isValid()) {
-                // Persister le nouveau paramètre dans la base de données
-                $entityManager->persist($parameter);
-                $entityManager->flush();
+                // Récupérer les valeurs des dates
+                $paramDateFrom = $parameter->getParamDateFrom();
+                $paramDateTo = $parameter->getParamDateTo();
 
-                // Recharger les paramètres mis à jour
-                $parameters = $entityManager->getRepository(Parameter::class)->findAll();
-                // Générer le HTML mis à jour pour le tableau des paramètres
-                $html = $this->renderView('parameter/tableau_parameter.html.twig', [
-                    'parameters' => $parameters,
-                ]);
+                // Vérification de la cohérence des dates
+                if ($paramDateFrom instanceof \DateTimeInterface && $paramDateTo instanceof \DateTimeInterface) {
+                    // Vérifier que la date de début est avant la date de fin
+                    if ($paramDateFrom <= $paramDateTo) {
+                        // Persister le nouveau paramètre dans la base de données
+                        $entityManager->persist($parameter);
+                        $entityManager->flush();
 
-                // Renvoyer la réponse avec le paramètre créé
-                return $this->json([
-                    'success' => true,
-                    'parameter' => [
-                        'paramKey' => $parameter->getParamKey(),
-                        'paramValue' => $parameter->getParamValue(),
-                        'paramDateFrom' => $parameter->getParamDateFrom()->format('Y-m-d H:i'), // Formatage des dates
-                        'paramDateTo' => $parameter->getParamDateTo()->format('Y-m-d H:i'),
+                        // Recharger les paramètres mis à jour
+                        $parameters = $entityManager->getRepository(Parameter::class)->findAll();
 
-                    ],
-                    'html' => $html, // Renvoie le HTML mis à jour
-                ]);
+                        // Générer le HTML mis à jour pour le tableau des paramètres
+                        $html = $this->renderView('parameter/tableau_parameter.html.twig', [
+                            'parameters' => $parameters,
+                        ]);
+
+                        // Renvoyer la réponse avec le paramètre créé
+                        return $this->json([
+                            'success' => true,
+                            'parameter' => [
+                                'paramKey' => $parameter->getParamKey(),
+                                'paramValue' => $parameter->getParamValue(),
+                                'paramDateFrom' => $paramDateFrom->format('Y-m-d H:i'), // Formatage des dates
+                                'paramDateTo' => $paramDateTo->format('Y-m-d H:i'),
+                            ],
+                            'html' => $html, // Renvoie le HTML mis à jour
+                        ]);
+                    } else {
+                        // Si la date de début est postérieure à la date de fin
+                        return $this->json([
+                            'success' => false,
+                            'message' => 'La date de début ne peut pas être après la date de fin.',
+                        ]);
+                    }
+                } else {
+                    // Si les dates ne sont pas valides
+                    return $this->json([
+                        'success' => false,
+                        'message' => 'Les dates ne sont pas valides.',
+                    ]);
+                }
             } else {
                 // Collecter et retourner les erreurs de validation
                 $errors = [];
