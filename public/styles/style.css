@@ -331,15 +331,18 @@ header nav ul li a {
   font-size: 1rem;
 }
 #searchForm{
-  width: 200px;
+
   gap: 1rem;
 }
-#searchForm, .searchBar select{
+#searchForm{
   color: var(--grey);
-  border: 2px solid var(--grey);
   background-color: transparent;
-  padding: 0.5rem 2rem;
-  border-radius: 10px;
+  padding: 0.5rem 1rem;
+}
+
+#search_form_searchTerm{
+  width: 10rem;
+  color: var(--grey);
 }
 #searchForm input{
   background-color: transparent;

@@ -18,14 +18,21 @@ class ParameterController extends AbstractController
     #[Route('/parameter/app_configuration', name: 'app_parameter_app_configuration', methods: ['GET', 'POST'])]
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $createForm = $this->createForm(AppFormParameterType::class);
         $searchForm = $this->createForm(SearchFormType::class);
-
-        // $createForm = $this->createForm(AppFormParameterType::class);
-        $parameters = $entityManager->getRepository(Parameter::class)->findAll();
+        // Récupérer la date actuelle
+        $currentDateTime = new \DateTime();
+        $parameters = $entityManager->getRepository(Parameter::class)
+            ->createQueryBuilder('p')
+            ->where('p.paramDateFrom <= :currentDate')
+            ->andWhere('p.paramDateTo >= :currentDate')
+            ->setParameter('currentDate', $currentDateTime)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('parameter/config.html.twig', [
             'searchForm' => $searchForm->createView(), // Passer le formulaire à la vue
-            // 'createForm' => $createForm->createView(),
+            'createForm' => $createForm->createView(),
             'parameters' => $parameters
         ]);
     }
@@ -47,6 +54,7 @@ class ParameterController extends AbstractController
             // Récupérer les données du formulaire
             $searchTerm = $form->get('searchTerm')->getData();
             $showAll = $form->get('showAll')->getData();
+            $dateSelect = $form->get('dateSelect')->getData();
 
             // Construire la requête QueryBuilder
             $qb = $entityManager->getRepository(Parameter::class)->createQueryBuilder('p');
@@ -64,6 +72,12 @@ class ParameterController extends AbstractController
                     ->setParameter('currentDate', $currentDateTime);
             }
 
+            // Filtrer par la date sélectionnée si une date est fournie
+            if ($dateSelect) {
+                $qb->andWhere('p.paramDateFrom <= :dateSelect')
+                    ->andWhere('p.paramDateTo >= :dateSelect')
+                    ->setParameter('dateSelect', $dateSelect);
+            }
             // Exécuter la requête pour obtenir les résultats
             $parameters = $qb->getQuery()->getResult();
         }
@@ -80,8 +94,8 @@ class ParameterController extends AbstractController
         ]);
     }
 
-    #[Route('/parameter/delete/{id}', name: 'app_parameter_delete', methods: ['DELETE'])]
-    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/parameter/delete/{id}', name: 'app_parameter_delete', methods: ['POST'])]
+    public function delete(int $id, EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
         // Récupérer le paramètre à supprimer
         $parameter = $entityManager->getRepository(Parameter::class)->find($id);
@@ -89,19 +103,89 @@ class ParameterController extends AbstractController
         if (!$parameter) {
             return $this->json(['success' => false, 'message' => 'Paramètre non trouvé.'], 404);
         }
+        $currentDateTime = new \DateTime();
+        $parameter->setParamDateTo($currentDateTime);
 
-        // Supprimer le paramètre
-        $entityManager->remove($parameter);
-        $entityManager->flush();
+        try {
+            $entityManager->persist($parameter);
+            $entityManager->flush();
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Erreur lors de la mise à jour.'], 500);
+        }
 
-        return $this->json(['success' => true]);
+        // Récupérer tous les paramètres après la mise à jour
+        $allParameters = $entityManager->getRepository(Parameter::class)->findAll();
+
+        // Générer le HTML pour le tableau avec les paramètres restants
+        $html = $this->renderView('parameter/tableau_parameter.html.twig', [
+            'parameters' => $allParameters,
+        ]);
+
+        return $this->json([
+            'success' => true,
+            'html' => $html, // Retourne le HTML mis à jour
+            'parameters' => $allParameters, // Retourne tous les paramètres restants
+        ]);
     }
 
 
     #[Route('/parameter/create', name: 'app_parameter_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): Response
+    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        return $this->render('parameter/config.html.twig'); // Assurez-vous de créer ce fichier Twig
+        // Créer une nouvelle instance de Parameter
+        $parameter = new Parameter();
+     
+
+        // Créer le formulaire et gérer la requête
+        $form = $this->createForm(AppFormParameterType::class, $parameter);
+        $form->handleRequest($request);
+
+        // Si le formulaire est soumis et valide
+        if ($form->isSubmitted()) {
+            if ($form->isValid()) {
+                // Persister le nouveau paramètre dans la base de données
+                $entityManager->persist($parameter);
+                $entityManager->flush();
+
+                // Recharger les paramètres mis à jour
+                $parameters = $entityManager->getRepository(Parameter::class)->findAll();
+                // Générer le HTML mis à jour pour le tableau des paramètres
+                $html = $this->renderView('parameter/tableau_parameter.html.twig', [
+                    'parameters' => $parameters,
+                ]);
+
+                // Renvoyer la réponse avec le paramètre créé
+                return $this->json([
+                    'success' => true,
+                    'parameter' => [
+                        'paramKey' => $parameter->getParamKey(),
+                        'paramValue' => $parameter->getParamValue(),
+                        'paramDateFrom' => $parameter->getParamDateFrom()->format('Y-m-d H:i'), // Formatage des dates
+                        'paramDateTo' => $parameter->getParamDateTo()->format('Y-m-d H:i'),
+
+                    ],
+                    'html' => $html, // Renvoie le HTML mis à jour
+                ]);
+            } else {
+                // Collecter et retourner les erreurs de validation
+                $errors = [];
+                foreach ($form->getErrors(true) as $error) {
+                    $errors[] = $error->getMessage();
+                }
+
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Formulaire invalide.',
+                    'errors' => $errors, // Renvoie les détails des erreurs
+                ]);
+            }
+        }
+
+        // Si le formulaire n'est pas soumis correctement
+        return $this->json([
+            'success' => false,
+            'message' => 'Formulaire non soumis correctement.',
+        ]);
     }
 
     #[Route('/parameter/generaux', name: 'app_parameter_generaux')]

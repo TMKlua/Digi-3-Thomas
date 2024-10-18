@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -17,25 +18,20 @@ class SearchFormType extends AbstractType
             ->add('searchTerm', TextType::class, [
                 'label' => false, // Pas besoin de label pour une barre de recherche
                 'attr' => [
-                    'placeholder' => 'Rechercher un paramètre',
+                    'placeholder' => 'Rechercher',
                 ]
             ])
             ->add('showAll', CheckboxType::class, [
                 'label'    => 'Historique',
                 'required' => false,
             ])
-            ->add('date_select', ChoiceType::class, [
-                'label' => false, // Pas de label pour le select
-                'choices' => [
-                    'Date' => null,  // Option par défaut vide
-                    'Aujourd\'hui' => 'today',
-                    'Cette semaine' => 'this_week',
-                    'Ce mois' => 'this_month',
-                    'Cette année' => 'this_year',
-                    // Ajoutez d'autres options si nécessaire
+            ->add('dateSelect', DateType::class, [
+                'widget' => 'single_text',  // Permet d'afficher un calendrier
+                'label' => false,
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Choisir une date'
                 ],
-                'placeholder' => 'Choisir une date', // Placeholder
-                'required' => false, // Permettre à l'utilisateur de ne pas sélectionner de date
             ]);
     }
 

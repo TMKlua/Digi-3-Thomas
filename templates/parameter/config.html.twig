@@ -26,11 +26,11 @@ l'application{% endblock %} {% block body %}
           attr: { id: "searchForm", class: "flex" }
         })
       }}
-      {{ form_widget(searchForm.searchTerm) }} 
-      {{ form_widget(searchForm.showAll) }} 
+      {{ form_widget(searchForm.searchTerm) }}
       <button type="submit" class="flex">
         <img src="/img/search.png" alt="icon rechercher" />
       </button>
+      {{ form_widget(searchForm.showAll) }}
       {{ form_end(searchForm) }}
     </div>
     <table class="flex-col">
@@ -47,16 +47,16 @@ l'application{% endblock %} {% block body %}
         parameters } %}
       </tbody>
     </table>
-    {#
     {{
       form_start(createForm, {
         action: path("app_parameter_create"),
-        method: "POST"
+        method: "POST",
+        attr: { id: "createForm", class: "flex" }
       })
     }}
     {{ form_widget(createForm) }}
     <button type="submit" class="parameter_create">Créer un paramètre</button>
-    {{ form_end(createForm) }} #}
+    {{ form_end(createForm) }}
   </div>
 </section>
 {% endblock %}
