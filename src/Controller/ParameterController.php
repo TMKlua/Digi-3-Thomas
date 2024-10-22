@@ -117,6 +117,9 @@ class ParameterController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Paramètre non trouvé.'], 404);
         }
         $currentDateTime = new \DateTime();
+        if ($parameter->getParamDateTo() < $currentDateTime) {
+            return $this->json(['success' => false, 'message' => 'Impossible de supprimer un paramètre non-actif.'], 403);
+        }
         $parameter->setParamDateTo($currentDateTime);
 
         try {

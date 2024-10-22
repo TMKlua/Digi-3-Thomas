@@ -1,4 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+  document.querySelectorAll('.parameter-item').forEach((item) => {
+    const paramDateTo = new Date(item.dataset.paramDateTo); // Assure-toi que cette valeur est dans ton HTML
+    const currentDate = new Date();
+
+    if (paramDateTo < currentDate) {
+        // Si la date de fin est passée, désactive les boutons supprimer et modifier
+        item.querySelector('#deleteBtn').disabled = true;
+        item.querySelector('#editBtn').disabled = true;
+    }
+});
+
+
   const searchForm = document.getElementById("searchForm");
   const parameterTable = document.getElementById("parameter_table");
   const deleteBtns = document.querySelectorAll("#deleteBtn");
@@ -111,4 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((error) => console.error("Erreur:", error));
   });
+
+  
 });
