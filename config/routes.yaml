@@ -6,11 +6,11 @@ controllers:
 
 app_login:
     path: /login
-    controller: App\Controller\AuthController::login
+    controller: App\Controller\SecurityController::login
 
 app_register:
-    path: /register
-    controller: App\Controller\AuthController::register
+    path: /auth
+    controller: App\Controller\SecurityController::auth
 
 app_logout:
     path: /logout
