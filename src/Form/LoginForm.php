@@ -28,6 +28,9 @@ class LoginForm extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([]);
+        $resolver->setDefaults([
+            // Le formulaire n'est pas lié à une classe spécifique, 
+            // car nous allons traiter l'authentification différemment.
+        ]);
     }
 }

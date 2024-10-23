@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\GeneralSettings;
 use App\Form\SearchFormType;
 use App\Form\AppFormParameterType;
 use App\Entity\Parameter;
+use App\Form\GeneralSettingsType;
+use App\Form\UpdateAccountType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -228,12 +231,79 @@ class ParameterController extends AbstractController
     #[Route('/parameter/generaux', name: 'app_parameter_generaux')]
     public function generaux(): Response
     {
-        return $this->render('parameter/index.html.twig'); // Assurez-vous de créer ce fichier Twig
-    }
+        $user = $this->getUser(); // Récupérer l'utilisateur connecté
+        return $this->render('parameter/index.html.twig', [
+            'user' => $user, // Passer l'utilisateur au template
+        ]);
+    }    
 
     #[Route('/parameter/about', name: 'app_parameter_about')]
     public function about(): Response
     {
         return $this->render('parameter/about.html.twig'); // Assurez-vous de créer ce fichier Twig
     }
+
+    #[Route('/parameter/update_account', name: 'app_update_account', methods: ['GET', 'POST'])]
+    public function updateAccount(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Récupérer l'utilisateur connecté
+        $user = $this->getUser();
+
+        // Si aucun utilisateur n'est connecté, redirigez vers la page de connexion ou montrez un message d'erreur
+        if (!$user) {
+            return $this->redirectToRoute('app_login'); // Remplacez 'app_login' par le nom de votre route de connexion
+        }
+
+        // Créer le formulaire de mise à jour
+        $form = $this->createForm(UpdateAccountType::class, $user);
+        $form->handleRequest($request);
+
+        // Vérifier si le formulaire est soumis et valide
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Mettre à jour l'utilisateur dans la base de données
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            // Rediriger vers une page de succès ou la page d'accueil après la mise à jour
+            return $this->redirectToRoute('app_parameter_generaux'); // Remplacez par votre route de redirection
+        }
+
+        return $this->render('parameter/update_account.html.twig', [
+            'form' => $form->createView(),
+            'user' => $user,
+        ]);
+    }
+
+    #[Route('/parameter/update_general_settings', name: 'app_update_general_settings', methods: ['GET', 'POST'])]
+    public function updateGeneralSettings(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Récupérer les paramètres généraux (assurez-vous d'avoir une méthode pour cela)
+        $generalSettings = $entityManager->getRepository(GeneralSettings::class)->find(1); // Adaptez selon votre logique
+
+        // Si aucun paramètre général n'est trouvé, vous pouvez créer une nouvelle instance
+        if (!$generalSettings) {
+            $generalSettings = new GeneralSettings();
+        }
+
+        // Créer le formulaire pour les paramètres généraux
+        $form = $this->createForm(GeneralSettingsType::class, $generalSettings);
+        $form->handleRequest($request);
+
+        // Vérifiez si le formulaire est soumis et valide
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Persistez les changements
+            $entityManager->persist($generalSettings);
+            $entityManager->flush();
+
+            // Rediriger vers une page de succès ou une autre page après la mise à jour
+            return $this->redirectToRoute('app_parameter_generaux'); // Remplacez par votre route de redirection
+        }
+
+        // Rendre la vue avec le formulaire
+        return $this->render('parameter/update_general_settings.html.twig', [
+            'form' => $form->createView(),
+            'generalSettings' => $generalSettings,
+        ]);
+    }
+
 }

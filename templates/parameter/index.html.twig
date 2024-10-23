@@ -1,105 +1,117 @@
-{% extends 'base.html.twig' %} {% block title %}Digi-3 - Paramètres généraux{% endblock %} {% block body %} {# Inclusion du header #} {%
-include 'includes/header.html.twig' %}
+{% extends 'base.html.twig' %}
 
-<section class="parameter_landing flex">
-  <div class="parameter_menu">
-    <ul class="flex-col">
-      <li class="parameter_menu_active"><a href="{{ path('app_parameter_generaux') }}">GENERAUX</a></li>
-      <li><a href="">GESTION USER</a></li>
-      <li><a href="">GESTION PROJET</a></li>
-      <li><a href="">GESTION CLIENTS</a></li>
-      <li><a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a></li>
-      <li><a href="{{ path('app_parameter_about') }}">A PROPOS</a></li>
-    </ul>
-  </div>
-  <div class="parameter_content">
-    <div class="account-page">
-      <div class="account-header flex">
-        <h2>Mon compte</h2>
-          <div class="account-info flex">
-              <div class="flex-col">
-                  <h1>John Doe</h1>
-                  <p>Dev Fullstack</p>
-              </div>
-              <img src="/img/account/pdp.jpg" alt="Photo de profil de " class="profile-picture">
-          </div>
-      </div>
-      <form method="post" action="" enctype="multipart/form-data" >
-        <div class="account-top-form flex">
-            <div class="flex-col">
-                <label for="current_email">Adresse e-mail actuelle</label>
-                <input type="email" id="current_email" name="current_email"  readonly>
+{% block title %}Digi-3 - Paramètres généraux{% endblock %}
+
+{% block body %}
+    {# Inclusion du header #}
+    {% include 'includes/header.html.twig' %}
+
+    <section class="parameter_landing flex">
+        <div class="parameter_menu">
+            <ul class="flex-col">
+                <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}parameter_menu_active{% endif %}">
+                    <a href="{{ path('app_parameter_generaux') }}">GENERAUX</a>
+                </li>
+                <li class="{% if app.request.attributes.get('_route') == 'app_gestion_user' %}parameter_menu_active{% endif %}">
+                    <a href="">GESTION USER</a>
+                </li>
+                <li class="{% if app.request.attributes.get('_route') == 'app_gestion_projet' %}parameter_menu_active{% endif %}">
+                    <a href="">GESTION PROJET</a>
+                </li>
+                <li class="{% if app.request.attributes.get('_route') == 'app_gestion_clients' %}parameter_menu_active{% endif %}">
+                    <a href="">GESTION CLIENTS</a>
+                </li>
+                <li class="{% if app.request.attributes.get('_route') == 'app_parameter_app_configuration' %}parameter_menu_active{% endif %}">
+                    <a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a>
+                </li>
+                <li class="{% if app.request.attributes.get('_route') == 'app_parameter_about' %}parameter_menu_active{% endif %}">
+                    <a href="{{ path('app_parameter_about') }}">A PROPOS</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="parameter_content">
+            <div class="account-page">
+                <div class="account-header flex">
+                    <h2>Mon compte</h2>
+                    <div class="account-info flex">
+                        {% if user %}
+                            <div class="flex-col">
+                                <h1>{{ user.username }}</h1>
+                                <p>{{ user.role }}</p>
+                            </div>
+                            <img src="/img/account/pdp.jpg" alt="Photo de profil de {{ user.username }}" class="profile-picture">
+                        {% else %}
+                            <div class="flex-col">
+                                <h1>Invité</h1>
+                                <p>Veuillez vous connecter pour voir les informations de votre compte.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <form method="post" action="{{ path('app_update_account') }}" enctype="multipart/form-data">
+                    <div class="account-top-form flex">
+                        <div class="flex-col">
+                            <label for="current_email">Adresse e-mail actuelle</label>
+                            {% if user %}
+                                <input type="email" id="current_email" name="current_email" value="{{ user.email }}" readonly>
+                            {% else %}
+                                <input type="email" id="current_email" name="current_email" value="" readonly>
+                            {% endif %}
+                        </div>
+                        <div class="flex-col">
+                            <label for="new_email">Nouvelle adresse e-mail</label>
+                            <input type="email" id="new_email" name="new_email" placeholder="Nouvelle adresse e-mail">
+                        </div>
+                        <div class="flex-col">
+                            <label for="current_password">Mot de passe actuel</label>
+                            <input type="password" id="current_password" name="current_password" placeholder="Mot de passe actuel" required>
+                        </div>
+                        <div class="flex-col">
+                            <label for="new_password">Nouveau mot de passe</label>
+                            <input type="password" id="new_password" name="new_password" placeholder="Nouveau mot de passe">
+                        </div>
+                    </div>
+                    <div class="account-bottom-form flex"> 
+                        <div class="flex-col">
+                            <label>Photo de profil actuelle</label>
+                            {% if user %}
+                                <img src="{{ user.profile_picture }}" alt="Photo de profil actuelle" class="profile-picture-small">
+                            {% else %}
+                                <img src="/img/default_profile_picture.jpg" alt="Photo de profil par défaut" class="profile-picture-small"> {# Remplacez par une image par défaut #}
+                            {% endif %}
+                        </div>
+                        <div class="flex-col">
+                            <label for="new_profile_picture">Nouvelle photo de profil</label>
+                            <div class="flex">
+                                {% if user %}
+                                    <input type="file" id="new_profile_picture" name="new_profile_picture">
+                                {% else %}
+                                    <input type="file" id="new_profile_picture" name="new_profile_picture" disabled placeholder="Veuillez vous connecter pour modifier la photo de profil.">
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Enregistrer les modifications</button>
+                </form>
             </div>
-            <div class="flex-col">
-                <label for="new_email">Nouvelle adresse e-mail</label>
-                <input type="email" id="new_email" name="new_email" placeholder="Nouvelle adresse e-mail">
-            </div>
-            <div class="flex-col">
-                <label for="current_password">Mot de passe actuel</label>
-                <input type="password" id="current_password" name="current_password" placeholder="Mot de passe actuel">
-            </div>
-            <div class="flex-col">
-                <label for="new_password">Nouveau mot de passe</label>
-                <input type="password" id="new_password" name="new_password" placeholder="Nouveau mot de passe">
+            <div class="general-settings">
+                <h2>Paramètres généraux</h2>
+                <form method="post" action="{{ path('app_update_general_settings') }}">
+                    <div class="email-preferences">
+                        <div>
+                            <label for="emailActivity">Autoriser les e-mails sur l'activité du ticket</label>
+                            <input type="checkbox" id="emailActivity" name="emailActivity" {% if user and user.emailActivity %}checked{% endif %}>
+                        </div>
+                        <div>
+                            <label for="emailChanges">Recevoir des e-mails en cas de changements apportés aux tickets</label>
+                            <input type="checkbox" id="emailChanges" name="emailChanges" {% if user and user.emailChanges %}checked{% endif %}>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">Enregistrer les paramètres</button>
+                </form>
             </div>
         </div>
-        <div class="account-bottom-form flex"> 
-            <div class="flex-col">
-                <label>Photo de profil actuelle</label>
-                <img src="/img/account/pdp.jpg" alt="Photo de profil actuelle" class="profile-picture-small">
-            </div>
-            <div class="flex-col">
-                <label for="new_profile_picture">Nouvelle photo de profil</label>
-                <div class="flex">
-                    <img src="/img/account/pdp.jpg" alt="Photo de profil actuelle" class="profile-picture-small">
-                    <input type="file" id="new_profile_picture" name="new_profile_picture">
-                </div>
-
-            </div>
-        </div>
-          <button type="submit" class="btn-submit">Enregistrer les modifications</button>
-      </form>
-    </div>
-    <div class="general-settings">
-        <h2>Paramètres généraux</h2>
-        <form method="post" action="" action="multipart/form-data">
-            <div class="theme-selection flex">    
-                <div class="theme-option flex">
-                    <input type="radio" id="themeNoir" name="theme" value="noir">
-                    <label for="themeNoir" class="flex-col">
-                        <img src="/img/account/theme-noir.png" alt="Thème noir">
-                        Sombre 
-                    </label>
-                </div>
-                <div class="theme-option flex">
-                    <input type="radio" id="themeBlanc" name="theme" value="blanc">
-                    <label for="themeBlanc" class="flex-col">
-                        <img src="/img/account/theme-blanc.png" alt="Thème blanc">
-                        Clair
-                    </label>
-                </div>
-                <div class="theme-option flex">
-                    <input type="radio" id="themeAppareil" name="theme" value="appareil">
-                    <label for="themeAppareil" class="flex-col">
-                        <img src="/img/account/theme-appareil.png" alt="Thème appareil">
-                        Système
-                    </label>
-                </div>
-            </div>
-            <div class="email-preferences">
-                <div>
-                    <label for="emailActivity">Autoriser les e-mails sur l'activité du ticket</label>
-                    <input type="checkbox" id="emailActivity" name="emailActivity">
-                </div>
-                <div>
-                    <label for="emailChanges">Recevoir des e-mails en cas de changements apportés aux tickets</label>
-                    <input type="checkbox" id="emailChanges" name="emailChanges">
-                </div>
-            </div>
-            <button type="submit" class="btn-submit">Enregistrer les paramètres</button>
-        </form>
-    </div>
-  </div>
-</section>
+    </section>
 
 {% endblock %}

@@ -1,15 +1,21 @@
 <header>
     <nav class="flex">
         <div class="header-logo">
-            <a href="{{path('home_index')}}" class="flex">
+            <a href="{{ path('home_index') }}" class="flex">
                 <img src="/img/header/home-logo.png" alt="Logo Digi-3">
                 <p>DIGI-3 <p class="header-logo-dot">.</p></p>
             </a> 
         </div>
         <ul class="flex">
-            <li><a href="">Dashboard</a></li>
-            <li><a href="">Gestion de projets</a></li>
-            <li><a href="{{ path('app_parameter_generaux') }}">Paramètres</a></li>
+            <li class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}">
+                <a href="{{ path('app_dashboard') }}">Dashboard</a>
+            </li>
+            <li class="{% if app.request.attributes.get('_route') == 'app_gestion_projets' %}active{% endif %}">
+                <a href="">Gestion de projets</a>
+            </li>
+            <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}active{% endif %}">
+                <a href="{{ path('app_parameter_generaux') }}">Paramètres</a>
+            </li>
         </ul>
         <div class="header-search">
             <input type="text" placeholder="Rechercher" class="search-input">
@@ -19,4 +25,16 @@
             <img src="/img/header/account-icon.png" alt="Icone de compte">
         </a>
     </nav>
+
+    {# CSS pour le style de la navigation #}
+    <style>
+        .flex li a {
+            text-decoration: none; /* Enlève le soulignement par défaut */
+        }
+
+        .flex li.active a {
+            text-decoration: underline; /* Soulignement pour l'élément actif */
+            font-weight: bold; /* Met en gras si souhaité */
+        }
+    </style>
 </header>

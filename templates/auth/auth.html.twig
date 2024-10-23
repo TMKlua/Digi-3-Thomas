@@ -8,6 +8,10 @@
             {{ form_start(loginForm) }}
             <h2>Connecte toi à Digi-3</h2>
                 {{ form_widget(loginForm) }}
+                <div>
+                    <input type="checkbox" id="remember_me" name="_remember_me" />
+                    <label for="remember_me">Se souvenir de moi</label>
+                </div>
                 <button type="submit" class="auth-submit">Se connecter</button> 
             {{ form_end(loginForm) }}
             <div class="auth-decorate flex-col">
@@ -29,7 +33,24 @@
             {{ form_end(registrationForm) }}
         </div>  
     </div>
+
+    {# Popup pour le message de succès #}
+    <div id="successPopup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <span id="closePopup" class="close">&times;</span>
+            <p>Votre compte a été créé avec succès !</p>
+        </div>
+    </div>
+
+    {# Popup pour le message d'erreur #}
+    <div id="errorPopup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <span id="closeErrorPopup" class="close">&times;</span>
+            <p id="errorMessage"></p> <!-- Le message d'erreur sera inséré ici -->
+        </div>
+    </div>
 {% endblock %}
+
 {% block javascripts %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -38,28 +59,100 @@
             const registerSection = document.getElementById('registerSection');
             const switchToRegister = document.getElementById('switchToRegister');
             const switchToLogin = document.getElementById('switchToLogin');
+            const successPopup = document.getElementById('successPopup');
+            const errorPopup = document.getElementById('errorPopup');
+            const closePopup = document.getElementById('closePopup');
+            const closeErrorPopup = document.getElementById('closeErrorPopup');
+            const errorMessage = document.getElementById('errorMessage');
 
             // Étape 2 : Ajouter des événements de clic
             switchToRegister.addEventListener('click', function(event) {
-                event.preventDefault(); // Empêche le lien de recharger la page
-                showRegisterSection();   // Appelle la fonction pour afficher la section d'inscription
+                event.preventDefault();
+                showRegisterSection();
             });
 
             switchToLogin.addEventListener('click', function(event) {
-                event.preventDefault(); // Empêche le lien de recharger la page
-                showLoginSection();      // Appelle la fonction pour afficher la section de connexion
+                event.preventDefault();
+                showLoginSection();
+            });
+
+            closePopup.addEventListener('click', function() {
+                successPopup.style.display = 'none'; // Masque la popup
+            });
+
+            closeErrorPopup.addEventListener('click', function() {
+                errorPopup.style.display = 'none'; // Masque la popup d'erreur
             });
 
             // Étape 3 : Fonctions pour afficher/masquer les sections
             function showRegisterSection() {
-                loginSection.style.display = 'none'; // Masque la section de connexion
-                registerSection.style.display = 'flex'; // Affiche la section d'inscription
+                loginSection.style.display = 'none';
+                registerSection.style.display = 'flex';
             }
 
             function showLoginSection() {
-                registerSection.style.display = 'none'; // Masque la section d'inscription
-                loginSection.style.display = 'flex'; // Affiche la section de connexion
+                registerSection.style.display = 'none';
+                loginSection.style.display = 'flex';
             }
+
+            // Fonction pour afficher la popup de succès
+            window.showSuccessPopup = function() {
+                successPopup.style.display = 'block';
+                setTimeout(() => {
+                    successPopup.style.display = 'none';
+                }, 5000);
+            }
+
+            // Fonction pour afficher la popup d'erreur
+            window.showErrorPopup = function(message) {
+                errorMessage.textContent = message; // Met à jour le message d'erreur
+                errorPopup.style.display = 'block'; // Affiche la popup d'erreur
+                setTimeout(() => {
+                    errorPopup.style.display = 'none'; // Masque la popup après 3 secondes
+                }, 5000); // Délai de 3 secondes
+            }
+
+            // Appel de la fonction pour afficher la popup d'erreur si un message d'erreur existe
+            {% if app.session.flashBag.has('error') %}
+                showErrorPopup("{{ app.session.flashBag.get('error')[0] }}");
+            {% endif %}
         });
     </script>
+
+    {# Appel de la fonction pour afficher la popup si le compte est créé #}
+    {% if app.request.get('account_created') %}
+        <script>showSuccessPopup();</script>
+    {% endif %}
+{% endblock %}
+
+{% block stylesheets %}
+    {# CSS pour la popup #}
+    <style>
+        .popup {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background-color: black;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            color: black; /* Couleur du texte en noir */
+        }
+
+        .close {
+            cursor: pointer;
+            float: right;
+            color: white; /* Couleur du texte en noir */
+        }
+    </style>
 {% endblock %}
