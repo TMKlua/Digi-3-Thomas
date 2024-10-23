@@ -10,8 +10,8 @@
             <li class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}">
                 <a href="{{ path('app_dashboard') }}">Dashboard</a>
             </li>
-            <li class="{% if app.request.attributes.get('_route') == 'app_gestion_projets' %}active{% endif %}">
-                <a href="">Gestion de projets</a>
+            <li class="{% if app.request.attributes.get('_route') == 'app_management_project' %}active{% endif %}">
+                <a href="{{ path('app_management_project') }}">Gestion de projets</a>
             </li>
             <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}active{% endif %}">
                 <a href="{{ path('app_parameter_generaux') }}">Paramètres</a>
@@ -28,13 +28,62 @@
 
     {# CSS pour le style de la navigation #}
     <style>
+        .flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flex ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .flex li {
+            margin-left: 20px;
+        }
+
         .flex li a {
-            text-decoration: none; /* Enlève le soulignement par défaut */
+            text-decoration: none;
+            color: white; /* Met le texte en blanc */
+            position: relative;
+            font-weight: normal;
         }
 
         .flex li.active a {
-            text-decoration: underline; /* Soulignement pour l'élément actif */
-            font-weight: bold; /* Met en gras si souhaité */
+            font-weight: bold; /* Met le texte en gras pour l'élément actif */
+        }
+
+        .flex li.active a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -5px; /* Positionne le soulignement juste en dessous du texte */
+            width: 100%;
+            height: 4px; /* Épaisseur du soulignement */
+            background: linear-gradient(90deg, #00e5ff 0%, #00bfa5 100%); /* Dégradé comme sur l'image */
+            border-radius: 2px; /* Arrondis les coins du soulignement */
+        }
+
+        .header-search .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+        }
+
+        .header-logo a {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-logo img {
+            margin-right: 10px;
+        }
+
+        .header-logo-dot {
+            color: #00bfa5; /* Couleur du point */
         }
     </style>
 </header>

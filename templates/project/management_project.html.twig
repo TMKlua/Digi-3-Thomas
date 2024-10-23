@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion Projets{% endblock %}
+
+{% block body %}
+
+{% include 'includes/header.html.twig' %}
+
+<div class="project-management-container">
+    <aside class="project-list">
+        <h3>Liste des projets</h3>
+        <ul>
+            {% for project in projects %}
+            <li class="{{ current_project.id == project.id ? 'active' : '' }}">
+                <a href="{{ path('app_management_project', { 'id': project.id }) }}">
+                    {{ project.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </aside>
+    
+    <main class="project-details">
+        <h2>{{ current_project.name }}</h2>
+        <p>{{ current_project.description }}</p>
+        
+        <div class="project-dates">
+            <div>
+                <span>Début prévisionnel :</span> {{ current_project.start_planned }}
+                <span>Début réel :</span> <span class="real">{{ current_project.start_actual }}</span>
+            </div>
+            <div>
+                <span>Fin prévisionnelle :</span> {{ current_project.end_planned }}
+                <span>Fin réelle :</span> <span class="real">{{ current_project.end_actual }}</span>
+            </div>
+        </div>
+        
+        <div class="project-stats">
+            <div class="project-stat-block"></div>
+            <div class="project-stat-block"></div>
+            <div class="project-stat-block"></div>
+            <div class="project-stat-block"></div>
+        </div>
+    </main>
+</div>
+
+<style>
+    .project-management-container {
+        display: flex;
+        background-color: #2C2C2C;
+        color: #fff;
+        height: 100vh;
+    }
+
+    aside.project-list {
+        background-color: #1D8E75;
+        width: 250px;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    aside h3 {
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    aside ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    aside ul li {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #249F84;
+        border-radius: 5px;
+        color: white;
+    }
+
+    aside ul li.active {
+        background-color: #249F84;
+        border: 2px solid #00FFCC;
+    }
+
+    aside ul li a {
+        color: white;
+        text-decoration: none;
+    }
+
+    main.project-details {
+        flex-grow: 1;
+        padding: 40px;
+        background-color: #3C3C3C;
+    }
+
+    main h2 {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    main p {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .project-dates {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 30px;
+    }
+
+    .project-dates div {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .project-dates span {
+        margin-bottom: 5px;
+    }
+
+    .project-dates .real {
+        color: #00FFCC;
+    }
+
+    .project-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .project-stat-block {
+        background-color: #444;
+        height: 150px;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
