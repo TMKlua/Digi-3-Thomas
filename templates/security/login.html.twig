@@ -17,10 +17,14 @@
                 {% endif %}
 
                 <h2>Connecte toi à Digi-3</h2>
-                <label for="inputEmail">Email</label>
+                <label for="inputEmail">Adresse email</label>
                 <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
-                <label for="inputPassword">Password</label>
-                <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+                
+                <label for="inputPassword">Mot de passe</label>
+                <div class="password-container">
+                    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+                    <button type="button" id="togglePassword" class="toggle-password">👁️</button>
+                </div>
 
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
@@ -44,9 +48,14 @@
                 <p>Pour rester dans l'aventure avec nous connectez-vous avec vos informations personnelles</p>
                 <a href="#" id="switchToLogin">Se connecter</a>
             </div>
-            {{ form_start(registrationForm) }}
+        {{ form_start(registrationForm) }}
             <h2>Bienvenue sur Digi-3</h2>
             {{ form_widget(registrationForm) }}
+
+            <div class="password-wrapper">
+                <button type="button" id="togglePasswordRegister">👁️</button>
+            </div>
+
             <button type="submit" class="auth-submit">S'inscrire</button>
             {{ form_end(registrationForm) }}
         </div>
@@ -100,6 +109,16 @@
 
             closeErrorPopup.addEventListener('click', function() {
                 errorPopup.style.display = 'none'; // Masque la popup d'erreur
+            });
+
+            // Ajout de la fonctionnalité de mot de passe visible
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('inputPassword');
+
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '🙈'; // Change l'icône
             });
 
             // Étape 3 : Fonctions pour afficher/masquer les sections
@@ -171,6 +190,20 @@
             cursor: pointer;
             float: right;
             color: white; /* Couleur du texte en noir */
+        }
+
+        .password-container {
+            position: relative; /* Position relative pour le bouton de visibilité */
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px; /* Ajuste cette valeur selon le design */
+            top: 50%;
+            transform: translateY(-50%); /* Centre verticalement le bouton */
+            background: none; /* Enlève le fond par défaut */
+            border: none; /* Enlève la bordure par défaut */
+            cursor: pointer; /* Change le curseur */
         }
     </style>
 {% endblock %}
