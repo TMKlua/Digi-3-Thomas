@@ -37,10 +37,10 @@
                     <div class="account-info flex">
                         {% if user %}
                             <div class="flex-col">
-                                <h1>{{ user.username }}</h1>
-                                <p>{{ user.role }}</p>
+                                <h1>{{ user.name }}</h1>
+                                <p>{{ user.email }}</p>
                             </div>
-                            <img src="/img/account/pdp.jpg" alt="Photo de profil de {{ user.username }}" class="profile-picture">
+                            <img src="/img/account/pdp.jpg" alt="Photo de profil de {{ user.email }}" class="profile-picture">
                         {% else %}
                             <div class="flex-col">
                                 <h1>Invité</h1>
@@ -76,7 +76,7 @@
                         <div class="flex-col">
                             <label>Photo de profil actuelle</label>
                             {% if user %}
-                                <img src="{{ user.profile_picture }}" alt="Photo de profil actuelle" class="profile-picture-small">
+                                <img src="{{ user.email }}" alt="Photo de profil actuelle" class="profile-picture-small">
                             {% else %}
                                 <img src="/img/default_profile_picture.jpg" alt="Photo de profil par défaut" class="profile-picture-small"> {# Remplacez par une image par défaut #}
                             {% endif %}
@@ -101,11 +101,11 @@
                     <div class="email-preferences">
                         <div>
                             <label for="emailActivity">Autoriser les e-mails sur l'activité du ticket</label>
-                            <input type="checkbox" id="emailActivity" name="emailActivity" {% if user and user.emailActivity %}checked{% endif %}>
+                            <input type="checkbox" id="emailActivity" name="emailActivity" {% if user and user.email %}checked{% endif %}>
                         </div>
                         <div>
                             <label for="emailChanges">Recevoir des e-mails en cas de changements apportés aux tickets</label>
-                            <input type="checkbox" id="emailChanges" name="emailChanges" {% if user and user.emailChanges %}checked{% endif %}>
+                            <input type="checkbox" id="emailChanges" name="emailChanges" {% if user and user.email %}checked{% endif %}>
                         </div>
                     </div>
                     <button type="submit" class="btn-submit">Enregistrer les paramètres</button>

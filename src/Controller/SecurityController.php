@@ -41,14 +41,17 @@ class SecurityController extends AbstractController
         // Formulaire de connexion
         $loginForm = $this->createForm(LoginForm::class);
         $loginForm->handleRequest($request);
-    
+
         // Formulaire d'inscription
         $registrationForm = $this->createForm(RegistrationForm::class);
         $registrationForm->handleRequest($request);
-    
+
         // Traitement du formulaire d'inscription
         if ($registrationForm->isSubmitted() && $registrationForm->isValid()) {
             $user = new User();
+
+            // Récupérer le nom et l'email depuis le formulaire
+            $user->setName($registrationForm->get('name')->getData());
             $user->setEmail($registrationForm->get('email')->getData());
 
             // Gérer le mot de passe
@@ -78,7 +81,7 @@ class SecurityController extends AbstractController
             'loginForm' => $loginForm->createView(),
             'registrationForm' => $registrationForm->createView(),
         ]);
-    }    
+    }
 
     #[Route(path: '/login', name: 'app_login')]
     public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
