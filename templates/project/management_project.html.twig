@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}Gestion Projets{% endblock %}
 
 {% block body %}
@@ -6,41 +7,81 @@
 {% include 'includes/header.html.twig' %}
 
 <div class="project-management-container">
-    <aside class="project-list">
+    <aside class="parameter_menu">
+        <button class="create-project-button" onclick="showCreateForm()">Créer un projet</button>
         <h3>Liste des projets</h3>
         <ul>
             {% for project in projects %}
-            <li class="{{ current_project.id == project.id ? 'active' : '' }}">
+            <li class="{{ current_project and current_project.id == project.id ? 'active' : '' }}">
                 <a href="{{ path('app_management_project', { 'id': project.id }) }}">
                     {{ project.name }}
                 </a>
+                <button type="button" class="delete-button" onclick="showDeletePopup({{ project.id }})">
+                    <img src="/img/delete.png" alt="Supprimer" class="delete-icon">
+                </button>
             </li>
             {% endfor %}
         </ul>
     </aside>
     
     <main class="project-details">
-        <h2>{{ current_project.name }}</h2>
-        <p>{{ current_project.description }}</p>
+        {% if current_project %}
+            <h2>{{ current_project.name }}</h2>
+            <p>{{ current_project.description }}</p>
+
+            <div class="project-dates">
+                <div>
+                    <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('Y-m-d') : 'Non défini' }}
+                    <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('Y-m-d') : 'Non défini' }}</span>
+                </div>
+                <div>
+                    <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('Y-m-d') : 'Non défini' }}
+                    <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('Y-m-d') : 'Non défini' }}</span>
+                </div>
+            </div>
+
+            <div class="project-stats">
+                <div class="project-stat-block"></div>
+                <div class="project-stat-block"></div>
+                <div class="project-stat-block"></div>
+                <div class="project-stat-block"></div>
+            </div>
+
+            <div>
+                <label>Chef de projet :</label>
+                <span>{{ app.user.getName() }}</span>
+            </div>
         
-        <div class="project-dates">
-            <div>
-                <span>Début prévisionnel :</span> {{ current_project.start_planned }}
-                <span>Début réel :</span> <span class="real">{{ current_project.start_actual }}</span>
-            </div>
-            <div>
-                <span>Fin prévisionnelle :</span> {{ current_project.end_planned }}
-                <span>Fin réelle :</span> <span class="real">{{ current_project.end_actual }}</span>
-            </div>
+        {% else %}
+            <p>Sélectionnez un projet pour voir les détails.</p>
+        {% endif %}
+
+        {# Formulaire de création de projet #}
+        <div id="createProjectForm" style="display: none;">
+            {{ form_start(form) }}
+                {{ form_row(form.name) }}
+                {{ form_row(form.description) }}
+        
+                <button type="submit">Créer</button>
+            {{ form_end(form) }}
         </div>
         
-        <div class="project-stats">
-            <div class="project-stat-block"></div>
-            <div class="project-stat-block"></div>
-            <div class="project-stat-block"></div>
-            <div class="project-stat-block"></div>
-        </div>
+        {# Affichage des messages flash pour confirmation #}
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
     </main>
+</div>
+
+{# Popup de confirmation de suppression #}
+<div id="deletePopup" class="popup" style="display: none;">
+    <div class="popup-content">
+        <p>Êtes-vous sûr de vouloir supprimer ce projet ?</p>
+        <button id="confirmDelete" class="confirm-button">Confirmer</button>
+        <button id="cancelDelete" class="cancel-button">Annuler</button>
+    </div>
 </div>
 
 <style>
@@ -49,6 +90,16 @@
         background-color: #2C2C2C;
         color: #fff;
         height: 100vh;
+    }
+
+    .create-project-button {
+        background-color: #249F84;
+        border: none;
+        color: white;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        border-radius: 5px;
     }
 
     aside.project-list {
@@ -75,6 +126,9 @@
         background-color: #249F84;
         border-radius: 5px;
         color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     aside ul li.active {
@@ -85,6 +139,21 @@
     aside ul li a {
         color: white;
         text-decoration: none;
+        flex-grow: 1;
+    }
+
+    .delete-button {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 10px;
+    }
+
+    .delete-icon {
+        width: 25px;
+        height: 25px;
     }
 
     main.project-details {
@@ -135,5 +204,86 @@
         height: 150px;
         border-radius: 5px;
     }
+
+    .alert {
+        padding: 10px;
+        margin-top: 20px;
+        background-color: #249F84;
+        color: white;
+        border-radius: 5px;
+    }
+
+    .popup {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .popup-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .confirm-button, .cancel-button {
+        margin: 10px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .confirm-button {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .cancel-button {
+        background-color: #dc3545;
+        color: white;
+    }
 </style>
+
+<script>
+    function showCreateForm() {
+        document.getElementById('createProjectForm').style.display = 'block';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        let projectIdToDelete;
+
+        window.showDeletePopup = function (projectId) {
+            projectIdToDelete = projectId;
+            document.getElementById('deletePopup').style.display = 'flex';
+        };
+
+        document.getElementById('confirmDelete').onclick = function () {
+            if (!projectIdToDelete) {
+                console.error('Aucun ID de projet à supprimer.');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = "{{ path('app_project_delete', { 'id': '0' }) }}".replace('0', projectIdToDelete);
+
+            document.body.appendChild(form);
+            form.submit();
+        };
+
+        document.getElementById('cancelDelete').onclick = function () {
+            document.getElementById('deletePopup').style.display = 'none';
+        };
+    });
+</script>
+
 {% endblock %}
