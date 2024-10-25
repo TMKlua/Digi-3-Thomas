@@ -17,205 +17,36 @@
                 <a href="{{ path('app_parameter_generaux') }}">Paramètres</a>
             </li>
         </ul>
-        <div class="header-search">
-            <input type="text" placeholder="Rechercher" class="search-input">
-        </div>
-
-        <!-- Icône de compte avec bouton de déconnexion -->
+        <input type="text" class="header-search" placeholder="Rechercher" class="search-input">
         <div class="header-account">
             <a href="{{ path('app_parameter_generaux') }}">
                 <img src="/img/header/account-icon.png" alt="Icone de compte">
             </a>
-            <!-- Bouton de déconnexion -->
-            <form action="{{ path('app_logout') }}" method="post" class="logout-form" onsubmit="return showLogoutDialog(event);">
-                <button type="submit" class="logout-btn"><img src="/img/header/deconnect.png" alt="Logo Digi-3"></button>
-            </form>
         </div>
+         <form action="{{ path('app_logout') }}" method="post" class="logout-form" onsubmit="return showLogoutDialog(event);">
+                <button type="submit" class="logout-btn"><img src="/img/header/deconnect.png" alt="Logo Digi-3"></button>
+        </form>
     </nav>
-
-    <!-- Boîte de dialogue de confirmation -->
     <div id="logout-dialog" class="logout-dialog">
         <div class="logout-dialog-content">
             <span class="close" onclick="closeLogoutDialog()">&times;</span>
             <p style="color: black;">Êtes-vous sûr de vouloir vous déconnecter ?</p>
             <div class="logout-dialog-buttons">
-                <button class="dialog-btn yes-btn" onclick="confirmLogout()">Oui</button>
-                <button class="dialog-btn no-btn" onclick="closeLogoutDialog()">Non</button>
+                <button class="dialog-btn " onclick="confirmLogout()">Oui</button>
+                <button class="dialog-btn" onclick="closeLogoutDialog()">Non</button>
             </div>
         </div>
     </div>
-
-    <!-- CSS pour le style de la navigation, du bouton de déconnexion et de la boîte de dialogue -->
-    <style>
-        .flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .flex ul {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .flex li a {
-            text-decoration: none;
-            color: white;
-            position: relative;
-            font-weight: normal;
-        }
-
-        .flex li.active a {
-            font-weight: bold;
-        }
-
-        .flex li.active a::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: -5px;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #00e5ff 0%, #00bfa5 100%);
-            border-radius: 2px;
-        }
-
-        .header-search .search-input {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-        }
-
-        .header-logo a {
-            display: flex;
-            align-items: center;
-        }
-
-        .header-logo img {
-            margin-right: 10px;
-        }
-
-        .header-logo-dot {
-            color: #00bfa5;
-        }
-
-        .header-account {
-            display: flex;
-            align-items: center;
-        }
-
-        .header-account img {
-            margin-right: 10px;
-        }
-
-        .logout-form {
-            display: inline;
-            margin: 0;
-        }
-
-        .logout-btn {
-            background: none;
-            border: none;
-            padding: 0;
-            margin-left: 10px; /* Espace entre les deux icônes */
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            text-decoration: underline;
-        }
-
-        .header-account img, .logout-icon {
-            width: 40px; /* Ajuste cette valeur pour la taille souhaitée */
-            height: 40px; /* Ajuste cette valeur pour la taille souhaitée */
-            object-fit: cover; /* Assure que l'image garde bien ses proportions */
-        }
-
-        /* Styles pour la boîte de dialogue */
-        .logout-dialog {
-            display: none; /* Masqué par défaut */
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4); /* Fond noir avec opacité */
-        }
-
-        .logout-dialog-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 300px; /* Largeur de la boîte de dialogue */
-            text-align: center;
-            border-radius: 8px; /* Coins arrondis */
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .logout-dialog-buttons {
-            margin-top: 20px;
-        }
-
-        .dialog-btn {
-            padding: 10px 15px;
-            background-color: transparent; /* Transparent pour s'aligner avec le style du header */
-            color: white; /* Texte en blanc */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 0 5px; /* Espacement entre les boutons */
-            transition: background-color 0.3s; /* Transition douce pour le survol */
-            font-weight: bold; /* Met en gras le texte du bouton */
-        }
-
-        .dialog-btn.yes-btn {
-            background: linear-gradient(90deg, #00e5ff 0%, #00bfa5 100%);
-            color: white; /* Texte en blanc */
-        }
-
-        .dialog-btn.no-btn {
-            background: linear-gradient(90deg, #00e5ff 0%, #00bfa5 100%); /* Utiliser le même dégradé */
-            color: white; /* Texte en blanc */
-        }
-
-        .dialog-btn:hover {
-            opacity: 0.8; /* Réduit l'opacité au survol */
-        }
-    </style>
 </header>
-
 <script>
     function showLogoutDialog(event) {
         event.preventDefault(); // Empêche l'envoi du formulaire
         document.getElementById("logout-dialog").style.display = "block"; // Affiche la boîte de dialogue
     }
-
     function closeLogoutDialog() {
         document.getElementById("logout-dialog").style.display = "none"; // Masque la boîte de dialogue
     }
-
     function confirmLogout() {
-        // Soumettre le formulaire de déconnexion
         document.querySelector(".logout-form").submit();
     }
 </script>

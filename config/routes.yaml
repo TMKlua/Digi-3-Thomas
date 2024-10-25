@@ -18,7 +18,6 @@ app_logout:
 app_parameter_generaux:                      
     path: /parameter/generaux
     controller: App\Controller\ParameterController::generaux
-    methods: [GET]
 
 app_parameter_app_configuration:
     path: /parameter/app-configuration

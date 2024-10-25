@@ -2,29 +2,30 @@
 
 namespace App\Form;
 
-use App\Entity\GeneralSettings;
+use App\Entity\User; 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 
-class GeneralSettingsType extends AbstractType
+class PasswordUpdateType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('settingKey', TextType::class, [
-                'label' => 'Clé du paramètre',
+            ->add('actual_password', PasswordType::class, [
+                'label' => 'Mot de passe actuel',
+                'mapped' => false
             ])
-            ->add('settingValue', TextType::class, [
-                'label' => 'Valeur du paramètre',
+            ->add('password', PasswordType::class, [
+                'label' => 'Nouveau mot de passe'
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => GeneralSettings::class,
+             'data_class' => User::class, 
         ]);
     }
 }

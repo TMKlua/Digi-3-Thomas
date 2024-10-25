@@ -29,89 +29,84 @@
                 </li>
             </ul>
         </div>
-
         <div class="parameter_content">
             <div class="account-page">
                 <div class="account-header flex">
                     <h2>Mon compte</h2>
                     <div class="account-info flex">
-                        {% if user %}
-                            <div class="flex-col">
-                                <h1>{{ user.name }}</h1>
-                                <p>{{ user.email }}</p>
-                            </div>
-                            <img src="/img/account/pdp.jpg" alt="Photo de profil de {{ user.email }}" class="profile-picture">
-                        {% else %}
-                            <div class="flex-col">
-                                <h1>Invité</h1>
-                                <p>Veuillez vous connecter pour voir les informations de votre compte.</p>
-                            </div>
-                        {% endif %}
+                        <div class="title flex-col">
+                            <p>{{ user.name }}</p>
+                            <p>{{ user.email }}</p>
+                        </div>
+                        <div class="profile-pic flex">
+                            <label class="flex" for="file">
+                                <img src="/img/account/account-change.png" alt="Icone changement de photo de profil">
+                            </label>
+                            <input id="file" type="file" name="profile_picture" />
+                            <img id="output" src="{{ user.profilePictureUrl }}" alt="Photo de profil de {{ user.email }}">
+                        </div>
                     </div>
                 </div>
-                <form method="post" action="{{ path('app_update_account') }}" enctype="multipart/form-data">
-                    <div class="account-top-form flex">
-                        <div class="flex-col">
-                            <label for="current_email">Adresse e-mail actuelle</label>
-                            {% if user %}
-                                <input type="email" id="current_email" name="current_email" value="{{ user.email }}" readonly>
-                            {% else %}
-                                <input type="email" id="current_email" name="current_email" value="" readonly>
-                            {% endif %}
-                        </div>
-                        <div class="flex-col">
-                            <label for="new_email">Nouvelle adresse e-mail</label>
-                            <input type="email" id="new_email" name="new_email" placeholder="Nouvelle adresse e-mail">
-                        </div>
-                        <div class="flex-col">
-                            <label for="current_password">Mot de passe actuel</label>
-                            <input type="password" id="current_password" name="current_password" placeholder="Mot de passe actuel" required>
-                        </div>
-                        <div class="flex-col">
-                            <label for="new_password">Nouveau mot de passe</label>
-                            <input type="password" id="new_password" name="new_password" placeholder="Nouveau mot de passe">
-                        </div>
+                <div class="account-body flex">
+                    <div class="account-email flex-col">
+                        <h3>Modifier son adresse e-mail</h3>
+                        {{ form_start(emailForm, {'method': 'POST'}) }}
+                        {{ form_row(emailForm.new_email) }} 
+                        {{ form_row(emailForm.email) }} 
+                        {{ form_row(emailForm.password) }} 
+                        <button type="submit" class="btn-submit">Nouvelle adresse e-mail</button>
+                        {{ form_end(emailForm) }}
+                        {% for message in app.flashes('error') %}
+                            <div class="alert alert-danger">{{ message }}</div>
+                        {% endfor %}
                     </div>
-                    <div class="account-bottom-form flex"> 
-                        <div class="flex-col">
-                            <label>Photo de profil actuelle</label>
-                            {% if user %}
-                                <img src="{{ user.email }}" alt="Photo de profil actuelle" class="profile-picture-small">
-                            {% else %}
-                                <img src="/img/default_profile_picture.jpg" alt="Photo de profil par défaut" class="profile-picture-small"> {# Remplacez par une image par défaut #}
-                            {% endif %}
-                        </div>
-                        <div class="flex-col">
-                            <label for="new_profile_picture">Nouvelle photo de profil</label>
-                            <div class="flex">
-                                {% if user %}
-                                    <input type="file" id="new_profile_picture" name="new_profile_picture">
-                                {% else %}
-                                    <input type="file" id="new_profile_picture" name="new_profile_picture" disabled placeholder="Veuillez vous connecter pour modifier la photo de profil.">
-                                {% endif %}
-                            </div>
-                        </div>
+                    <div class="account-password flex-col">
+                        <h3>Modifier son mot de passe</h3>
+                        {{ form_start(passwordForm, {'method': 'POST'}) }}
+                        {{ form_row(passwordForm.actual_password) }}
+                        {{ form_row(passwordForm.password) }}
+                        <button type="submit" class="btn-submit">Nouveau mot de passe</button>
+                        {{ form_end(passwordForm) }}
+                        {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger">{{ message }}</div>
+                    {% endfor %}
                     </div>
-                    <button type="submit" class="btn-submit">Enregistrer les modifications</button>
-                </form>
-            </div>
-            <div class="general-settings">
-                <h2>Paramètres généraux</h2>
-                <form method="post" action="{{ path('app_update_general_settings') }}">
-                    <div class="email-preferences">
-                        <div>
-                            <label for="emailActivity">Autoriser les e-mails sur l'activité du ticket</label>
-                            <input type="checkbox" id="emailActivity" name="emailActivity" {% if user and user.email %}checked{% endif %}>
-                        </div>
-                        <div>
-                            <label for="emailChanges">Recevoir des e-mails en cas de changements apportés aux tickets</label>
-                            <input type="checkbox" id="emailChanges" name="emailChanges" {% if user and user.email %}checked{% endif %}>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit">Enregistrer les paramètres</button>
-                </form>
+                </div>
             </div>
         </div>
     </section>
-
+{% endblock %}
+{% block javascripts %}
+<script>
+    document.getElementById('file').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            console.log("Fichier sélectionné:", file.name);
+            
+            const formData = new FormData();
+            formData.append('profile_picture', file);
+    
+            fetch("/parameter/generaux", {
+                method: "POST",
+                body: formData // Envoie les données du formulaire
+            })
+            .then(response => {
+                console.log("Réponse du serveur:", response);
+                return response.json(); // Essayez de parser la réponse en JSON
+            })
+            .then(data => {
+                console.log("Données récupérées:", data);
+                if (data.success) {
+                    document.getElementById('output').src = data.newProfilePictureUrl; // Mettez à jour l'image de profil
+                } else {
+                    console.error("Erreur:", data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Erreur lors de la requête:", error);
+            });
+        }
+    });
+    
+</script>
 {% endblock %}
