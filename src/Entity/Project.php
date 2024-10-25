@@ -14,32 +14,33 @@ class Project
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 255, nullable: false)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $start_date = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $end_date = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $start_date_forecast = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $end_date_forecast = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $validity_date_from = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $validity_date_to = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $project_leader_id = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: "project_leader_id", referencedColumnName: "id", nullable: false)]
+    private ?User $projectLeader = null;
 
     public function getId(): ?int
     {
@@ -63,7 +64,7 @@ class Project
         return $this->description;
     }
 
-    public function setDescription(string $description): static
+    public function setDescription(?string $description): static
     {
         $this->description = $description;
 
@@ -75,7 +76,7 @@ class Project
         return $this->start_date;
     }
 
-    public function setStartDate(\DateTimeInterface $start_date): static
+    public function setStartDate(?\DateTimeInterface $start_date): static
     {
         $this->start_date = $start_date;
 
@@ -87,7 +88,7 @@ class Project
         return $this->end_date;
     }
 
-    public function setEndDate(\DateTimeInterface $end_date): static
+    public function setEndDate(?\DateTimeInterface $end_date): static
     {
         $this->end_date = $end_date;
 
@@ -99,7 +100,7 @@ class Project
         return $this->start_date_forecast;
     }
 
-    public function setStartDateForecast(\DateTimeInterface $start_date_forecast): static
+    public function setStartDateForecast(?\DateTimeInterface $start_date_forecast): static
     {
         $this->start_date_forecast = $start_date_forecast;
 
@@ -111,7 +112,7 @@ class Project
         return $this->end_date_forecast;
     }
 
-    public function setEndDateForecast(\DateTimeInterface $end_date_forecast): static
+    public function setEndDateForecast(?\DateTimeInterface $end_date_forecast): static
     {
         $this->end_date_forecast = $end_date_forecast;
 
@@ -123,7 +124,7 @@ class Project
         return $this->validity_date_from;
     }
 
-    public function setValidityDateFrom(\DateTimeInterface $validity_date_from): static
+    public function setValidityDateFrom(?\DateTimeInterface $validity_date_from): static
     {
         $this->validity_date_from = $validity_date_from;
 
@@ -135,21 +136,21 @@ class Project
         return $this->validity_date_to;
     }
 
-    public function setValidityDateTo(\DateTimeInterface $validity_date_to): static
+    public function setValidityDateTo(?\DateTimeInterface $validity_date_to): static
     {
         $this->validity_date_to = $validity_date_to;
 
         return $this;
     }
 
-    public function getProjectLeaderId(): ?string
+    public function getProjectLeader(): ?User
     {
-        return $this->project_leader_id;
+        return $this->projectLeader;
     }
 
-    public function setProjectLeaderId(string $project_leader_id): static
+    public function setProjectLeader(?User $projectLeader): static
     {
-        $this->project_leader_id = $project_leader_id;
+        $this->projectLeader = $projectLeader;
 
         return $this;
     }
