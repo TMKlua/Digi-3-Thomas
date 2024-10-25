@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
-use App\Entity\GeneralSettings;
+
+use App\Form\EmailUpdateType;
+use App\Form\PasswordUpdateType;
 use App\Form\SearchFormType;
 use App\Form\AppFormParameterType;
 use App\Entity\Parameter;
-use App\Form\GeneralSettingsType;
-use App\Form\UpdateAccountType;
+use App\Entity\User;
+use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -52,8 +54,6 @@ class ParameterController extends AbstractController
             'parameters' => $parameters
         ]);
     }
-
-
     #[Route('/parameter/search', name: 'app_ajax_search', methods: ['POST'])]
     public function search(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -109,7 +109,6 @@ class ParameterController extends AbstractController
             'html' => $html, // HTML à afficher dans le tableau
         ]);
     }
-
     #[Route('/parameter/delete/{id}', name: 'app_parameter_delete', methods: ['POST'])]
     public function delete(int $id, EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
@@ -146,7 +145,6 @@ class ParameterController extends AbstractController
             'parameters' => $allParameters, // Retourne tous les paramètres restants
         ]);
     }
-
     #[Route('/parameter/create', name: 'app_parameter_create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -227,83 +225,83 @@ class ParameterController extends AbstractController
             'message' => 'Formulaire non soumis correctement.',
         ]);
     }
-
-    #[Route('/parameter/generaux', name: 'app_parameter_generaux')]
-    public function generaux(): Response
+    #[Route('/parameter/generaux', name: 'app_parameter_generaux', methods: ['GET', 'POST'])]
+    public function generaux(Request $request, EntityManagerInterface $entityManager, Security $security): Response
     {
-        $user = $this->getUser(); // Récupérer l'utilisateur connecté
+        $user = $security->getUser(); // Récupérer l'utilisateur connecté
+
+        // Créer les formulaires
+        $emailForm = $this->createForm(EmailUpdateType::class, $user);
+        $passwordForm = $this->createForm(PasswordUpdateType::class, $user);
+
+        // Gérer le formulaire d'email
+        $emailForm->handleRequest($request);
+        if ($emailForm->isSubmitted()) {
+            if ($emailForm->isValid()) {
+                // Enregistrer les changements si le formulaire est valide
+                $entityManager->persist($user);
+                $entityManager->flush();
+                $this->addFlash('success', 'Email mis à jour avec succès');
+                return $this->redirectToRoute('app_parameter_generaux');
+            } else {
+                // Si le formulaire n'est pas valide, afficher les erreurs
+                foreach ($emailForm->getErrors(true, true) as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+            }
+        }
+        $passwordForm->handleRequest($request);
+        if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
+
+            // $newPassword = $passwordForm->get('new_password')->getData();
+            // $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+            // $user->setPassword($hashedPassword);
+            $user->password_hash($passwordForm->get('new_password')->getData(), PASSWORD_BCRYPT);
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+            $this->addFlash('success', 'Mot de passe mis à jour avec succès');
+        } else {
+            foreach ($passwordForm->getErrors(true, true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+        }
+       // Gérer le formulaire d'image de profil
+        if ($request->isMethod('POST') && $request->files->has('profile_picture')) {
+            $file = $request->files->get('profile_picture');
+
+            // Vérifier que le fichier est une image
+            if ($file && in_array($file->getClientOriginalExtension(), ['jpg', 'jpeg', 'png', 'gif'])) {
+                $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+                $filePath = 'uploads/profile_pictures/' . $filename; // Chemin où le fichier sera sauvegardé
+
+                // Déplacer le fichier dans le dossier uploads
+                $file->move($this->getParameter('kernel.project_dir') . '/public/uploads/profile_pictures', $filename);
+
+                // Mettre à jour l'URL de la photo de profil dans l'utilisateur
+                $user->setProfilePictureUrl('/uploads/profile_pictures/' . $filename);
+
+                $entityManager->persist($user);
+                $entityManager->flush();
+                $this->addFlash('success', 'Photo de profil mise à jour avec succès');
+                return $this->json([
+                    'success' => true,
+                    'newProfilePictureUrl' => $user->getProfilePictureUrl()
+                ]);
+            } else {
+                $this->addFlash('error', 'Format de fichier non valide. Veuillez télécharger une image.');
+            }
+        }
         return $this->render('parameter/index.html.twig', [
-            'user' => $user, // Passer l'utilisateur au template
+            'emailForm' => $emailForm->createView(),
+            'passwordForm' => $passwordForm->createView(),
+            'user' => $user,
         ]);
-    }    
+    }
 
     #[Route('/parameter/about', name: 'app_parameter_about')]
     public function about(): Response
     {
         return $this->render('parameter/about.html.twig'); // Assurez-vous de créer ce fichier Twig
     }
-
-    #[Route('/parameter/update_account', name: 'app_update_account', methods: ['GET', 'POST'])]
-    public function updateAccount(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        // Récupérer l'utilisateur connecté
-        $user = $this->getUser();
-
-        // Si aucun utilisateur n'est connecté, redirigez vers la page de connexion ou montrez un message d'erreur
-        if (!$user) {
-            return $this->redirectToRoute('app_login'); // Remplacez 'app_login' par le nom de votre route de connexion
-        }
-
-        // Créer le formulaire de mise à jour
-        $form = $this->createForm(UpdateAccountType::class, $user);
-        $form->handleRequest($request);
-
-        // Vérifier si le formulaire est soumis et valide
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Mettre à jour l'utilisateur dans la base de données
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            // Rediriger vers une page de succès ou la page d'accueil après la mise à jour
-            return $this->redirectToRoute('app_parameter_generaux'); // Remplacez par votre route de redirection
-        }
-
-        return $this->render('parameter/update_account.html.twig', [
-            'form' => $form->createView(),
-            'user' => $user,
-        ]);
-    }
-
-    #[Route('/parameter/update_general_settings', name: 'app_update_general_settings', methods: ['GET', 'POST'])]
-    public function updateGeneralSettings(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        // Récupérer les paramètres généraux (assurez-vous d'avoir une méthode pour cela)
-        $generalSettings = $entityManager->getRepository(GeneralSettings::class)->find(1); // Adaptez selon votre logique
-
-        // Si aucun paramètre général n'est trouvé, vous pouvez créer une nouvelle instance
-        if (!$generalSettings) {
-            $generalSettings = new GeneralSettings();
-        }
-
-        // Créer le formulaire pour les paramètres généraux
-        $form = $this->createForm(GeneralSettingsType::class, $generalSettings);
-        $form->handleRequest($request);
-
-        // Vérifiez si le formulaire est soumis et valide
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Persistez les changements
-            $entityManager->persist($generalSettings);
-            $entityManager->flush();
-
-            // Rediriger vers une page de succès ou une autre page après la mise à jour
-            return $this->redirectToRoute('app_parameter_generaux'); // Remplacez par votre route de redirection
-        }
-
-        // Rendre la vue avec le formulaire
-        return $this->render('parameter/update_general_settings.html.twig', [
-            'form' => $form->createView(),
-            'generalSettings' => $generalSettings,
-        ]);
-    }
-
 }
