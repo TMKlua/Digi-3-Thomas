@@ -18,13 +18,11 @@
             </li>
         </ul>
         <input type="text" class="header-search" placeholder="Rechercher" class="search-input">
-        <div class="header-account">
-            <a href="{{ path('app_parameter_generaux') }}">
-                <img src="/img/header/account-icon.png" alt="Icone de compte">
-            </a>
-        </div>
-         <form action="{{ path('app_logout') }}" method="post" class="logout-form" onsubmit="return showLogoutDialog(event);">
-                <button type="submit" class="logout-btn"><img src="/img/header/deconnect.png" alt="Logo Digi-3"></button>
+        <a href="{{ path('app_parameter_generaux') }}" class="header-account flex ">
+            <img src="{{user.profilePictureUrl}}" alt="Icone de compte">
+        </a>
+         <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
+            <button type="submit" class="logout-btn flex">Se déconnecter<img src="/img/header/deconnect.png" alt="Logo Digi-3"></button>
         </form>
     </nav>
     <div id="logout-dialog" class="logout-dialog">

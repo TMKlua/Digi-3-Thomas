@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-
 use App\Form\EmailUpdateType;
 use App\Form\PasswordUpdateType;
 use App\Form\SearchFormType;
@@ -11,6 +10,7 @@ use App\Entity\Parameter;
 use App\Entity\User;
 use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -150,7 +150,6 @@ class ParameterController extends AbstractController
     {
         // Créer une nouvelle instance de Parameter
         $parameter = new Parameter();
-
 
         // Créer le formulaire et gérer la requête
         $form = $this->createForm(AppFormParameterType::class, $parameter);

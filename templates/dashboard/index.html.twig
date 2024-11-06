@@ -29,7 +29,6 @@
                     <h3>13 <span class="down-arrow">↓</span></h3>
                 </div>
             </div>
-
             <nav class="sidebar-nav">
                 <ul>
                     <li><a href="#">Page d'accueil <i class="fas fa-home"></i></a></li>
@@ -39,7 +38,6 @@
                 </ul>
             </nav>
         </div>
-
         <div class="main-content">
             <div class="calendar">
                 <h4>Calendrier</h4>
@@ -107,149 +105,5 @@
 {% endblock %}
 
 {% block stylesheets %}
-    <style>
-        .dashboard-container {
-            display: flex;
-        }
 
-        .sidebar {
-            width: 25%;
-            padding: 20px;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-radius: 10px;
-            background: linear-gradient(180deg, #00bfa5 0%, #00e5ff 100%);
-        }
-
-        .user-info {
-            text-align: center;
-            color: black; /* Texte noir */
-        }
-
-        .user-avatar img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-        }
-
-        .user-details h3, .user-details p {
-            margin: 5px 0;
-            color: black; /* Texte noir */
-        }
-
-        .user-stats {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin: 20px 0;
-        }
-
-        .user-stats .tasks, .user-stats .projects {
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.2); /* Transparent pour que le dégradé soit visible */
-            padding: 10px;
-            border-radius: 8px;
-            width: 45%;
-            color: black; /* Texte noir */
-        }
-
-        .user-stats .up-arrow, .user-stats .down-arrow {
-            font-size: 0.8em;
-        }
-
-        .sidebar-nav ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-        }
-
-        .sidebar-nav ul li {
-            margin: 15px 0;
-        }
-
-        .sidebar-nav ul li a {
-            color: black; /* Texte noir */
-            text-decoration: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.2); /* Transparent pour que le dégradé soit visible */
-            border-radius: 8px;
-        }
-
-        .main-content {
-            width: 75%;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto;
-            gap: 20px;
-            color: black; /* Texte noir pour tout le contenu principal */
-        }
-
-        .calendar, .project-info, .productivity-box {
-            background-color: #f1f1f1;
-            padding: 20px;
-            border-radius: 8px;
-            color: black; /* Texte noir */
-        }
-
-        .efficiency-box {
-            background-color: rgba(255, 255, 255, 0.8); /* Couleur blanche avec une opacité de 80% */
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Légère ombre pour donner du relief */
-            color: black; /* Texte noir */
-        }
-
-        .calendar-box {
-            background-color: white;
-            height: 200px;
-            margin-top: 10px;
-            border-radius: 8px;
-            position: relative;
-            color: black; /* Texte noir dans la boîte calendrier */
-        }
-
-        table {
-            width: 100%;
-            text-align: center;
-            border-collapse: collapse;
-        }
-
-        table th, table td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            color: black; /* Texte noir pour le calendrier */
-        }
-
-        .project-progress {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .progress-bar {
-            width: 70%;
-            background-color: lightgray;
-            height: 10px;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .progress {
-            background-color: #00bfa5;
-            height: 100%;
-        }
-
-        .more-info {
-            color: #00bfa5;
-            text-decoration: none;
-            margin-top: 10px;
-            display: inline-block;
-        }
-    </style>
 {% endblock %}

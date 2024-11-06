@@ -3,12 +3,19 @@ html {
   scroll-behavior: smooth;
 }
 :root {
-  --white: #fffef9;
-  --black: #000000;
-  --black-light: #292929;
-  --blue: #1cdaff;
-  --green: #00fca8;
-  --grey: #d9d9d9;
+  --w: #ffffff;
+  --w-c: rgba(255, 255, 255, 0.85);
+  --w-cm: rgba(255, 255, 255, 0.5);
+  --w-cp: rgba(255, 255, 255, 0.15);
+
+  --d: rgba(41, 41, 41, 1);
+  --d-c: rgba(41, 41, 41, 0.85);
+  --d-cm: rgba(41, 41, 41, 0.5);
+  --d-cp: rgba(41, 41, 41, 0.15);
+
+  --b: #1cdaff;
+  --g: #00fca8;
+  --gr: #d9d9d9;
 }
 * {
   margin: 0;
@@ -19,7 +26,7 @@ html {
   font-weight: 400;
 }
 body {
-  background-color: var(--black-light);
+  background-color: var(--d);
   width: 100vw;
   height: 100vh;
   justify-content: space-between !important;
@@ -57,7 +64,7 @@ label,
 th,
 td {
   text-align: center;
-  color: var(--white);
+  color: var(--w);
 }
 /****************************HEADER**************************/
 header nav {
@@ -73,7 +80,7 @@ header nav {
 }
 /*LINKS*/
 header nav ul {
-  width: 45vw;
+  width: 40vw;
   justify-content: space-between !important;
 }
 header nav ul li a {
@@ -95,7 +102,7 @@ header nav ul li.active a::after {
 .header-search {
   padding: 0.5rem 1rem;
   border-radius: 10px;
-  border: 2px solid var(--grey);
+  border: 2px solid var(--gr);
   background-color: transparent;
   font-size: 1rem;
 }
@@ -104,8 +111,15 @@ header nav ul li.active a::after {
   color: rgba(217, 217, 217, 0.4);
 }
 /*LOGOUT*/
+.logout-form{
+  border: 1px solid var(--w);
+  background-color: var(--w);
+  height: 4rem;
+  width: 16rem;
+  border-radius: 1rem;
+}
 .logout-form button img {
-  width: 60px;
+  height: 3rem;
 }
 .logout-dialog {
   display: none;
@@ -144,7 +158,15 @@ header nav ul li.active a::after {
   background: #df6666;
 }
 /*ACCOUNT*/
-
+.header-account {
+  height: 4rem;
+  width: 4rem;
+}
+.header-account img{
+  height: 4rem;
+  width: 4rem;
+  border-radius: 1rem;
+}
 /****************************HOME PAGE**************************/
 .home-section {
   width: 100vw;
@@ -159,7 +181,7 @@ header nav ul li.active a::after {
 .header-logo-dot,
 .header-buttons a,
 .home-section p {
-  background: linear-gradient(90deg, var(--blue), var(--green));
+  background: linear-gradient(90deg, var(--b), var(--g));
   -webkit-background-clip: text; /* Pour Safari */
   -webkit-text-fill-color: transparent; /* Pour Safari */
 }
@@ -168,9 +190,9 @@ header nav ul li.active a::after {
   border-radius: 15px;
   border: 2px solid transparent;
   padding: 0.5rem 1rem;
-  background: linear-gradient(var(--black-light), var(--black-light))
+  background: linear-gradient(var(--d), var(--d))
       padding-box,
-    linear-gradient(to right, var(--blue), var(--green)) border-box;
+    linear-gradient(to right, var(--b), var(--g)) border-box;
 }
 .header-buttons a {
   font-size: 1.5rem;
@@ -206,7 +228,7 @@ header nav ul li.active a::after {
   height: 100%;
   width: 18%;
   border-radius: 2rem;
-  background: linear-gradient(-130deg, var(--blue), var(--green));
+  background: linear-gradient(-130deg, var(--b), var(--g));
 }
 .parameter_menu ul {
   height: 100%;
@@ -222,15 +244,15 @@ header nav ul li.active a::after {
   cursor: pointer;
 }
 .parameter_menu_active {
-  background-color: var(--black-light) !important;
+  background-color: var(--d) !important;
 }
 .parameter_menu_active a {
-  color: var(--white) !important;
+  color: var(--w) !important;
 }
 .parameter_menu ul li a {
   font-size: 1.5rem;
   text-align: start;
-  color: var(--black-light);
+  color: var(--d);
 }
 /*PARAMETER CONTENT*/
 .parameter_content {
@@ -254,9 +276,9 @@ header nav ul li.active a::after {
 .account-header {
   justify-content: space-between;
   padding: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
+  border: 2px solid rgba(41,41,41, 0.15);
+  background: rgba(41,41,41, 0.15);
+  border-radius: 2rem;
 }
 .account-info,
 .account-info div {
@@ -291,7 +313,6 @@ header nav ul li.active a::after {
   display: none;
 }
 .profile-pic label {
-  
   cursor: pointer;
   height: 5rem;
   width: 5rem;
@@ -328,10 +349,10 @@ header nav ul li.active a::after {
 .account-password {
   align-self: flex-start;
   width: 50%;
-  padding: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
+  padding: 2rem;
+  border: 2px solid rgba(41,41,41, 0.15);
+  background: rgba(41,41,41, 0.15);
+  border-radius: 2rem;
   gap: 2rem;
 }
 .account-body form {
@@ -352,10 +373,10 @@ header nav ul li.active a::after {
 .account-body form input {
   width: 50%;
   padding: 0.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(41,41,41, 0.15);
+  background: rgba(41,41,41, 0.15);
   border-radius: 5px;
-  color: var(--white);
+  color: var(--w);
 }
 .btn-submit {
   font-size: 1rem;
@@ -363,7 +384,7 @@ header nav ul li.active a::after {
   padding: 0.5rem;
   border-radius: 10px;
   border: 2px solid rgba(255, 255, 255, 0.15);
-  background: linear-gradient(-130deg, var(--blue), var(--green));
+  background: linear-gradient(-130deg, var(--b), var(--g));
 }
 .btn-submit:active {
 }
@@ -425,14 +446,14 @@ header nav ul li.active a::after {
   gap: 1rem;
 }
 #searchForm {
-  color: var(--grey);
+  color: var(--gr);
   background-color: transparent;
   padding: 0.5rem 1rem;
 }
 
 #search_form_searchTerm {
   width: 10rem;
-  color: var(--grey);
+  color: var(--gr);
 }
 #searchForm input {
   background-color: transparent;
@@ -465,7 +486,7 @@ header nav ul li.active a::after {
   border: 2px solid rgba(41, 41, 41, 0.56);
   background-color: rgba(41, 41, 41, 0.56);
   font-size: 1rem;
-  color: var(--grey);
+  color: var(--gr);
   width: 20%;
 }
 #parameter_table {
@@ -488,7 +509,7 @@ header nav ul li.active a::after {
   border: 2px solid rgba(41, 41, 41, 0.16);
   background-color: rgba(41, 41, 41, 0.16);
   font-size: 1rem;
-  color: var(--grey);
+  color: var(--gr);
   width: 20%;
 }
 #parameter_table td:nth-child(5) {
@@ -539,7 +560,7 @@ header nav ul li.active a::after {
 #registration_form input {
   padding: 1rem 0.5rem;
   border-radius: 10px;
-  border: 1px solid var(--white);
+  border: 1px solid var(--w);
   background-color: transparent;
 }
 #login_form input,
@@ -574,8 +595,8 @@ header nav ul li.active a::after {
 }
 /*FORM-4 LOGIN/REGISTER BUTTON*/
 .auth-submit {
-  background-image: linear-gradient(var(--green), var(--blue));
-  color: var(--black);
+  background-image: linear-gradient(var(--g), var(--b));
+  color: var(--d);
   padding: 1rem 3rem;
   border-radius: 10px;
   background-color: transparent;
@@ -586,14 +607,14 @@ header nav ul li.active a::after {
 .auth-decorate {
   height: 100vh;
   width: 50vw;
-  background-image: linear-gradient(var(--green), var(--blue));
+  background-image: linear-gradient(var(--g), var(--b));
   gap: 3rem;
 }
 /*TEXT*/
 .auth-decorate h3,
 .auth-decorate p,
 .auth-decorate a {
-  color: var(--black-light);
+  color: var(--d);
 }
 .auth-decorate p,
 .auth-decorate a {
@@ -608,5 +629,5 @@ header nav ul li.active a::after {
 .auth-decorate a {
   padding: 0.5rem 1.5rem;
   border-radius: 15px;
-  border: 2px solid var(--black-light);
+  border: 2px solid var(--d);
 }
