@@ -3,7 +3,6 @@
         <div class="header-logo">
             <a href="{{ path('home_index') }}" class="flex">
                 <img src="/img/header/home-logo.png" alt="Logo Digi-3">
-                <p>DIGI-3 <p class="header-logo-dot">.</p></p>
             </a> 
         </div>
         <ul class="flex">
@@ -22,7 +21,7 @@
             <img src="{{user.profilePictureUrl}}" alt="Icone de compte">
         </a>
          <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
-            <button type="submit" class="logout-btn flex">Se déconnecter<img src="/img/header/deconnect.png" alt="Logo Digi-3"></button>
+            <button type="submit" class="logout-btn flex"><img src="/img/header/deconnect.png" alt="Logo Digi-3"></button>
         </form>
     </nav>
     <div id="logout-dialog" class="logout-dialog">

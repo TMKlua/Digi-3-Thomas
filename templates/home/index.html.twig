@@ -1,30 +1,36 @@
-{# templates/home/index.html.twig #}
-{% extends 'base.html.twig' %}
-
-{% block title %}Digi-3 - Page d'accueil{% endblock %}
-
-{% block body %}
-    <header class="home-header">
-        <nav class="flex">
-         <div class="header-logo">
-            <a href="{{path('home_index')}}" class="flex">
-                <img src="/img/header/home-logo.png" alt="Logo Digi-3">
-                <p>DIGI-3 <p class="header-logo-dot">.</p></p>
-            </a> 
-        </div>
-            <div class="header-buttons flex">
-                <a href="{{ path('app_auth') }}" >Se connecter ou s'inscrire</a>
-            </div>
-        </nav>
-    </header>
-    <section class="flex-col">
-       <div class="home-section flex-col">
-            <div class="flex-col">
-                <h1>Simplifiez le suivi des <br> salariés et des missions</h1>
-                <p>Notre application enregistre et chiffre efficacement les activités réalisées par vos salariés</p>
-            </div>
-              <img src="/img/gestion.png" alt="Image gestion de projets" >
-        </div>
-    </section>
+{# templates/home/index.html.twig #} {% extends 'base.html.twig' %} {% block
+title %}Digi-3 - Page d'accueil{% endblock %} {% block body %}
+<header class="home-header">
+  <nav class="flex">
+    <div class="header-logo">
+      <a href="{{ path('home_index') }}" class="flex">
+        <img src="/img/header/home-logo.png" alt="Logo Digi-3" />
+      </a>
+    </div>
+    {% if app.user %}
+    <div class="header-buttons flex">
+    <a href="{{ path('app_dashboard') }}" >Accéder au site</a>
+    </div>
+    {% else %}
+    <div class="header-buttons flex">
+      <a href="{{ path('app_auth') }}">Se connecter ou s'inscrire</a>
+    </div>
+    {% endif %}
+  </nav>
+</header>
+<section class="flex-col">
+  <div class="home-section flex-col">
+    <div class="flex-col">
+      <h1>
+        Simplifiez le suivi des <br />
+        salariés et des missions
+      </h1>
+      <p>
+        Notre application enregistre et chiffre efficacement les activités
+        réalisées par vos salariés
+      </p>
+    </div>
+    <img src="/img/gestion.png" alt="Image gestion de projets" />
+  </div>
+</section>
 {% endblock %}
-

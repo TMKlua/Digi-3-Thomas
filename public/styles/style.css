@@ -73,14 +73,11 @@ header nav {
 }
 /*LOGO*/
 .header-logo img {
-  height: 4rem;
-}
-.header-logo p {
-  font-size: 2.5rem;
+  height: 3rem;
 }
 /*LINKS*/
 header nav ul {
-  width: 40vw;
+  width: 50vw;
   justify-content: space-between !important;
 }
 header nav ul li a {
@@ -100,7 +97,7 @@ header nav ul li.active a::after {
 
 /*SEARCHBAR*/
 .header-search {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 10px;
   border: 2px solid var(--gr);
   background-color: transparent;
@@ -112,14 +109,14 @@ header nav ul li.active a::after {
 }
 /*LOGOUT*/
 .logout-form{
-  border: 1px solid var(--w);
-  background-color: var(--w);
-  height: 4rem;
-  width: 16rem;
-  border-radius: 1rem;
+  border: 1px solid #df6666;
+  background-color: white;
+  height: 3rem;
+  width: 3rem;
+  border-radius: 0.5rem;
 }
 .logout-form button img {
-  height: 3rem;
+  height: 2rem;
 }
 .logout-dialog {
   display: none;
@@ -159,13 +156,13 @@ header nav ul li.active a::after {
 }
 /*ACCOUNT*/
 .header-account {
-  height: 4rem;
-  width: 4rem;
+  height: 3rem;
+  width: 3rem;
 }
 .header-account img{
-  height: 4rem;
-  width: 4rem;
-  border-radius: 1rem;
+  height: 3rem;
+  width: 3rem;
+  border-radius: 0.5rem;
 }
 /****************************HOME PAGE**************************/
 .home-section {
@@ -219,8 +216,8 @@ header nav ul li.active a::after {
 .parameter_landing {
   height: 75%;
   padding: 1rem 3rem;
-  justify-content: space-between;
   align-items: flex-start;
+  gap:1rem;
 }
 /*PARAMETER MENU*/
 .parameter_menu {

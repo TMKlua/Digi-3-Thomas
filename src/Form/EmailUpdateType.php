@@ -14,12 +14,6 @@ class EmailUpdateType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('new_email', EmailType::class, [
-                'label' => 'Adresse e-mail actuelle',
-                'attr' => ['readonly' => true],
-                'mapped' => false,
-                'data' => $options['data']->getEmail() 
-            ])
             ->add('email', EmailType::class, [
                 'label' => 'Nouvelle adresse e-mail',
                 'data' => []

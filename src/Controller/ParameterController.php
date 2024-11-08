@@ -21,7 +21,7 @@ use Psr\Log\LoggerInterface;
 class ParameterController extends AbstractController
 {
     #[Route('/parameter/app_configuration', name: 'app_parameter_app_configuration', methods: ['GET', 'POST'])]
-    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    public function index(Request $request, EntityManagerInterface $entityManager, Security $security): Response
     {
         $createForm = $this->createForm(AppFormParameterType::class);
         $searchForm = $this->createForm(SearchFormType::class);
@@ -225,7 +225,7 @@ class ParameterController extends AbstractController
         ]);
     }
     #[Route('/parameter/generaux', name: 'app_parameter_generaux', methods: ['GET', 'POST'])]
-    public function generaux(Request $request, EntityManagerInterface $entityManager, Security $security): Response
+    public function generaux(Request $request, EntityManagerInterface $entityManager, Security $security, UserPasswordHasherInterface $passwordHasher): Response
     {
         $user = $security->getUser(); // Récupérer l'utilisateur connecté
 
@@ -235,37 +235,55 @@ class ParameterController extends AbstractController
 
         // Gérer le formulaire d'email
         $emailForm->handleRequest($request);
-        if ($emailForm->isSubmitted()) {
-            if ($emailForm->isValid()) {
-                // Enregistrer les changements si le formulaire est valide
-                $entityManager->persist($user);
-                $entityManager->flush();
-                $this->addFlash('success', 'Email mis à jour avec succès');
-                return $this->redirectToRoute('app_parameter_generaux');
-            } else {
-                // Si le formulaire n'est pas valide, afficher les erreurs
-                foreach ($emailForm->getErrors(true, true) as $error) {
-                    $this->addFlash('error', $error->getMessage());
-                }
-            }
-        }
-        $passwordForm->handleRequest($request);
-        if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
-
-            // $newPassword = $passwordForm->get('new_password')->getData();
-            // $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
-            // $user->setPassword($hashedPassword);
-            $user->password_hash($passwordForm->get('new_password')->getData(), PASSWORD_BCRYPT);
-
+        if ($emailForm->isSubmitted() && $emailForm->isValid()) {
+            // Enregistrer les changements si le formulaire est valide
             $entityManager->persist($user);
             $entityManager->flush();
-            $this->addFlash('success', 'Mot de passe mis à jour avec succès');
+            $this->addFlash('success', 'Email mis à jour avec succès');
+            return $this->redirectToRoute('app_parameter_generaux');
         } else {
-            foreach ($passwordForm->getErrors(true, true) as $error) {
+            foreach ($emailForm->getErrors(true, true) as $error) {
                 $this->addFlash('error', $error->getMessage());
             }
         }
-       // Gérer le formulaire d'image de profil
+
+         // Gérer le formulaire de mot de passe
+    $passwordForm->handleRequest($request);
+    if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
+        // Récupérer le mot de passe actuel saisi dans le formulaire
+        $actualPassword = $passwordForm->get('actual_password')->getData();
+        
+        // Vérifier si le mot de passe actuel est correct
+        if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
+            // Si le mot de passe actuel est correct, hacher le nouveau mot de passe
+            $newPassword = $passwordForm->get('password')->getData();
+            
+            // Hacher le nouveau mot de passe
+            $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
+    
+            // Mettre à jour le mot de passe dans l'entité User
+            $user->setPassword($hashedPassword);
+    
+            // Sauvegarder les modifications dans la base de données
+            $entityManager->persist($user);
+            $entityManager->flush();
+    
+            $this->addFlash('success', 'Mot de passe mis à jour avec succès');
+        } else {
+            // Si le mot de passe actuel est incorrect, afficher une erreur
+            $this->addFlash('error', 'Le mot de passe actuel est incorrect');
+        }
+    } else {
+        // Si le formulaire n'est pas valide, afficher les erreurs
+        foreach ($passwordForm->getErrors(true, true) as $error) {
+            $this->addFlash('error', $error->getMessage());
+        }
+    }
+
+
+
+
+        // Gérer le formulaire d'image de profil
         if ($request->isMethod('POST') && $request->files->has('profile_picture')) {
             $file = $request->files->get('profile_picture');
 
