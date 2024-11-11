@@ -229,6 +229,11 @@ class ParameterController extends AbstractController
     {
         $user = $security->getUser(); // Récupérer l'utilisateur connecté
 
+        // Vérifier si l'utilisateur est connecté
+        if (!$user instanceof User) {
+            $this->addFlash('error', 'Vous devez être connecté pour changer votre adresse e-mail.');
+            return $this->redirectToRoute('app_auth'); // Redirection vers la page de connexion ou autre
+        }
         // Créer les formulaires
         $emailForm = $this->createForm(EmailUpdateType::class, $user);
         $passwordForm = $this->createForm(PasswordUpdateType::class, $user);
@@ -236,52 +241,55 @@ class ParameterController extends AbstractController
         // Gérer le formulaire d'email
         $emailForm->handleRequest($request);
         if ($emailForm->isSubmitted() && $emailForm->isValid()) {
-            // Enregistrer les changements si le formulaire est valide
-            $entityManager->persist($user);
-            $entityManager->flush();
-            $this->addFlash('success', 'Email mis à jour avec succès');
-            return $this->redirectToRoute('app_parameter_generaux');
-        } else {
-            foreach ($emailForm->getErrors(true, true) as $error) {
-                $this->addFlash('error', $error->getMessage());
+            // Vérifier si le mot de passe actuel est correct
+            $actualPassword = $emailForm->get('password')->getData();
+            if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
+                // Enregistrer les changements si le mot de passe est correct
+                $entityManager->persist($user);
+                $entityManager->flush();
+                $this->addFlash('success', 'Email mis à jour avec succès');
+                return $this->redirectToRoute('app_parameter_generaux');
+            } else {
+                $this->addFlash('error', 'Le mot de passe actuel est incorrect');
             }
         }
 
-         // Gérer le formulaire de mot de passe
-    $passwordForm->handleRequest($request);
-    if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
-        // Récupérer le mot de passe actuel saisi dans le formulaire
-        $actualPassword = $passwordForm->get('actual_password')->getData();
-        
-        // Vérifier si le mot de passe actuel est correct
-        if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
-            // Si le mot de passe actuel est correct, hacher le nouveau mot de passe
-            $newPassword = $passwordForm->get('password')->getData();
-            
-            // Hacher le nouveau mot de passe
-            $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
-    
-            // Mettre à jour le mot de passe dans l'entité User
-            $user->setPassword($hashedPassword);
-    
-            // Sauvegarder les modifications dans la base de données
-            $entityManager->persist($user);
-            $entityManager->flush();
-    
-            $this->addFlash('success', 'Mot de passe mis à jour avec succès');
+        // Gérer le formulaire de password
+        $passwordForm->handleRequest($request);
+        if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
+            // Récupérer le mot de passe actuel saisi dans le formulaire
+            $actualPassword = $passwordForm->get('actual_password')->getData();
+
+            // Vérifier si le mot de passe actuel est correct
+            if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
+                // Récupérer et vérifier le nouveau mot de passe
+                $newPassword = $passwordForm->get('password')->getData();
+
+                // Vérifier que le nouveau mot de passe est différent de l'ancien
+                if ($passwordHasher->isPasswordValid($user, $newPassword)) {
+                    $this->addFlash('error', 'Le nouveau mot de passe doit être différent de l’ancien.');
+                } else {
+                    // Hacher et mettre à jour le nouveau mot de passe
+                    $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
+                    $user->setPassword($hashedPassword);
+
+                    // Sauvegarder les modifications dans la base de données
+                    $entityManager->persist($user);
+                    $entityManager->flush();
+
+                    $this->addFlash('success', 'Mot de passe mis à jour avec succès');
+                    return $this->redirectToRoute('app_parameter_generaux');
+                }
+            } else {
+                // Si le mot de passe actuel est incorrect, afficher une erreur
+                $this->addFlash('error', 'Le mot de passe actuel est incorrect');
+            }
         } else {
-            // Si le mot de passe actuel est incorrect, afficher une erreur
-            $this->addFlash('error', 'Le mot de passe actuel est incorrect');
+            // Si le formulaire n'est pas valide, afficher les erreurs
+            foreach ($passwordForm->getErrors(true, true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
         }
-    } else {
-        // Si le formulaire n'est pas valide, afficher les erreurs
-        foreach ($passwordForm->getErrors(true, true) as $error) {
-            $this->addFlash('error', $error->getMessage());
-        }
-    }
-
-
-
 
         // Gérer le formulaire d'image de profil
         if ($request->isMethod('POST') && $request->files->has('profile_picture')) {
@@ -317,8 +325,15 @@ class ParameterController extends AbstractController
     }
 
     #[Route('/parameter/about', name: 'app_parameter_about')]
-    public function about(): Response
+    public function about( Security $security): Response
     {
+        $user = $security->getUser(); // Récupérer l'utilisateur connecté
+
+        // Vérifier si l'utilisateur est connecté
+        if (!$user instanceof User) {
+            $this->addFlash('error', 'Vous devez être connecté pour changer votre adresse e-mail.');
+            return $this->redirectToRoute('app_auth'); // Redirection vers la page de connexion ou autre
+        }
         return $this->render('parameter/about.html.twig'); // Assurez-vous de créer ce fichier Twig
     }
 }
