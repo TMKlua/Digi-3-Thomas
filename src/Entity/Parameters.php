@@ -2,13 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\ParameterRepository;
+use App\Repository\ParametersRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: ParameterRepository::class)]
-class Parameter
+#[ORM\Entity(repositoryClass: ParametersRepository::class)]
+class Parameters
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -16,35 +15,23 @@ class Parameter
     private ?int $id = null;
 
     #[ORM\Column(length: 35)]
-    #[Assert\NotBlank(message: "Le champ paramKey ne doit pas être vide.")]
-    #[Assert\Length(max: 35, maxMessage: "Le paramKey ne doit pas dépasser {{ limit }} caractères.")]
     private ?string $paramKey = null;
 
     #[ORM\Column(length: 35)]
-    #[Assert\NotBlank(message: "Le champ paramValue ne doit pas être vide.")]
-    #[Assert\Length(max: 35, maxMessage: "Le paramValue ne doit pas dépasser {{ limit }} caractères.")]
     private ?string $paramValue = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Assert\NotBlank(message: "Le champ paramDateFrom ne doit pas être vide.")]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $paramDateFrom = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    #[Assert\NotBlank(message: "Le champ paramDateTo ne doit pas être vide.")]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $paramDateTo = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $paramUserMaj = null;
 
-
-    // Getters and Setters
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function setId(int $id): static
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getParamKey(): ?string
@@ -55,6 +42,7 @@ class Parameter
     public function setParamKey(string $paramKey): static
     {
         $this->paramKey = $paramKey;
+
         return $this;
     }
 
@@ -66,6 +54,7 @@ class Parameter
     public function setParamValue(string $paramValue): static
     {
         $this->paramValue = $paramValue;
+
         return $this;
     }
 
@@ -74,9 +63,10 @@ class Parameter
         return $this->paramDateFrom;
     }
 
-    public function setParamDateFrom(\DateTimeInterface $paramDateFrom): static
+    public function setParamDateFrom(?\DateTimeInterface $paramDateFrom): static
     {
         $this->paramDateFrom = $paramDateFrom;
+
         return $this;
     }
 
@@ -85,10 +75,22 @@ class Parameter
         return $this->paramDateTo;
     }
 
-    public function setParamDateTo(\DateTimeInterface $paramDateTo): static
+    public function setParamDateTo(?\DateTimeInterface $paramDateTo): static
     {
         $this->paramDateTo = $paramDateTo;
+
         return $this;
     }
 
+    public function getParamUserMaj(): ?int
+    {
+        return $this->paramUserMaj;
+    }
+
+    public function setParamUserMaj(?int $paramUserMaj): static
+    {
+        $this->paramUserMaj = $paramUserMaj;
+
+        return $this;
+    }
 }

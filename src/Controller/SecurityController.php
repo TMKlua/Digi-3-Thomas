@@ -43,7 +43,9 @@ class SecurityController extends AbstractController
             
             // Gestion du mot de passe
             $plainPassword = $request->request->get('password');
+            var_dump($plainPassword);
             $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+            var_dump($hashedPassword);
             $user->setPassword($hashedPassword);
         
             try {

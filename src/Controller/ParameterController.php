@@ -259,12 +259,14 @@ class ParameterController extends AbstractController
         if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
             // Récupérer le mot de passe actuel saisi dans le formulaire
             $actualPassword = $passwordForm->get('actual_password')->getData();
+            var_dump($passwordHasher->hashPassword($user, $actualPassword));
 
             // Vérifier si le mot de passe actuel est correct
             if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
                 // Récupérer et vérifier le nouveau mot de passe
+                var_dump("pass");
                 $newPassword = $passwordForm->get('password')->getData();
-
+                var_dump($newPassword);
                 // Vérifier que le nouveau mot de passe est différent de l'ancien
                 if ($passwordHasher->isPasswordValid($user, $newPassword)) {
                     $this->addFlash('error', 'Le nouveau mot de passe doit être différent de l’ancien.');
@@ -281,6 +283,7 @@ class ParameterController extends AbstractController
                     return $this->redirectToRoute('app_parameter_generaux');
                 }
             } else {
+                var_dump("aezr");
                 // Si le mot de passe actuel est incorrect, afficher une erreur
                 $this->addFlash('error', 'Le mot de passe actuel est incorrect');
             }

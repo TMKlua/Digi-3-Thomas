@@ -3,133 +3,154 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
-    private ?string $email = null;
+    #[ORM\Column(length: 35)]
+    private ?string $userFirstName = null;
+
+    #[ORM\Column(length: 35)]
+    private ?string $userLastName = null;
+
+    #[ORM\Column(length: 35)]
+    private ?string $userEmail = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $name = null; // Ajout de la propriété name
+    private ?string $userAvatar = null;
 
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
-    private array $roles = [];
+    #[ORM\Column(length: 35)]
+    private ?string $userRole = null;
 
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
-    private ?string $password = null;
+    #[ORM\Column(length: 255)]
+    private ?string $userPassword = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $profilePictureUrl = '/img/account/pdp.jpg';
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $userDateFrom = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $userDateTo = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $userUserMaj = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getUserFirstName(): ?string
     {
-        return $this->email;
+        return $this->userFirstName;
     }
 
-    public function setEmail(string $email): static
+    public function setUserFirstName(string $userFirstName): static
     {
-        $this->email = $email;
+        $this->userFirstName = $userFirstName;
 
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
+    public function getUserLastName(): ?string
     {
-        return (string) $this->email;
+        return $this->userLastName;
     }
 
-    public function getName(): ?string
+    public function setUserLastName(string $userLastName): static
     {
-        return $this->name;
-    }
-
-    public function setName(string $name): static
-    {
-        $this->name = $name;
+        $this->userLastName = $userLastName;
 
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     *
-     * @return list<string>
-     */
-    public function getRoles(): array
+    public function getUserEmail(): ?string
     {
-        $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
-
-        return array_unique($roles);
+        return $this->userEmail;
     }
 
-    /**
-     * @param list<string> $roles
-     */
-    public function setRoles(array $roles): static
+    public function setUserEmail(string $userEmail): static
     {
-        $this->roles = $roles;
+        $this->userEmail = $userEmail;
 
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
-    public function getPassword(): ?string
+    public function getUserAvatar(): ?string
     {
-        return $this->password;
+        return $this->userAvatar;
     }
 
-    public function setPassword(string $password): static
+    public function setUserAvatar(string $userAvatar): static
     {
-        $this->password = $password;
+        $this->userAvatar = $userAvatar;
 
         return $this;
     }
-    public function getProfilePictureUrl(): ?string
+
+    public function getUserRole(): ?string
     {
-        return $this->profilePictureUrl;
+        return $this->userRole;
     }
 
-    public function setProfilePictureUrl(string $url): static
+    public function setUserRole(string $userRole): static
     {
-        $this->profilePictureUrl = $url;
+        $this->userRole = $userRole;
+
         return $this;
     }
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
+
+    public function getUserPassword(): ?string
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        return $this->userPassword;
+    }
+
+    public function setUserPassword(string $userPassword): static
+    {
+        $this->userPassword = $userPassword;
+
+        return $this;
+    }
+
+    public function getUserDateFrom(): ?\DateTimeInterface
+    {
+        return $this->userDateFrom;
+    }
+
+    public function setUserDateFrom(?\DateTimeInterface $userDateFrom): static
+    {
+        $this->userDateFrom = $userDateFrom;
+
+        return $this;
+    }
+
+    public function getUserDateTo(): ?\DateTimeInterface
+    {
+        return $this->userDateTo;
+    }
+
+    public function setUserDateTo(?\DateTimeInterface $userDateTo): static
+    {
+        $this->userDateTo = $userDateTo;
+
+        return $this;
+    }
+
+    public function getUserUserMaj(): ?int
+    {
+        return $this->userUserMaj;
+    }
+
+    public function setUserUserMaj(?int $userUserMaj): static
+    {
+        $this->userUserMaj = $userUserMaj;
+
+        return $this;
     }
 }
