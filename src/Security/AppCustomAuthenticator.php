@@ -1,11 +1,11 @@
 <?php
-
 namespace App\Security;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
@@ -22,12 +22,19 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'app_login';
 
-    public function __construct(private UrlGeneratorInterface $urlGenerator)
+    public function __construct(private UrlGeneratorInterface $urlGenerator, private TokenStorageInterface $tokenStorage)
     {
     }
 
     public function authenticate(Request $request): Passport
     {
+        // Vérifier si l'utilisateur est déjà authentifié
+        $token = $this->tokenStorage->getToken();
+        if ($token && $token->getUser() && $request->getPathInfo() === $this->getLoginUrl($request)) {
+            // Rediriger l'utilisateur authentifié vers une autre page (ex: tableau de bord)
+            return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
+        }
+
         $email = $request->get('email');  // Utiliser get() pour récupérer 'email'
         $password = $request->get('password'); // Utiliser get() pour récupérer 'password'
 
@@ -49,7 +56,7 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($targetPath);
         }
 
-        // For example:
+        // Rediriger vers le tableau de bord après une authentification réussie
         return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
     }
 

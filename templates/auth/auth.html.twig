@@ -1,24 +1,20 @@
-{% extends 'base.html.twig' %} {% block title %}Digi-3 - Page
-d'authentification{% endblock %} {% block body %}
+{% extends 'base.html.twig' %} {% block title %}Digi-3 - Page d'authentification{% endblock %} {% block body %}
 <div class="auth-container">
   <div class="auth-section flex" style="display: none" id="loginSection">
     <form id="login_form" method="POST" action="{{ path('app_auth') }}">
-      <input type="hidden" name="action" value="login">
+      <input type="hidden" name="action" value="login" />
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required />
-  
+
       <label for="password">Mot de passe</label>
       <input type="password" id="password" name="password" required />
-  
-      <label for="rememberMe">Rester connecté</label>
-      <input type="checkbox" id="rememberMe" name="rememberMe" />
-  
+      
       {% if error %}
-          <div class="error">{{ error }}</div>
+      <div class="error">{{ error }}</div>
       {% endif %}
-  
+
       <button type="submit">Se connecter</button>
-  </form>
+    </form>
     <div class="auth-decorate flex-col">
       <h3>Bonjour mon ami !</h3>
       <p>
@@ -36,26 +32,34 @@ d'authentification{% endblock %} {% block body %}
       </p>
       <a href="" id="switchToLogin">Se connecter</a>
     </div>
-    <form id="registration_form"method="POST" action="{{ path('app_auth') }}">
-      <input type="hidden" name="action" value="register">
-      <label for="name">Nom d'utilisateur</label>
-      <input type="text" id="name" name="name" required />
-  
+    <form id="registration_form" method="POST" action="{{ path('app_auth') }}">
+      <input type="hidden" name="action" value="register" />
+
+      <label for="first_name">Prénom :</label>
+      <input type="text" id="first_name" name="first_name" required />
+
+      <label for="last_name">Nom :</label>
+      <input type="text" id="last_name" name="last_name" required />
+
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required />
-  
+
       <label for="password">Mot de passe</label>
       <input type="password" id="password" name="password" required />
-  
-      {% if error %}
-          <div class="error">{{ error }}</div>
-      {% endif %}
-  
+
+      {# {% if error %}
+      <div class="error">{{ error }}</div>
+      {% endif %} {% for type, messages in app.flashes %}
+      <div class="flash-message {{ type }}">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %} #}
       <button type="submit" class="auth-submit">S'inscrire</button>
-  </form>
+    </form>
   </div>
 </div>
-
 {% endblock %} {% block javascripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -88,5 +92,4 @@ d'authentification{% endblock %} {% block body %}
     }
   });
 </script>
-
 {% endblock %}

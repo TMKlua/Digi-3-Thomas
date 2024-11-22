@@ -45,8 +45,9 @@ endblock %} {% block body %} {# Inclusion du header #} {% include
         <h2>Mon compte</h2>
         <div class="account-info flex">
           <div class="title flex-col">
-            <p>{{ user.name }}</p>
-            <p>{{ user.email }}</p>
+            <p>{{ user.userFirstName }}</p>
+            <p>{{ user.userLastName }}</p>
+            <p>{{ user.userEmail }}</p>
           </div>
           <div class="profile-pic flex">
             <label class="flex" for="file">
@@ -58,8 +59,8 @@ endblock %} {% block body %} {# Inclusion du header #} {% include
             <input id="file" type="file" name="profile_picture" />
             <img
               id="output"
-              src="{{ user.profilePictureUrl }}"
-              alt="Photo de profil de {{ user.email }}"
+              src="{{ user.userAvatar }}"
+              alt="Photo de profil de {{ user.userEmail }}"
             />
           </div>
         </div>

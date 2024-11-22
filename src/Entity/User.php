@@ -5,9 +5,11 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -20,14 +22,14 @@ class User
     #[ORM\Column(length: 35)]
     private ?string $userLastName = null;
 
-    #[ORM\Column(length: 35)]
+    #[ORM\Column(length: 35, unique: true)]
     private ?string $userEmail = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $userAvatar = null;
+    private ?string $userAvatar = 'img/account/default-avatar.jpg';
 
-    #[ORM\Column(length: 35)]
-    private ?string $userRole = null;
+    #[ORM\Column(length: 35)] // ROLE_USER, ROLE_ADMIN, etc.
+    private ?string $userRole = 'ROLE_USER';
 
     #[ORM\Column(length: 255)]
     private ?string $userPassword = null;
@@ -41,6 +43,10 @@ class User
     #[ORM\Column(nullable: true)]
     private ?int $userUserMaj = null;
 
+    public function getEmail(): ?string
+{
+    return $this->userEmail;
+}
     public function getId(): ?int
     {
         return $this->id;
@@ -54,7 +60,6 @@ class User
     public function setUserFirstName(string $userFirstName): static
     {
         $this->userFirstName = $userFirstName;
-
         return $this;
     }
 
@@ -66,7 +71,6 @@ class User
     public function setUserLastName(string $userLastName): static
     {
         $this->userLastName = $userLastName;
-
         return $this;
     }
 
@@ -78,7 +82,6 @@ class User
     public function setUserEmail(string $userEmail): static
     {
         $this->userEmail = $userEmail;
-
         return $this;
     }
 
@@ -90,7 +93,6 @@ class User
     public function setUserAvatar(string $userAvatar): static
     {
         $this->userAvatar = $userAvatar;
-
         return $this;
     }
 
@@ -102,19 +104,6 @@ class User
     public function setUserRole(string $userRole): static
     {
         $this->userRole = $userRole;
-
-        return $this;
-    }
-
-    public function getUserPassword(): ?string
-    {
-        return $this->userPassword;
-    }
-
-    public function setUserPassword(string $userPassword): static
-    {
-        $this->userPassword = $userPassword;
-
         return $this;
     }
 
@@ -126,7 +115,6 @@ class User
     public function setUserDateFrom(?\DateTimeInterface $userDateFrom): static
     {
         $this->userDateFrom = $userDateFrom;
-
         return $this;
     }
 
@@ -138,7 +126,6 @@ class User
     public function setUserDateTo(?\DateTimeInterface $userDateTo): static
     {
         $this->userDateTo = $userDateTo;
-
         return $this;
     }
 
@@ -150,7 +137,40 @@ class User
     public function setUserUserMaj(?int $userUserMaj): static
     {
         $this->userUserMaj = $userUserMaj;
-
         return $this;
+    }
+
+    // Implémentation de la méthode getUserIdentifier de l'interface UserInterface
+    public function getUserIdentifier(): string
+    {
+        return $this->userEmail;  // Retourne l'email comme identifiant unique
+    }
+
+    // Méthodes requises par PasswordAuthenticatedUserInterface
+    public function getPassword(): ?string
+    {
+        return $this->userPassword;
+    }
+
+    // Méthodes requises par UserInterface
+    public function getUsername(): string
+    {
+        return $this->userEmail; // Utilisation de l'email comme identifiant
+    }
+
+    public function getRoles(): array
+    {
+        return [$this->userRole]; // Retourne le rôle de l'utilisateur
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->userPassword = $password;
+        return $this;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Si des données sensibles temporaires sont stockées, elles doivent être effacées ici.
     }
 }

@@ -6,7 +6,7 @@ use App\Form\EmailUpdateType;
 use App\Form\PasswordUpdateType;
 use App\Form\SearchFormType;
 use App\Form\AppFormParameterType;
-use App\Entity\Parameter;
+use App\Entity\Parameters;
 use App\Entity\User;
 use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,7 +16,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Psr\Log\LoggerInterface;
+
 
 class ParameterController extends AbstractController
 {
@@ -40,7 +42,7 @@ class ParameterController extends AbstractController
 
         // Récupérer la date actuelle
         $currentDateTime = new \DateTime();
-        $parameters = $entityManager->getRepository(Parameter::class)
+        $parameters = $entityManager->getRepository(Parameters::class)
             ->createQueryBuilder('p')
             ->where('p.paramDateFrom <= :currentDate')
             ->andWhere('p.paramDateTo >= :currentDate')
@@ -73,7 +75,7 @@ class ParameterController extends AbstractController
             $dateSelect = $form->get('dateSelect')->getData();
 
             // Construire la requête QueryBuilder
-            $qb = $entityManager->getRepository(Parameter::class)->createQueryBuilder('p');
+            $qb = $entityManager->getRepository(Parameters::class)->createQueryBuilder('p');
 
             // Appliquer les filtres selon le terme de recherche
             if ($searchTerm) {
@@ -113,7 +115,7 @@ class ParameterController extends AbstractController
     public function delete(int $id, EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
         // Récupérer le paramètre à supprimer
-        $parameter = $entityManager->getRepository(Parameter::class)->find($id);
+        $parameter = $entityManager->getRepository(Parameters::class)->find($id);
 
         if (!$parameter) {
             return $this->json(['success' => false, 'message' => 'Paramètre non trouvé.'], 404);
@@ -132,7 +134,7 @@ class ParameterController extends AbstractController
         }
 
         // Récupérer tous les paramètres après la mise à jour
-        $allParameters = $entityManager->getRepository(Parameter::class)->findAll();
+        $allParameters = $entityManager->getRepository(Parameters::class)->findAll();
 
         // Générer le HTML pour le tableau avec les paramètres restants
         $html = $this->renderView('parameter/tableau_parameter.html.twig', [
@@ -149,7 +151,7 @@ class ParameterController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         // Créer une nouvelle instance de Parameter
-        $parameter = new Parameter();
+        $parameter = new Parameters();
 
         // Créer le formulaire et gérer la requête
         $form = $this->createForm(AppFormParameterType::class, $parameter);
@@ -171,7 +173,7 @@ class ParameterController extends AbstractController
                         $entityManager->flush();
 
                         // Recharger les paramètres mis à jour
-                        $parameters = $entityManager->getRepository(Parameter::class)->findAll();
+                        $parameters = $entityManager->getRepository(Parameters::class)->findAll();
 
                         // Générer le HTML mis à jour pour le tableau des paramètres
                         $html = $this->renderView('parameter/tableau_parameter.html.twig', [
@@ -224,8 +226,36 @@ class ParameterController extends AbstractController
             'message' => 'Formulaire non soumis correctement.',
         ]);
     }
+    #[Route('/parameter/users', name: 'app_user', methods: ['GET', 'POST'])]
+public function manageUsers(Request $request, EntityManagerInterface $entityManager): Response
+{
+    // Récupérer tous les utilisateurs
+    $users = $entityManager->getRepository(User::class)->findAll();
+
+    // Traitement CRUD (création, modification, suppression) pourrait être ajouté ici
+    // Exemple de logique de suppression :
+    if ($request->isMethod('POST') && $request->get('delete_user_id')) {
+        $userId = $request->get('delete_user_id');
+        $user = $entityManager->getRepository(User::class)->find($userId);
+
+        if ($user) {
+            $entityManager->remove($user);
+            $entityManager->flush();
+            $this->addFlash('success', 'Utilisateur supprimé avec succès.');
+        } else {
+            $this->addFlash('error', 'Utilisateur introuvable.');
+        }
+    }
+
+    // Afficher la vue Twig
+    return $this->render('parameter/user.html.twig', [
+        'users' => $users,
+    ]);
+}
+
     #[Route('/parameter/generaux', name: 'app_parameter_generaux', methods: ['GET', 'POST'])]
     public function generaux(Request $request, EntityManagerInterface $entityManager, Security $security, UserPasswordHasherInterface $passwordHasher): Response
+    
     {
         $user = $security->getUser(); // Récupérer l'utilisateur connecté
 
@@ -307,14 +337,14 @@ class ParameterController extends AbstractController
                 $file->move($this->getParameter('kernel.project_dir') . '/public/uploads/profile_pictures', $filename);
 
                 // Mettre à jour l'URL de la photo de profil dans l'utilisateur
-                $user->setProfilePictureUrl('/uploads/profile_pictures/' . $filename);
+                $user->setUserAvatar('/uploads/profile_pictures/' . $filename);
 
                 $entityManager->persist($user);
                 $entityManager->flush();
                 $this->addFlash('success', 'Photo de profil mise à jour avec succès');
                 return $this->json([
                     'success' => true,
-                    'newProfilePictureUrl' => $user->getProfilePictureUrl()
+                    'newProfilePictureUrl' => $user->getUserAvatar()
                 ]);
             } else {
                 $this->addFlash('error', 'Format de fichier non valide. Veuillez télécharger une image.');
@@ -326,7 +356,6 @@ class ParameterController extends AbstractController
             'user' => $user,
         ]);
     }
-
     #[Route('/parameter/about', name: 'app_parameter_about')]
     public function about( Security $security): Response
     {

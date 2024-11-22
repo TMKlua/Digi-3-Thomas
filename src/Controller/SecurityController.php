@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,44 +35,51 @@ class SecurityController extends AbstractController
     #[Route('/auth', name: 'app_auth')]
     public function authPage(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
+        // Inscription
         if ($request->isMethod('POST') && $request->request->get('action') === 'register') {
             $user = new User();
-            $user->setName($request->request->get('name'));
-            $user->setEmail($request->request->get('email'));
-            
-            // Gestion du mot de passe
+            $user->setUserFirstName($request->request->get('first_name'));
+            $user->setUserLastName($request->request->get('last_name'));
+            $user->setUserEmail($request->request->get('email'));
+
+            // Rôle par défaut
+            $user->setUserRole('ROLE_USER');
+
+            // Date d'inscription
+            $user->setUserDateFrom(new \DateTime());
+
+            // Avatar par défaut
+            $user->setUserAvatar('/default-avatar.png');
+
+            // Hashage du mot de passe
             $plainPassword = $request->request->get('password');
-            var_dump($plainPassword);
             $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
-            var_dump($hashedPassword);
             $user->setPassword($hashedPassword);
-        
+
             try {
-                // Enregistrement de l'utilisateur dans la base de données
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();
-        
-                // Authentification automatique de l'utilisateur après l'inscription
+
+                // Authentification automatique
                 return $this->userAuthenticator->authenticateUser(
                     $user,
                     $this->authenticator,
                     $request
                 );
             } catch (UniqueConstraintViolationException $e) {
-                $this->addFlash('error', 'Un compte existe déjà avec l\'adresse email "' . $user->getEmail() . '".');
+                $this->addFlash('error', 'Un compte existe déjà avec cet email.');
             } catch (\Exception $e) {
-                $this->addFlash('error', 'Une erreur s\'est produite lors de la création de votre compte.');
+                $this->addFlash('error', 'Erreur lors de la création du compte.');
             }
         }
-        
 
-        // Gestion de la connexion
+        // Connexion
         if ($request->isMethod('POST') && $request->request->get('action') === 'login') {
             $email = $request->request->get('email');
             $password = $request->request->get('password');
 
-            // Recherche de l'utilisateur
-            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+            // Recherche de l'utilisateur par email
+            $user = $this->entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
 
             if ($user && $this->passwordHasher->isPasswordValid($user, $password)) {
                 // Authentification de l'utilisateur
@@ -83,12 +89,11 @@ class SecurityController extends AbstractController
                     $request
                 );
             } else {
-                // Affichage d'une erreur si les informations sont incorrectes
-                $this->addFlash('error', 'Identifiants incorrects.');
+                $this->addFlash('error', 'Email ou mot de passe incorrect.');
             }
         }
 
-        // Gestion des erreurs de connexion
+        // Récupérer la dernière tentative de connexion
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 
@@ -98,9 +103,10 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/logout', name: 'app_logout')]
+    #[Route('/logout', name: 'app_logout')]
     public function logout(): void
     {
-        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+        // Cette méthode est interceptée par le firewall pour gérer la déconnexion
+        throw new \LogicException('Ce point ne devrait jamais être atteint.');
     }
 }
