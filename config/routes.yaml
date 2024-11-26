@@ -1,41 +1,43 @@
 controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
-    type: attribute
+  resource:
+    path: ../src/Controller/
+    namespace: App\Controller
+  type: attribute
+app_homepage:
+  path: /
+  controller: App\Controller\HomeController::index
 
 app_login:
-    path: /login
-    controller: App\Controller\SecurityController::login
+  path: /login
+  controller: App\Controller\SecurityController::login
 
 app_register:
-    path: /auth
-    controller: App\Controller\SecurityController::auth
+  path: /auth
+  controller: App\Controller\SecurityController::auth
 
 app_logout:
-    path: /logout
+  path: /logout
 
-app_parameter_generaux:                      
-    path: /parameter/generaux
-    controller: App\Controller\ParameterController::generaux
+app_parameter_generaux:
+  path: /parameter/generaux
+  controller: App\Controller\ParameterController::generaux
 
 app_parameter_app_configuration:
-    path: /parameter/app-configuration
-    controller: App\Controller\ParameterController::index
-    methods : [GET]
+  path: /parameter/app-configuration
+  controller: App\Controller\ParameterController::index
+  methods: [GET]
 
 app_ajax_search:
-    path: /parameter/search
-    controller: App\Controller\ParameterController::search
-    methods: [POST]
+  path: /parameter/search
+  controller: App\Controller\ParameterController::search
+  methods: [POST]
 
 app_ajax_create:
-    path: /parameter/create
-    controller: App\Controller\ParameterController::create
-    methods: [POST]
+  path: /parameter/create
+  controller: App\Controller\ParameterController::create
+  methods: [POST]
 
 app_parameter_about:
-    path: /parameter/about
-    controller: App\Controller\ParameterController::about
-    methods: [GET]
-
+  path: /parameter/about
+  controller: App\Controller\ParameterController::about
+  methods: [GET]

@@ -49,7 +49,7 @@ class SecurityController extends AbstractController
             $user->setUserDateFrom(new \DateTime());
 
             // Avatar par défaut
-            $user->setUserAvatar('/default-avatar.png');
+            $user->setUserAvatar('img/account/default-avatar.png');
 
             // Hashage du mot de passe
             $plainPassword = $request->request->get('password');
