@@ -1,112 +1,91 @@
 <?php
+
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use App\Entity\User;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
-use App\Security\AppCustomAuthenticator;
+use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class SecurityController extends AbstractController
 {
-    private UserPasswordHasherInterface $passwordHasher;
-    private EntityManagerInterface $entityManager;
-    private UserAuthenticatorInterface $userAuthenticator;
-    private AppCustomAuthenticator $authenticator;
-
-    public function __construct(
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager,
-        UserAuthenticatorInterface $userAuthenticator,
-        AppCustomAuthenticator $authenticator
-    ) {
-        $this->passwordHasher = $passwordHasher;
-        $this->entityManager = $entityManager;
-        $this->userAuthenticator = $userAuthenticator;
-        $this->authenticator = $authenticator;
-    }
-
-    #[Route('/auth', name: 'app_auth')]
-    public function authPage(Request $request, AuthenticationUtils $authenticationUtils): Response
+    #[Route('/auth', name: 'app_auth', methods: ['GET'])]
+    public function auth(AuthenticationUtils $authenticationUtils): Response
     {
-        // Inscription
-        if ($request->isMethod('POST') && $request->request->get('action') === 'register') {
-            $user = new User();
-            $user->setUserFirstName($request->request->get('first_name'));
-            $user->setUserLastName($request->request->get('last_name'));
-            $user->setUserEmail($request->request->get('email'));
-
-            // Rôle par défaut
-            $user->setUserRole('ROLE_USER');
-
-            // Date d'inscription
-            $user->setUserDateFrom(new \DateTime());
-
-            // Avatar par défaut
-            $user->setUserAvatar('/default-avatar.png');
-
-            // Hashage du mot de passe
-            $plainPassword = $request->request->get('password');
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
-            $user->setPassword($hashedPassword);
-
-            try {
-                $this->entityManager->persist($user);
-                $this->entityManager->flush();
-
-                // Authentification automatique
-                return $this->userAuthenticator->authenticateUser(
-                    $user,
-                    $this->authenticator,
-                    $request
-                );
-            } catch (UniqueConstraintViolationException $e) {
-                $this->addFlash('error', 'Un compte existe déjà avec cet email.');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Erreur lors de la création du compte.');
-            }
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_dashboard');
         }
-
-        // Connexion
-        if ($request->isMethod('POST') && $request->request->get('action') === 'login') {
-            $email = $request->request->get('email');
-            $password = $request->request->get('password');
-
-            // Recherche de l'utilisateur par email
-            $user = $this->entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
-
-            if ($user && $this->passwordHasher->isPasswordValid($user, $password)) {
-                // Authentification de l'utilisateur
-                return $this->userAuthenticator->authenticateUser(
-                    $user,
-                    $this->authenticator,
-                    $request
-                );
-            } else {
-                $this->addFlash('error', 'Email ou mot de passe incorrect.');
-            }
-        }
-
-        // Récupérer la dernière tentative de connexion
-        $error = $authenticationUtils->getLastAuthenticationError();
-        $lastUsername = $authenticationUtils->getLastUsername();
 
         return $this->render('auth/auth.html.twig', [
-            'last_username' => $lastUsername,
-            'error' => $error,
+            'error' => $authenticationUtils->getLastAuthenticationError(),
+            'last_username' => $authenticationUtils->getLastUsername(),
         ]);
     }
 
-    #[Route('/logout', name: 'app_logout')]
+    #[Route('/auth/register', name: 'app_register', methods: ['POST'])]
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $entityManager,
+        ValidatorInterface $validator,
+        UserAuthenticatorInterface $userAuthenticator,
+        #[Autowire(service: 'security.authenticator.form_login.main')] AuthenticatorInterface $authenticator
+    ): Response {
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $user = new User();
+        $user->setUserFirstName($request->request->get('first_name'))
+            ->setUserLastName($request->request->get('last_name'))
+            ->setUserEmail($request->request->get('email'))
+            ->setPassword($request->request->get('password'));
+
+        // Hash password before validation
+        $hashedPassword = $passwordHasher->hashPassword($user, $request->request->get('password'));
+        $user->setPassword($hashedPassword);
+
+        // Validate user data
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            return $this->json(['errors' => (string) $errors], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Check if email exists
+        $existingUser = $entityManager->getRepository(User::class)->findOneBy([
+            'userEmail' => $user->getUserEmail()
+        ]);
+        if ($existingUser) {
+            return $this->json(['errors' => 'Email already exists'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        // Automatically authenticate the user
+        $response = $userAuthenticator->authenticateUser(
+            $user,
+            $authenticator,
+            $request
+        );
+
+        return $this->json([
+            'success' => true,
+            'redirect' => $this->generateUrl('app_dashboard')
+        ]);
+    }
+
+    #[Route('/logout', name: 'app_logout', methods: ['GET'])]
     public function logout(): void
     {
-        // Cette méthode est interceptée par le firewall pour gérer la déconnexion
-        throw new \LogicException('Ce point ne devrait jamais être atteint.');
+        // Controller will be intercepted by the logout key on your firewall
     }
 }

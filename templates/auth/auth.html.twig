@@ -1,16 +1,27 @@
-{% extends 'base.html.twig' %} {% block title %}Digi-3 - Page d'authentification{% endblock %} {% block body %}
-<div class="auth-container">
-  <div class="auth-section flex" style="display: none" id="loginSection">
-    <form id="login_form" method="POST" action="{{ path('app_auth') }}">
-      <input type="hidden" name="action" value="login" />
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" required />
+{% extends 'base.html.twig' %}
 
-      <label for="password">Mot de passe</label>
-      <input type="password" id="password" name="password" required />
-      
+{% block title %}Digi-3 - Page d'authentification{% endblock %}
+
+{% block body %}
+<div class="auth-container">
+  <!-- Section de connexion -->
+  <div class="auth-section flex" id="loginSection">
+    <form id="login_form" method="POST" action="{{ path('app_auth') }}">
+      <input
+        type="hidden"
+        name="_csrf_token"
+        value="{{ csrf_token('authenticate') }}"
+      />
+      <input type="hidden" name="action" value="login" />
+
+      <label for="login_email">Email</label>
+      <input type="email" id="login_email" name="email" required />
+
+      <label for="login_password">Mot de passe</label>
+      <input type="password" id="login_password" name="password" required />
+
       {% if error %}
-      <div class="error">{{ error }}</div>
+        <div class="error">{{ error }}</div>
       {% endif %}
 
       <button type="submit">Se connecter</button>
@@ -23,16 +34,23 @@
       <a href="" id="switchToRegister">S'inscrire</a>
     </div>
   </div>
-  <div class="auth-section flex" id="registerSection">
+
+  <!-- Section d'inscription -->
+  <div class="auth-section flex" id="registerSection" style="display: none;">
     <div class="auth-decorate flex-col">
       <h3>Content de te revoir !</h3>
       <p>
-        Pour rester dans l'aventure avec nous connectez-vous avec vos
-        informations personnelles
+        Pour rester dans l'aventure avec nous, connectez-vous avec vos
+        informations personnelles.
       </p>
       <a href="" id="switchToLogin">Se connecter</a>
     </div>
-    <form id="registration_form" method="POST" action="{{ path('app_auth') }}">
+    <form id="register_form" method="POST" action="{{ path('app_register') }}">
+      <input
+        type="hidden"
+        name="_csrf_token"
+        value="{{ csrf_token('authenticate') }}"
+      />
       <input type="hidden" name="action" value="register" />
 
       <label for="first_name">Prénom :</label>
@@ -41,51 +59,75 @@
       <label for="last_name">Nom :</label>
       <input type="text" id="last_name" name="last_name" required />
 
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" required />
+      <label for="register_email">Email</label>
+      <input type="email" id="register_email" name="email" required />
 
-      <label for="password">Mot de passe</label>
-      <input type="password" id="password" name="password" required />
+      <label for="register_password">Mot de passe</label>
+      <input type="password" id="register_password" name="password" required />
 
-      {# {% if error %}
-      <div class="error">{{ error }}</div>
-      {% endif %} {% for type, messages in app.flashes %}
-      <div class="flash-message {{ type }}">
-        {% for message in messages %}
-        <p>{{ message }}</p>
-        {% endfor %}
-      </div>
-      {% endfor %} #}
       <button type="submit" class="auth-submit">S'inscrire</button>
     </form>
   </div>
 </div>
-{% endblock %} {% block javascripts %}
+{% endblock %}
+
+{% block javascripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // Étape 1 : Cibler les éléments
     const loginSection = document.getElementById("loginSection");
     const registerSection = document.getElementById("registerSection");
     const switchToRegister = document.getElementById("switchToRegister");
     const switchToLogin = document.getElementById("switchToLogin");
+    const registerForm = document.getElementById("register_form");
 
-    // Étape 2 : Ajouter des événements de clic
+    // Pour afficher la section d'inscription
     switchToRegister.addEventListener("click", function (event) {
       event.preventDefault();
       showRegisterSection();
     });
 
+    // Pour afficher la section de connexion
     switchToLogin.addEventListener("click", function (event) {
       event.preventDefault();
       showLoginSection();
     });
 
-    // Étape 3 : Fonctions pour afficher/masquer les sections
+    // Add form submission handler
+    registerForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      
+      const formData = new FormData(registerForm);
+      
+      fetch('{{ path('app_register') }}', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = data.redirect;
+        } else {
+          // Handle errors - you might want to display them in your UI
+          console.error(data.errors);
+          // Optional: Display error to user
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'error';
+          errorDiv.textContent = data.errors;
+          registerForm.insertBefore(errorDiv, registerForm.firstChild);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+
+    // Fonction pour afficher la section d'inscription
     function showRegisterSection() {
       loginSection.style.display = "none";
       registerSection.style.display = "flex";
     }
 
+    // Fonction pour afficher la section de connexion
     function showLoginSection() {
       registerSection.style.display = "none";
       loginSection.style.display = "flex";

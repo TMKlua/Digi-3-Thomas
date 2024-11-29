@@ -8,7 +8,7 @@ security:
         app_user_provider:
             entity:
                 class: App\Entity\User
-                property: email
+                property: userEmail
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -16,7 +16,10 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            custom_authenticator: App\Security\AppCustomAuthenticator
+            form_login:
+                login_path: app_auth
+                check_path: app_auth
+                enable_csrf: true
             logout:
                 path: app_logout
                 target: app_auth
@@ -24,9 +27,7 @@ security:
                 secret: '%kernel.secret%'
                 lifetime: 604800
                 path: /
-                # by default, the feature is enabled by checking a checkbox in the
-                # login form, uncomment the following line to always enable it.
-                always_remember_me: true
+                always_remember_me: false
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -35,18 +36,9 @@ security:
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
-    role_hierarchy:
-        ROLE_ADMIN: [ROLE_USER]
     access_control:
-        # Page accessible uniquement pour ROLE_ADMIN
-        - { path: ^/admin, roles: ROLE_ADMIN }
-        # Pages accessibles pour tous les utilisateurs connectés
-        - { path: ^/parameters/generaux, roles: ROLE_USER }
-        - { path: ^/about, roles: ROLE_USER }
-        # Toutes les autres pages nécessitent un accès authentifié
-        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/auth, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/dashboard, roles: ROLE_USER }
 
 when@test:
     security:
