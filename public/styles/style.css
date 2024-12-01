@@ -538,7 +538,7 @@ header nav ul li.active a::after {
   align-items: center;
 }
 #login_form,
-#registration_form {
+#register_form {
   display: flex;
   flex-direction: column;
   width: 65%;
@@ -546,7 +546,7 @@ header nav ul li.active a::after {
 }
 /*FORM-1  DIV CONTAINER*/
 #login_form div,
-#registration_form div {
+#register_form div {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -554,23 +554,23 @@ header nav ul li.active a::after {
 }
 /*FORM-2 TEXT / INPUT*/
 #login_form input,
-#registration_form input {
+#register_form input {
   padding: 1rem 0.5rem;
   border-radius: 10px;
   border: 1px solid var(--w);
   background-color: transparent;
 }
 #login_form input,
-#registration_form input,
+#register_form input,
 #login_form label,
-#registration_form label {
+#register_form label {
   font-size: 1.5rem;
   text-align: start;
 }
 #login_form input,
-#registration_form input,
+#register_form input,
 #login_form input::placeholder,
-#registration_form input::placeholder {
+#register_form input::placeholder {
   color: rgba(255, 255, 255, 0.7);
 }
 /*FORM-3 STAY AUTHENTIFICATED*/

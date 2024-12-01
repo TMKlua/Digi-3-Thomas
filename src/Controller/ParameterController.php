@@ -26,7 +26,9 @@ class ParameterController extends AbstractController
 {
     #[Route('/parameter/app_configuration', name: 'app_parameter_app_configuration', methods: ['GET', 'POST'])]
     public function index(Request $request, EntityManagerInterface $entityManager, Security $security): Response
-    {
+    {   
+        // Get current user
+        $user = $security->getUser();
         $createForm = $this->createForm(AppFormParameterType::class);
         $searchForm = $this->createForm(SearchFormType::class);
 
@@ -55,7 +57,8 @@ class ParameterController extends AbstractController
         return $this->render('parameter/config.html.twig', [
             'searchForm' => $searchForm->createView(), // Passer le formulaire à la vue
             'createForm' => $createForm->createView(),
-            'parameters' => $parameters
+            'parameters' => $parameters,
+            'user' => $user
         ]);
     }
     #[Route('/parameter/search', name: 'app_ajax_search', methods: ['POST'])]

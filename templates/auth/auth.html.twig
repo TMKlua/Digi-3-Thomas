@@ -1,7 +1,5 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Digi-3 - Page d'authentification{% endblock %}
-
 {% block body %}
 <div class="auth-container">
   <!-- Section de connexion -->
@@ -24,7 +22,7 @@
         <div class="error">{{ error }}</div>
       {% endif %}
 
-      <button type="submit">Se connecter</button>
+      <button type="submit" class="auth-submit">Se connecter</button>
     </form>
     <div class="auth-decorate flex-col">
       <h3>Bonjour mon ami !</h3>
@@ -34,9 +32,8 @@
       <a href="" id="switchToRegister">S'inscrire</a>
     </div>
   </div>
-
   <!-- Section d'inscription -->
-  <div class="auth-section flex" id="registerSection" style="display: none;">
+  <div class="auth-section flex" id="registerSection" >
     <div class="auth-decorate flex-col">
       <h3>Content de te revoir !</h3>
       <p>
@@ -70,7 +67,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block javascripts %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {

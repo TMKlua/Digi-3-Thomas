@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class SecurityController extends AbstractController
 {
-    #[Route('/auth', name: 'app_auth', methods: ['GET'])]
+    #[Route('/auth', name: 'app_auth', methods: ['POST','GET'])]
     public function auth(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser()) {
@@ -28,7 +28,7 @@ class SecurityController extends AbstractController
             'error' => $authenticationUtils->getLastAuthenticationError(),
             'last_username' => $authenticationUtils->getLastUsername(),
         ]);
-    }
+    }   
 
     #[Route('/auth/register', name: 'app_register', methods: ['POST'])]
     public function register(

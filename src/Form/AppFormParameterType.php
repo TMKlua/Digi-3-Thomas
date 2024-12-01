@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\Parameter;
+use App\Entity\Parameters;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -35,7 +35,7 @@ class AppFormParameterType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Parameter::class,
+            'data_class' => Parameters::class,
         ]);
     }
 }
