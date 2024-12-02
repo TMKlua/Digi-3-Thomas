@@ -19,18 +19,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 35)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 2, max: 35)]
+    #[Assert\NotBlank(message: 'Le prénom ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 2,
+        max: 35,
+        minMessage: 'Le prénom doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le prénom ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $userFirstName = null;
 
     #[ORM\Column(length: 35)]
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 2, max: 35)]
+    #[Assert\NotBlank(message: 'Le nom ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 2,
+        max: 35,
+        minMessage: 'Le nom doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le nom ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $userLastName = null;
 
     #[ORM\Column(length: 35, unique: true)]
-    #[Assert\NotBlank]
-    #[Assert\Email]
+    #[Assert\NotBlank(message: 'L\'email ne peut pas être vide.')]
+    #[Assert\Email(message: 'L\'email n\'est pas valide.')]
     private ?string $userEmail = null;
 
     #[ORM\Column(length: 255)]
@@ -40,7 +50,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $userRole = 'ROLE_USER';
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'Le mot de passe ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 8,
+        minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caractères.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]/',
+        message: 'Le mot de passe doit contenir au moins une lettre, un chiffre et un caractère spécial.'
+    )]
     private ?string $userPassword = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -51,6 +69,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: true)]
     private ?int $userUserMaj = null;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $resetTokenExpiresAt = null;
 
     public function getEmail(): ?string
     {
@@ -146,6 +170,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUserUserMaj(?int $userUserMaj): static
     {
         $this->userUserMaj = $userUserMaj;
+        return $this;
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
         return $this;
     }
 

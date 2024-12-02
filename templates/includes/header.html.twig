@@ -17,33 +17,67 @@
             </li>
         </ul>
         <input type="text" class="header-search" placeholder="Rechercher" class="search-input">
-        <a href="{{ path('app_parameter_generaux') }}" class="header-account flex ">
+        <a href="{{ path('app_parameter_generaux') }}" class="header-account flex">
             <img src="{{user.userAvatar}}" alt="Icone de compte">
         </a>
-         <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
-            <button type="submit" class="logout-btn flex"><img src="/img/header/deconnect.png" alt="Logo Digi-3"></button>
+        <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
+            <button type="submit" class="logout-btn flex">
+                <img src="/img/header/deconnect.png" alt="Icône déconnexion">
+            </button>
         </form>
     </nav>
+
+    <!-- Modale de déconnexion améliorée -->
     <div id="logout-dialog" class="logout-dialog">
         <div class="logout-dialog-content">
-            <span class="close" onclick="closeLogoutDialog()">&times;</span>
-            <p style="color: black;">Êtes-vous sûr de vouloir vous déconnecter ?</p>
+            <div class="logout-dialog-header">
+                <h3>Déconnexion</h3>
+                <span class="close" onclick="closeLogoutDialog()">&times;</span>
+            </div>
+            <div class="logout-dialog-body">
+                <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
+                <p class="logout-subtitle">Vous devrez vous reconnecter pour accéder à votre compte.</p>
+            </div>
             <div class="logout-dialog-buttons">
-                <button class="dialog-btn " onclick="confirmLogout()">Oui</button>
-                <button class="dialog-btn" onclick="closeLogoutDialog()">Non</button>
+                <button type="button" onclick="closeLogoutDialog()">Annuler</button>
+                <button type="button" onclick="confirmLogout()">Se déconnecter</button>
             </div>
         </div>
     </div>
 </header>
+
 <script>
-    function showLogoutDialog(event) {
-        event.preventDefault(); // Empêche l'envoi du formulaire
-        document.getElementById("logout-dialog").style.display = "block"; // Affiche la boîte de dialogue
-    }
-    function closeLogoutDialog() {
-        document.getElementById("logout-dialog").style.display = "none"; // Masque la boîte de dialogue
-    }
-    function confirmLogout() {
-        document.querySelector(".logout-form").submit();
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutDialog = document.getElementById('logout-dialog');
+        const logoutForm = document.querySelector('.logout-form');
+
+        // Fermeture avec la touche Echap
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && logoutDialog.style.display === 'block') {
+                closeLogoutDialog();
+            }
+        });
+
+        window.showLogoutDialog = function(event) {
+            event.preventDefault();
+            logoutDialog.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Empêche le scroll
+            return false;
+        };
+
+        window.closeLogoutDialog = function() {
+            logoutDialog.style.display = 'none';
+            document.body.style.overflow = ''; // Réactive le scroll
+        };
+
+        window.confirmLogout = function() {
+            const btnConfirm = document.querySelector('.logout-dialog-buttons button:last-child');
+            btnConfirm.disabled = true;
+            btnConfirm.textContent = 'Déconnexion...';
+            
+            setTimeout(() => {
+                logoutForm.submit();
+            }, 500);
+        };
+    });
 </script>
