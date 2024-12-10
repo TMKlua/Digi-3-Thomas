@@ -56,7 +56,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caractères.'
     )]
     #[Assert\Regex(
-        pattern: '/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]/',
+        pattern: '/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&].{8,}$/',
         message: 'Le mot de passe doit contenir au moins une lettre, un chiffre et un caractère spécial.'
     )]
     private ?string $userPassword = null;
@@ -216,8 +216,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = [$this->userRole];
-        $roles[] = 'ROLE_USER';
+        $roles = ['ROLE_USER'];
+        if ($this->userRole) {
+            $roles[] = $this->userRole;
+        }
         return array_unique($roles);
     }
 
@@ -237,7 +239,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        // Si vous stockez des données sensibles temporaires
+    }
+
+    public static function create(
+        string $firstName,
+        string $lastName,
+        string $email,
+        string $hashedPassword
+    ): self {
+        $user = new self();
+        $user
+            ->setUserFirstName($firstName)
+            ->setUserLastName($lastName)
+            ->setUserEmail($email)
+            ->setPassword($hashedPassword)
+            ->setUserDateFrom(new \DateTime())
+            ->setUserAvatar('/img/account/default-avatar.jpg')
+            ->setUserRole('ROLE_USER')
+            ->setResetToken(null)
+            ->setResetTokenExpiresAt(null)
+            ->setUserDateTo(null)
+            ->setUserUserMaj(null);
+
+        return $user;
     }
 }

@@ -51,7 +51,7 @@ d'authentification{% endblock %} {% block body %}
     <form id="register_form" method="POST" action="{{ path('app_register') }}">
       <input
         type="hidden"
-        name="_csrf_token"
+        name="csrf_token"
         value="{{ csrf_token('authenticate') }}"
       />
       <input type="hidden" name="action" value="register" />
@@ -81,7 +81,6 @@ d'authentification{% endblock %} {% block body %}
     </form>
   </div>
 </div>
-
 <!-- Ajouter la modale de réinitialisation -->
 <div id="resetPasswordModal" class="modal" style="display: none;">
     <div class="modal-content">
@@ -192,6 +191,7 @@ d'authentification{% endblock %} {% block body %}
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Réponse du serveur:', data); // Ajoutez ceci
             if (data.success) {
                 submitButton.innerHTML = 'Inscription réussie !';
                 submitButton.style.backgroundColor = '#4CAF50';

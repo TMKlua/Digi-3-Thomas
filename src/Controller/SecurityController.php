@@ -10,61 +10,71 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
-use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
-use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Validation;
+use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use App\Security\AppCustomAuthenticator;
 
-/**
- * Contrôleur gérant l'authentification et la gestion des utilisateurs
- */
 class SecurityController extends AbstractController
 {
     private RateLimiterFactory $loginLimiter;
-    // Longueur du token pour la réinitialisation du mot de passe
+    private LoggerInterface $logger;
+    private AppCustomAuthenticator $authenticator;
     private const TOKEN_LENGTH = 40;
-    // Durée de validité du token de réinitialisation
     private const TOKEN_EXPIRATION = '+1 hour';
 
-    public function __construct(RateLimiterFactory $loginLimiter)
-    {
+    public function __construct(
+        RateLimiterFactory $loginLimiter,
+        LoggerInterface $logger,
+        AppCustomAuthenticator $authenticator
+    ) {
         $this->loginLimiter = $loginLimiter;
+        $this->logger = $logger;
+        $this->authenticator = $authenticator;
     }
 
-    /**
-     * Génère un token sécurisé pour la réinitialisation du mot de passe
-     */
+    private function validatePassword(string $password): array
+    {
+        $errors = [];
+        if (strlen($password) < 8) {
+            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères';
+        }
+        if (!preg_match('/[A-Z]/', $password)) {
+            $errors[] = 'Le mot de passe doit contenir au moins une majuscule';
+        }
+        if (!preg_match('/[a-z]/', $password)) {
+            $errors[] = 'Le mot de passe doit contenir au moins une minuscule';
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            $errors[] = 'Le mot de passe doit contenir au moins un chiffre';
+        }
+        if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+            $errors[] = 'Le mot de passe doit contenir au moins un caractère spécial';
+        }
+        return $errors;
+    }
+
     private function generateSecureToken(): string
     {
         return bin2hex(random_bytes(self::TOKEN_LENGTH));
     }
 
-    /**
-     * Crée une réponse JSON standardisée
-     */
     private function createJsonResponse(bool $success, string $message = '', array $data = [], int $status = Response::HTTP_OK): Response
     {
         return $this->json(array_merge(['success' => $success, 'message' => $message], $data), $status);
     }
 
-    /**
-     * Page de connexion et traitement du formulaire de connexion
-     */
     #[Route('/auth', name: 'app_auth', methods: ['POST', 'GET'])]
     public function auth(AuthenticationUtils $authenticationUtils, Request $request): Response
     {
-        // Redirection si déjà connecté
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');
         }
 
-        // Protection contre le brute force
         $limiter = $this->loginLimiter->create($request->getClientIp());
         if (!$limiter->consume(1)->isAccepted()) {
             return $this->render('auth/auth.html.twig', [
@@ -73,7 +83,6 @@ class SecurityController extends AbstractController
             ]);
         }
 
-        // Gestion des erreurs de connexion
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorMessage = $error ? 'Identifiants incorrects.' : null;
 
@@ -83,145 +92,103 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    /**
-     * Valide le format et la complexité du mot de passe
-     */
-    private function validatePassword(string $password): array
-    {
-        $errors = [];
-        $constraints = [
-            'minLength' => 8,
-            'requireSpecialChar' => true,
-            'requireNumber' => true,
-            'requireUppercase' => true
-        ];
-
-        if (strlen($password) < $constraints['minLength']) {
-            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères';
-        }
-        if ($constraints['requireSpecialChar'] && !preg_match('/[^a-zA-Z\d]/', $password)) {
-            $errors[] = 'Le mot de passe doit contenir au moins un caractère spécial';
-        }
-        if ($constraints['requireNumber'] && !preg_match('/\d/', $password)) {
-            $errors[] = 'Le mot de passe doit contenir au moins un chiffre';
-        }
-        if ($constraints['requireUppercase'] && !preg_match('/[A-Z]/', $password)) {
-            $errors[] = 'Le mot de passe doit contenir au moins une majuscule';
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Valide le format de l'email
-     */
-    private function validateEmail(string $email): array
-    {
-        $errors = [];
-        $validator = Validation::createValidator();
-        $emailConstraints = new Assert\Email([
-            'message' => 'L\'adresse email "{{ value }}" n\'est pas valide.',
-            'mode' => Assert\Email::VALIDATION_MODE_STRICT
-        ]);
-
-        $violations = $validator->validate($email, $emailConstraints);
-        if (count($violations) > 0) {
-            $errors[] = $violations[0]->getMessage();
-        }
-
-        return $errors;
-    }
-
-    /**
-     * Inscription d'un nouvel utilisateur
-     */
     #[Route('/auth/register', name: 'app_register', methods: ['POST'])]
     public function register(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
-        ValidatorInterface $validator,
         UserAuthenticatorInterface $userAuthenticator,
-        #[Autowire(service: 'security.authenticator.form_login.main')] AuthenticatorInterface $authenticator
+        Security $security
     ): Response {
-        // Protection CSRF
-        $submittedToken = $request->request->get('csrf_token');
-        if (!$this->isCsrfTokenValid('register', $submittedToken)) {
-            return $this->createJsonResponse(false, 'Token invalide');
-        }
-
-        // Nettoyage et validation des données
-        $firstName = trim(strip_tags($request->request->get('first_name', '')));
-        $lastName = trim(strip_tags($request->request->get('last_name', '')));
-        $email = trim(strip_tags($request->request->get('email', '')));
-        $plainPassword = $request->request->get('password');
-
-        $requiredFields = [
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-            'password' => $plainPassword
-        ];
-
-        foreach ($requiredFields as $field => $value) {
-            if (empty($value)) {
-                return $this->createJsonResponse(false, sprintf('Le champ %s est requis', str_replace('_', ' ', $field)));
+        try {
+            $submittedToken = $request->request->get('csrf_token');
+            if (!$this->isCsrfTokenValid('authenticate', $submittedToken)) {
+                return $this->createJsonResponse(false, 'Token invalide');
             }
+
+            $firstName = trim(strip_tags($request->request->get('first_name', '')));
+            $lastName = trim(strip_tags($request->request->get('last_name', '')));
+            $email = trim(strip_tags($request->request->get('email', '')));
+            $plainPassword = $request->request->get('password');
+
+            $requiredFields = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'password' => $plainPassword
+            ];
+
+            foreach ($requiredFields as $field => $value) {
+                $this->logger->debug("Champ {$field}: " . ($value ?: 'vide'));
+                if (empty($value)) {
+                    return $this->createJsonResponse(false, sprintf('Le champ %s est requis', str_replace('_', ' ', $field)));
+                }
+            }
+
+            $passwordErrors = $this->validatePassword($plainPassword);
+            if (!empty($passwordErrors)) {
+                return $this->createJsonResponse(false, implode(', ', $passwordErrors));
+            }
+
+            $existingUser = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
+            if ($existingUser) {
+                return $this->createJsonResponse(false, 'Cet email est déjà utilisé');
+            }
+
+            $hashedPassword = $passwordHasher->hashPassword(new User(), $plainPassword);
+
+            $user = User::create(
+                $firstName,
+                $lastName,
+                $email,
+                $hashedPassword
+            );
+
+            $this->logger->debug('Données utilisateur avant persist:', [
+                'firstName' => $user->getUserFirstName(),
+                'lastName' => $user->getUserLastName(),
+                'email' => $user->getUserEmail(),
+                'hasPassword' => !empty($user->getPassword()),
+                'dateFrom' => $user->getUserDateFrom()->format('Y-m-d H:i:s'),
+                'avatar' => $user->getUserAvatar(),
+                'role' => $user->getUserRole()
+            ]);
+
+            try {
+                $entityManager->persist($user);
+                $entityManager->flush();
+            } catch (\Exception $e) {
+                $this->logger->error('Erreur lors de la persistance : ' . $e->getMessage());
+                return $this->createJsonResponse(false, 'Erreur lors de la création du compte');
+            }
+
+            try {
+                $userAuthenticator->authenticateUser(
+                    $user,
+                    $this->authenticator,
+                    $request
+                );
+            } catch (\Exception $e) {
+                $this->logger->error('Erreur lors de l\'authentification : ' . $e->getMessage());
+            }
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Inscription réussie !',
+                'redirect' => $this->generateUrl('app_dashboard')
+            ]);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Erreur lors de l\'inscription : ' . $e->getMessage());
+            return $this->createJsonResponse(false, 'Une erreur est survenue lors de l\'inscription');
         }
-
-        $emailErrors = $this->validateEmail($email);
-        if (!empty($emailErrors)) {
-            return $this->createJsonResponse(false, $emailErrors[0]);
-        }
-
-        $passwordErrors = $this->validatePassword($plainPassword);
-        if (!empty($passwordErrors)) {
-            return $this->createJsonResponse(false, implode(', ', $passwordErrors));
-        }
-
-        // Création et enregistrement de l'utilisateur
-        $user = new User();
-        $user->setUserFirstName($firstName)
-            ->setUserLastName($lastName)
-            ->setUserEmail($email);
-
-        $errors = $validator->validate($user);
-        if (count($errors) > 0) {
-            return $this->createJsonResponse(false, (string) $errors);
-        }
-
-        $existingUser = $entityManager->getRepository(User::class)->findOneBy([
-            'userEmail' => $email
-        ]);
-        if ($existingUser) {
-            return $this->createJsonResponse(false, 'Cet email est déjà utilisé');
-        }
-
-        $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-        $user->setPassword($hashedPassword);
-
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        $userAuthenticator->authenticateUser($user, $authenticator, $request);
-
-        return $this->createJsonResponse(true, 'Inscription réussie ! Vous allez être redirigé.', [
-            'redirect' => $this->generateUrl('app_dashboard')
-        ]);
     }
 
-    /**
-     * Déconnexion de l'utilisateur
-     */
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]
     public function logout(): void
     {
-        // La déconnexion est gérée par le firewall
     }
 
-    /**
-     * Demande de réinitialisation du mot de passe
-     */
     #[Route('/auth/reset-password', name: 'app_reset_password', methods: ['POST'])]
     public function resetPassword(
         Request $request,
@@ -234,11 +201,6 @@ class SecurityController extends AbstractController
 
         if (empty($userEmail)) {
             return $this->createJsonResponse(false, 'Email requis');
-        }
-
-        $emailErrors = $this->validateEmail($userEmail);
-        if (!empty($emailErrors)) {
-            return $this->createJsonResponse(false, $emailErrors[0]);
         }
 
         $user = $entityManager->getRepository(User::class)->findOneBy([
@@ -281,9 +243,6 @@ class SecurityController extends AbstractController
         }
     }
 
-    /**
-     * Confirmation de la réinitialisation du mot de passe avec le token
-     */
     #[Route('/auth/reset-password/{token}', name: 'app_reset_password_confirm', methods: ['POST'])]
     public function resetPasswordConfirm(
         string $token,
@@ -307,6 +266,7 @@ class SecurityController extends AbstractController
         }
 
         $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+        $this->logger->debug('Hash du mot de passe généré:', ['hashedPassword' => !empty($hashedPassword)]);
         $user->setPassword($hashedPassword);
         $user->setResetToken(null);
         $user->setResetTokenExpiresAt(null);

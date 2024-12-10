@@ -55,6 +55,17 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator
         return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
     }
 
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
+    {
+        if ($request->hasSession()) {
+            $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
+        }
+
+        $url = $this->getLoginUrl($request);
+
+        return new RedirectResponse($url);
+    }
+
     protected function getLoginUrl(Request $request): string
     {
         return $this->urlGenerator->generate(self::LOGIN_ROUTE);
