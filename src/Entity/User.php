@@ -76,6 +76,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $resetTokenExpiresAt = null;
 
+    public const ROLE_USER = 'ROLE_USER';
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
+    public const ROLE_PROJECT_MANAGER = 'ROLE_PROJECT_MANAGER';
+    public const ROLE_TEAM_LEADER = 'ROLE_TEAM_LEADER';
+    public const ROLE_DEVELOPER = 'ROLE_DEVELOPER';
+
+    /**
+     * @var array
+     */
+    private $roles = [];
+
     public function getEmail(): ?string
     {
         return $this->userEmail;
@@ -216,10 +227,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = ['ROLE_USER'];
-        if ($this->userRole) {
-            $roles[] = $this->userRole;
-        }
+        $roles = $this->roles;
+        // Garantir que chaque utilisateur a au moins ROLE_USER
+        $roles[] = self::ROLE_USER;
+
         return array_unique($roles);
     }
 
@@ -263,5 +274,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             ->setUserUserMaj(null);
 
         return $user;
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+
+        return $this;
     }
 }

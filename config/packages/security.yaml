@@ -36,11 +36,33 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
+        # Pages publiques
         - { path: ^/auth, roles: PUBLIC_ACCESS }
-        - { path: ^/dashboard, roles: ROLE_USER }
-        - { path: ^/, roles: PUBLIC_ACCESS }
+        
+        # Pages accessibles à tous les utilisateurs connectés
+        - { path: ^/parameter/generaux, roles: ROLE_USER }
+        - { path: ^/parameter/about, roles: ROLE_USER }
+        
+        # Pages chef de projet
+        - { path: ^/parameter/users$, roles: ROLE_PROJECT_MANAGER } # Vue liste uniquement
+        - { path: ^/parameter/projects, roles: ROLE_PROJECT_MANAGER }
+        - { path: ^/parameter/customers$, roles: ROLE_PROJECT_MANAGER } # Vue liste uniquement
+        
+        # Pages administrateur
+        - { path: ^/parameter/app_configuration, roles: ROLE_ADMIN }
+        - { path: ^/parameter/users/, roles: ROLE_ADMIN } # Toutes les actions CRUD
+        - { path: ^/parameter/customers/, roles: ROLE_ADMIN } # Toutes les actions CRUD
+        
+        # Protection générale
+        - { path: ^/, roles: ROLE_USER }
 
 when@test:
     security:
         password_hashers:
             App\Entity\User: 'auto'
+
+    role_hierarchy:
+        ROLE_DEVELOPER: ROLE_USER
+        ROLE_TEAM_LEADER: ROLE_DEVELOPER
+        ROLE_PROJECT_MANAGER: ROLE_TEAM_LEADER
+        ROLE_ADMIN: [ROLE_PROJECT_MANAGER, ROLE_ALLOWED_TO_SWITCH]

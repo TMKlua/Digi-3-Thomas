@@ -25,6 +25,7 @@ use Psr\Log\LoggerInterface;
 class ParameterController extends AbstractController
 {
     #[Route('/parameter/app_configuration', name: 'app_parameter_app_configuration', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function index(Request $request, EntityManagerInterface $entityManager, Security $security): Response
     {   
         // Get current user
@@ -231,7 +232,8 @@ class ParameterController extends AbstractController
             'message' => 'Formulaire non soumis correctement.',
         ]);
     }
-    #[Route('/parameter/users', name: 'app_parameter_users')]
+    #[Route('/parameter/users', name: 'app_parameter_users', methods: ['GET'])]
+    #[IsGranted('ROLE_PROJECT_MANAGER')]
     public function users(EntityManagerInterface $entityManager): Response
     {
         // Get current user
@@ -246,6 +248,7 @@ class ParameterController extends AbstractController
         ]);
     }
     #[Route('/parameter/user/add', name: 'app_parameter_user_add', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         try {
@@ -276,6 +279,7 @@ class ParameterController extends AbstractController
         }
     }
     #[Route('/parameter/user/delete/{id}', name: 'app_parameter_user_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function deleteUser(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
         try {
@@ -299,7 +303,8 @@ class ParameterController extends AbstractController
             ], 400);
         }
     }
-    #[Route('/parameter/generaux', name: 'app_parameter_generaux', methods: ['GET', 'POST'])]
+    #[Route('/parameter/generaux', name: 'app_parameter_generaux')]
+    #[IsGranted('ROLE_USER')]
     public function generaux(Request $request, EntityManagerInterface $entityManager, Security $security, UserPasswordHasherInterface $passwordHasher): Response
     
     {
@@ -356,8 +361,8 @@ class ParameterController extends AbstractController
             // Vérifier si le mot de passe actuel est correct
             if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
                 // Vérifier que le nouveau mot de passe est différent de l'ancien
-                if ($actualPassword === $newPassword) {
-                    $this->addFlash('error', 'Le nouveau mot de passe doit être différent de lancien.');
+                if ($passwordHasher->isPasswordValid($user, $newPassword)) {
+                    $this->addFlash('error', 'Le nouveau mot de passe doit être différent de l\'ancien.');
                 } else {
                     // Hacher et mettre à jour le nouveau mot de passe
                     $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
@@ -423,6 +428,7 @@ class ParameterController extends AbstractController
         ]);
     }
     #[Route('/parameter/about', name: 'app_parameter_about')]
+    #[IsGranted('ROLE_USER')]
     public function about(Security $security): Response
     {
         $user = $security->getUser(); // Get current user
@@ -438,7 +444,8 @@ class ParameterController extends AbstractController
         ]);
     }
 
-    #[Route('/parameter/customers', name: 'app_parameter_customers')]
+    #[Route('/parameter/customers', name: 'app_parameter_customers', methods: ['GET'])]
+    #[IsGranted('ROLE_PROJECT_MANAGER')]
     public function customers(EntityManagerInterface $entityManager): Response
     {
         // Get current user
@@ -454,6 +461,7 @@ class ParameterController extends AbstractController
     }
 
     #[Route('/parameter/customer/add', name: 'app_parameter_customer_add', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function addCustomer(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         try {
@@ -499,6 +507,7 @@ class ParameterController extends AbstractController
     }
 
     #[Route('/parameter/customer/delete/{id}', name: 'app_parameter_customer_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function deleteCustomer(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
         try {
@@ -524,6 +533,7 @@ class ParameterController extends AbstractController
     }
 
     #[Route('/parameter/projects', name: 'app_parameter_projects')]
+    #[IsGranted('ROLE_PROJECT_MANAGER')]
     public function projects(EntityManagerInterface $entityManager): Response
     {
         // Get current user
@@ -544,6 +554,7 @@ class ParameterController extends AbstractController
     }
 
     #[Route('/parameter/project/add', name: 'app_parameter_project_add', methods: ['POST'])]
+    #[IsGranted('ROLE_PROJECT_MANAGER')]
     public function addProject(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         try {
@@ -586,6 +597,7 @@ class ParameterController extends AbstractController
     }
 
     #[Route('/parameter/project/delete/{id}', name: 'app_parameter_project_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_PROJECT_MANAGER')]
     public function deleteProject(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
         try {

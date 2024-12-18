@@ -1,33 +1,34 @@
 <div class="parameter_menu">
   <ul class="flex-col">
-    <li
-      class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}parameter_menu_active{% endif %}"
-    >
+    {# Accessible à tous les utilisateurs #}
+    <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}parameter_menu_active{% endif %}">
       <a href="{{ path('app_parameter_generaux') }}">GENERAUX</a>
     </li>
-    <li
-      class="{% if app.request.attributes.get('_route') == 'app_parameter_users' %}parameter_menu_active{% endif %}"
-    >
-      <a href="{{ path('app_parameter_users') }}">GESTION USER</a>
-    </li>
-    <li
-      class="{% if app.request.attributes.get('_route') == 'app_parameter_projects' %}parameter_menu_active{% endif %}"
-    >
-      <a href="{{ path('app_parameter_projects') }}">GESTION PROJET</a>
-    </li>
-    <li
-      class="{% if app.request.attributes.get('_route') == 'app_parameter_customers' %}parameter_menu_active{% endif %}"
-    >
-      <a href="{{ path('app_parameter_customers') }}">GESTION CLIENTS</a>
-    </li>
-    <li
-      class="{% if app.request.attributes.get('_route') == 'app_parameter_app_configuration' %}parameter_menu_active{% endif %}"
-    >
-      <a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a>
-    </li>
-    <li
-      class="{% if app.request.attributes.get('_route') == 'app_parameter_about' %}parameter_menu_active{% endif %}"
-    >
+
+    {# Accessible aux chefs de projet et admin #}
+    {% if is_granted('ROLE_PROJECT_MANAGER') %}
+      <li class="{% if app.request.attributes.get('_route') == 'app_parameter_users' %}parameter_menu_active{% endif %}">
+        <a href="{{ path('app_parameter_users') }}">GESTION USER</a>
+      </li>
+      
+      <li class="{% if app.request.attributes.get('_route') == 'app_parameter_projects' %}parameter_menu_active{% endif %}">
+        <a href="{{ path('app_parameter_projects') }}">GESTION PROJET</a>
+      </li>
+      
+      <li class="{% if app.request.attributes.get('_route') == 'app_parameter_customers' %}parameter_menu_active{% endif %}">
+        <a href="{{ path('app_parameter_customers') }}">GESTION CLIENTS</a>
+      </li>
+    {% endif %}
+
+    {# Accessible uniquement à l'admin #}
+    {% if is_granted('ROLE_ADMIN') %}
+      <li class="{% if app.request.attributes.get('_route') == 'app_parameter_app_configuration' %}parameter_menu_active{% endif %}">
+        <a href="{{ path('app_parameter_app_configuration') }}">CONFIGURATION</a>
+      </li>
+    {% endif %}
+
+    {# Accessible à tous les utilisateurs #}
+    <li class="{% if app.request.attributes.get('_route') == 'app_parameter_about' %}parameter_menu_active{% endif %}">
       <a href="{{ path('app_parameter_about') }}">A PROPOS</a>
     </li>
   </ul>
