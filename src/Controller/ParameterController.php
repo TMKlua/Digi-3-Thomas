@@ -245,7 +245,6 @@ class ParameterController extends AbstractController
             'users' => $users       // For users list
         ]);
     }
-
     #[Route('/parameter/user/add', name: 'app_parameter_user_add', methods: ['POST'])]
     public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
@@ -276,7 +275,6 @@ class ParameterController extends AbstractController
             ], 400);
         }
     }
-
     #[Route('/parameter/user/delete/{id}', name: 'app_parameter_user_delete', methods: ['POST'])]
     public function deleteUser(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -322,38 +320,49 @@ class ParameterController extends AbstractController
             // Vérifier si le mot de passe actuel est correct
             $actualPassword = $emailForm->get('password')->getData();
             if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
-                // Enregistrer les changements si le mot de passe est correct
-                $entityManager->persist($user);
-                $entityManager->flush();
-                $this->addFlash('success', 'Email mis à jour avec succès');
-                return $this->redirectToRoute('app_parameter_generaux');
+                // Récupérer le nouvel email
+                $newEmail = $emailForm->get('email')->getData();
+                
+                // Vérifier si l'email est différent de l'actuel
+                if ($newEmail === $user->getUserEmail()) {
+                    $this->addFlash('error', 'Le nouvel email doit être différent de l\'actuel');
+                } else {
+                    // Mettre à jour l'email
+                    $user->setUserEmail($newEmail);
+                    
+                    // Enregistrer les changements
+                    $entityManager->persist($user);
+                    $entityManager->flush();
+                    
+                    $this->addFlash('success', 'Email mis à jour avec succès');
+                    return $this->redirectToRoute('app_parameter_generaux');
+                }
             } else {
                 $this->addFlash('error', 'Le mot de passe actuel est incorrect');
+            }
+        } else {
+            // Si le formulaire n'est pas valide, afficher les erreurs
+            foreach ($emailForm->getErrors(true, true) as $error) {
+                $this->addFlash('error', $error->getMessage());
             }
         }
 
         // Gérer le formulaire de password
         $passwordForm->handleRequest($request);
         if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
-            // Récupérer le mot de passe actuel saisi dans le formulaire
             $actualPassword = $passwordForm->get('actual_password')->getData();
-            var_dump($passwordHasher->hashPassword($user, $actualPassword));
+            $newPassword = $passwordForm->get('password')->getData();
 
             // Vérifier si le mot de passe actuel est correct
             if ($passwordHasher->isPasswordValid($user, $actualPassword)) {
-                // Récupérer et vérifier le nouveau mot de passe
-                var_dump("pass");
-                $newPassword = $passwordForm->get('password')->getData();
-                var_dump($newPassword);
                 // Vérifier que le nouveau mot de passe est différent de l'ancien
-                if ($passwordHasher->isPasswordValid($user, $newPassword)) {
-                    $this->addFlash('error', 'Le nouveau mot de passe doit être différent de l’ancien.');
+                if ($actualPassword === $newPassword) {
+                    $this->addFlash('error', 'Le nouveau mot de passe doit être différent de lancien.');
                 } else {
                     // Hacher et mettre à jour le nouveau mot de passe
                     $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
                     $user->setPassword($hashedPassword);
-
-                    // Sauvegarder les modifications dans la base de données
+                    
                     $entityManager->persist($user);
                     $entityManager->flush();
 
@@ -361,8 +370,6 @@ class ParameterController extends AbstractController
                     return $this->redirectToRoute('app_parameter_generaux');
                 }
             } else {
-                var_dump("aezr");
-                // Si le mot de passe actuel est incorrect, afficher une erreur
                 $this->addFlash('error', 'Le mot de passe actuel est incorrect');
             }
         } else {
@@ -375,27 +382,38 @@ class ParameterController extends AbstractController
         // Gérer le formulaire d'image de profil
         if ($request->isMethod('POST') && $request->files->has('profile_picture')) {
             $file = $request->files->get('profile_picture');
+            
+            // Vérifier le token CSRF
+            if (!$this->isCsrfTokenValid('upload_photo', $request->headers->get('X-CSRF-TOKEN'))) {
+                return $this->json(['success' => false, 'error' => 'Token CSRF invalide'], 400);
+            }
 
             // Vérifier que le fichier est une image
-            if ($file && in_array($file->getClientOriginalExtension(), ['jpg', 'jpeg', 'png', 'gif'])) {
+            if ($file && in_array($file->getClientMimeType(), ['image/jpeg', 'image/png', 'image/gif'])) {
+                // Vérifier la taille du fichier (max 5MB)
+                if ($file->getSize() > 5 * 1024 * 1024) {
+                    return $this->json(['success' => false, 'error' => 'Le fichier est trop volumineux (max 5MB)']);
+                }
+
                 $filename = uniqid() . '.' . $file->getClientOriginalExtension();
-                $filePath = 'uploads/profile_pictures/' . $filename; // Chemin où le fichier sera sauvegardé
+                $filePath = 'uploads/profile_pictures/' . $filename;
 
-                // Déplacer le fichier dans le dossier uploads
-                $file->move($this->getParameter('kernel.project_dir') . '/public/uploads/profile_pictures', $filename);
+                try {
+                    $file->move($this->getParameter('kernel.project_dir') . '/public/uploads/profile_pictures', $filename);
+                    
+                    $user->setUserAvatar('/uploads/profile_pictures/' . $filename);
+                    $entityManager->persist($user);
+                    $entityManager->flush();
 
-                // Mettre à jour l'URL de la photo de profil dans l'utilisateur
-                $user->setUserAvatar('/uploads/profile_pictures/' . $filename);
-
-                $entityManager->persist($user);
-                $entityManager->flush();
-                $this->addFlash('success', 'Photo de profil mise à jour avec succès');
-                return $this->json([
-                    'success' => true,
-                    'newProfilePictureUrl' => $user->getUserAvatar()
-                ]);
+                    return $this->json([
+                        'success' => true,
+                        'newProfilePictureUrl' => $user->getUserAvatar()
+                    ]);
+                } catch (\Exception $e) {
+                    return $this->json(['success' => false, 'error' => 'Erreur lors de l\'upload du fichier']);
+                }
             } else {
-                $this->addFlash('error', 'Format de fichier non valide. Veuillez télécharger une image.');
+                return $this->json(['success' => false, 'error' => 'Format de fichier non valide. Veuillez télécharger une image.']);
             }
         }
         return $this->render('parameter/index.html.twig', [

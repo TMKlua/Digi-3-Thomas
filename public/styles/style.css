@@ -109,15 +109,10 @@ header nav ul li.active a::after {
 }
 /*LOGOUT*/
 .logout-form {
-  height: 3rem;
-  width: 3rem;
+  height: 5rem;
+  width: 5rem;
   border-radius: 0.5rem;
-  border: 1px solid #df6666;
-  background-color: white;
-}
-
-.logout-form button img {
-  height: 2rem;
+  border: 1px solid #ffffff;
 }
 
 .logout-dialog {
@@ -394,6 +389,22 @@ header nav ul li.active a::after {
   background: linear-gradient(-130deg, var(--b), var(--g));
 }
 .btn-submit:active {
+}
+.password-field {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.toggle-password img {
+  width: 15px;
+  height: 15px;
 }
 /**************ABOUT-PAGE***************/
 .about-page {

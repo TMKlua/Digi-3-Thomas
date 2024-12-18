@@ -16,12 +16,13 @@ class EmailUpdateType extends AbstractType
         $builder
             ->add('email', EmailType::class, [
                 'label' => 'Nouvelle adresse e-mail',
-                'data' => '',
                 'mapped' => false,
+                'required' => true,
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Mot de passe actuel',
                 'mapped' => false,
+                'required' => true,
             ]);
     }
 
