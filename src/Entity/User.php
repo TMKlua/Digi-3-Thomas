@@ -46,9 +46,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private string $userAvatar = '/img/account/default-avatar.jpg';
 
-    #[ORM\Column(length: 35)]
-    private string $userRole = 'ROLE_USER';
-
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le mot de passe ne peut pas être vide.')]
     #[Assert\Length(
@@ -82,10 +79,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public const ROLE_TEAM_LEADER = 'ROLE_TEAM_LEADER';
     public const ROLE_DEVELOPER = 'ROLE_DEVELOPER';
 
-    /**
-     * @var array
-     */
-    private $roles = [];
+    #[ORM\Column(length: 35)]
+    private string $userRole = 'ROLE_USER';
 
     public function getEmail(): ?string
     {
@@ -137,17 +132,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUserAvatar(string $userAvatar): static
     {
         $this->userAvatar = $userAvatar;
-        return $this;
-    }
-
-    public function getUserRole(): ?string
-    {
-        return $this->userRole;
-    }
-
-    public function setUserRole(string $userRole): static
-    {
-        $this->userRole = $userRole;
         return $this;
     }
 
@@ -227,11 +211,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        $roles = $this->roles;
-        // Garantir que chaque utilisateur a au moins ROLE_USER
-        $roles[] = self::ROLE_USER;
-
-        return array_unique($roles);
+        return [$this->userRole];
     }
 
     /**
@@ -276,10 +256,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $user;
     }
 
-    public function setRoles(array $roles): self
+    public function getUserRole(): string
     {
-        $this->roles = $roles;
+        return $this->userRole;
+    }
 
+    public function setUserRole(string $userRole): static
+    {
+        $this->userRole = $userRole;
         return $this;
     }
 }
