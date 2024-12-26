@@ -38,6 +38,7 @@ security:
     access_control:
         # Pages publiques
         - { path: ^/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/logout, roles: PUBLIC_ACCESS }
         
         # Pages accessibles à tous les utilisateurs connectés
         - { path: ^/parameter/generaux, roles: ROLE_USER }
