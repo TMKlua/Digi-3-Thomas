@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Digi 3 - Détails de la tâche{% endblock %}
+
+{% block body %}
+    {% include 'includes/header.html.twig' %}
+    
+    <style>
+        /* Global Styles */
+        body {
+            background-color: #3C3C3C;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        .task-card {
+            background-color: #3C3C3C;
+            border: 2px solid #fff; /* White border */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 800px;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+        }
+
+        .task-card h1 {
+            font-size: 26px;
+            color: #00FFCC; /* Greenish color for the title */
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .task-info p {
+            font-size: 18px;
+            margin: 12px 0;
+            color: #fff; /* White color for text */
+        }
+
+        .task-info strong {
+            color: #00FFCC; /* Greenish color for strong labels */
+        }
+
+        .task-info p span {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .task-info p:last-child {
+            margin-bottom: 0;
+        }
+
+        .back-to-project {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #00FFCC;
+            color: #3C3C3C; /* Dark text for the button */
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .back-to-project:hover {
+            background-color: #3C3C3C;
+            color: #fff;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .task-card {
+                padding: 20px;
+                margin: 15px;
+            }
+
+            .task-card h1 {
+                font-size: 22px;
+            }
+
+            .task-info p {
+                font-size: 16px;
+            }
+
+            .back-to-project {
+                padding: 10px 20px;
+            }
+        }
+    </style>
+
+    <div class="task-card">
+        <h1>{{ task.taskName }}</h1>
+        <div class="task-info">
+            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+            <p><strong>Type :</strong> {{ task.taskType }}</p>
+            <p><strong>Statut :</strong> {{ task.taskStatus }}</p>
+            <p><strong>Catégorie :</strong> {{ task.taskCategory }}</p>
+            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+        </div>
+        <a class="back-to-project" href="{{ path('app_management_project', { 'id': task.project.id }) }}">Retour au projet</a>
+    </div>
+{% endblock %}

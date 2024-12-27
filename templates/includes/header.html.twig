@@ -18,7 +18,6 @@
         </ul>
         <input type="text" class="header-search" placeholder="Rechercher" class="search-input">
         <a href="{{ path('app_parameter_generaux') }}" class="header-account flex">
-            <img src="{{user.userAvatar}}" alt="Icone de compte">
         </a>
         <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
             <button type="submit" class="logout-btn flex">
