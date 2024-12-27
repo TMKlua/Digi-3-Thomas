@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TasksRepository::class)]
 class Tasks
 {
+    public const TASK_TYPE_BUG = 'Bug';
+    public const TASK_TYPE_FEATURE = 'Feature';
+    public const TASK_TYPE_HIGHTEST = 'Hightest';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -20,8 +24,12 @@ class Tasks
     #[ORM\Column(length: 35)]
     private ?string $taskName = null;
 
+
     #[ORM\Column(length: 255)]
-    private ?string $taskText = null;
+    private ?string $taskDescription = null;
+
+    #[ORM\Column(length: 35, nullable: true)]
+    private ?string $taskStatus = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $taskParent = null;
@@ -56,21 +64,19 @@ class Tasks
     #[ORM\Column(nullable: true)]
     private ?int $taskUserMaj = null;
 
+    #[ORM\ManyToOne(targetEntity: ManagerProject::class, inversedBy: "tasks")]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?ManagerProject $project = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $taskCategory = null; // Catégorie de la tâche
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $taskAttachments = null;
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getTaskType(): ?string
-    {
-        return $this->taskType;
-    }
-
-    public function setTaskType(string $taskType): static
-    {
-        $this->taskType = $taskType;
-
-        return $this;
     }
 
     public function getTaskName(): ?string
@@ -85,14 +91,47 @@ class Tasks
         return $this;
     }
 
-    public function getTaskText(): ?string
+    public function getTaskStatus(): ?string
     {
-        return $this->taskText;
+        return $this->taskStatus;
     }
 
-    public function setTaskText(string $taskText): static
+    public function setTaskStatus(?string $taskStatus): self
     {
-        $this->taskText = $taskText;
+        $this->taskStatus = $taskStatus;
+        return $this;
+    }
+
+    public function getTaskCategory(): ?string
+    {
+        return $this->taskCategory;
+    }
+
+    public function setTaskCategory(?string $taskCategory): self
+    {
+        $this->taskCategory = $taskCategory;
+        return $this;
+    }
+
+    public function getTaskAttachments(): ?array
+    {
+        return $this->taskAttachments;
+    }
+
+    public function setTaskAttachments(?array $taskAttachments): self
+    {
+        $this->taskAttachments = $taskAttachments;
+        return $this;
+    }
+
+    public function getTaskDescription(): ?string
+    {
+        return $this->taskDescription;
+    }
+
+    public function setTaskDescription(string $taskDescription): static
+    {
+        $this->taskDescription = $taskDescription;
 
         return $this;
     }
@@ -227,5 +266,42 @@ class Tasks
         $this->taskUserMaj = $taskUserMaj;
 
         return $this;
+    }
+
+    public function getProject(): ?ManagerProject
+    {
+        return $this->project;
+    }
+
+    public function setProject(?ManagerProject $project): static
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    public function getTaskType(): ?string
+    {
+        return $this->taskType;
+    }
+
+    public function setTaskType(?string $taskType): self
+    {
+        if (!in_array($taskType, $this->getAllowedTaskTypes(), true)) {
+            throw new \InvalidArgumentException(sprintf('Invalid task type: %s', $taskType));
+        }
+
+        $this->taskType = $taskType;
+
+        return $this;
+    }
+
+    public static function getAllowedTaskTypes(): array
+    {
+        return [
+            self::TASK_TYPE_BUG,
+            self::TASK_TYPE_FEATURE,
+            self::TASK_TYPE_HIGHTEST,
+        ];
     }
 }

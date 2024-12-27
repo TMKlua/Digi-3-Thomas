@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestion Projets{% endblock %}
+{% block title %}Digi 3 - Gestion Projets{% endblock %}
 
 {% block body %}
 
@@ -8,8 +8,8 @@
 
 <div class="project-management-container">
     <aside class="parameter_menu">
-        <button class="create-project-button" onclick="showCreateForm()">Créer un projet</button>
         <h3>Liste des projets</h3>
+                <button class="create-project-button" onclick="showCreateForm()">Créer un projet</button>
         <ul>
             {% for project in projects %}
             <li class="{{ current_project and current_project.id == project.id ? 'active' : '' }}">
@@ -23,7 +23,7 @@
             {% endfor %}
         </ul>
     </aside>
-    
+      
     <main class="project-details">
         {% if current_project %}
             <h2>{{ current_project.name }}</h2>
@@ -31,27 +31,36 @@
 
             <div class="project-dates">
                 <div>
-                    <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('Y-m-d') : 'Non défini' }}
-                    <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('Y-m-d') : 'Non défini' }}</span>
+                    <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
+                    <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
                 </div>
                 <div>
-                    <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('Y-m-d') : 'Non défini' }}
-                    <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('Y-m-d') : 'Non défini' }}</span>
+                    <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
+                    <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
                 </div>
-            </div>
-
-            <div class="project-stats">
-                <div class="project-stat-block"></div>
-                <div class="project-stat-block"></div>
-                <div class="project-stat-block"></div>
-                <div class="project-stat-block"></div>
             </div>
 
             <div>
                 <label>Chef de projet :</label>
-                <span>{{ app.user.getName() }}</span>
+                <span>{{ app.user.userFirstName() }}</span>
             </div>
-        
+
+            {# Liste des tâches associées #}
+            <div class="tasks">
+                <h3>Tâches du projet</h3>
+                <ul>
+                    {% for task in current_project.tasks %}
+                    <li>
+                        <a href="{{ path('app_details_tasks', { 'id': task.id }) }}">
+                            {{ task.taskName }} - {{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Pas de date limite' }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {# Bouton pour ajouter une tâche #}
+            <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
         {% else %}
             <p>Sélectionnez un projet pour voir les détails.</p>
         {% endif %}
@@ -61,12 +70,30 @@
             {{ form_start(form) }}
                 {{ form_row(form.name) }}
                 {{ form_row(form.description) }}
-        
-                <button type="submit">Créer</button>
+                {{ form_row(form.startDateForecast) }}
+                {{ form_row(form.endDateForecast) }}
+                <button type="submit">Créer un nouveau projet</button>
             {{ form_end(form) }}
         </div>
-        
-        {# Affichage des messages flash pour confirmation #}
+
+        {# Formulaire de création de tâche #}
+        {% if current_project %}
+        <div id="createTaskForm" style="display: none;">
+            {{ form_start(taskForm) }}
+                {{ form_row(taskForm.taskName) }}
+                {{ form_row(taskForm.taskDescription) }}
+                {{ form_row(taskForm.taskType) }}
+                {{ form_row(taskForm.taskStatus) }}
+                {{ form_row(taskForm.taskCategory) }}
+                {{ form_row(taskForm.taskAttachments) }}
+                {{ form_row(taskForm.taskDateFrom) }}
+                {{ form_row(taskForm.taskDateTo) }}
+                <button type="submit">Ajouter la tâche</button>
+            {{ form_end(taskForm) }}
+        </div>
+        {% endif %}
+
+        {# Messages flash #}
         {% for message in app.flashes('success') %}
             <div class="alert alert-success">
                 {{ message }}
@@ -227,7 +254,7 @@
     }
 
     .popup-content {
-        background-color: white;
+        background-color: black;
         padding: 20px;
         border-radius: 8px;
         text-align: center;
@@ -258,6 +285,10 @@
         document.getElementById('createProjectForm').style.display = 'block';
     }
 
+    function showCreateTaskForm() {
+        document.getElementById('createTaskForm').style.display = 'block';
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         let projectIdToDelete;
 
@@ -284,6 +315,28 @@
             document.getElementById('deletePopup').style.display = 'none';
         };
     });
+</script>
+<script>
+    function showTaskForm() {
+        document.getElementById('createTaskForm').style.display = 'block';
+    }
+
+    function showCreateForm() {
+        document.getElementById('createProjectForm').style.display = 'block';
+    }
+
+    function showDeletePopup(projectId) {
+        const deletePopup = document.getElementById('deletePopup');
+        deletePopup.style.display = 'block';
+
+        document.getElementById('confirmDelete').onclick = function () {
+            window.location.href = `/delete-project/${projectId}`;
+        };
+
+        document.getElementById('cancelDelete').onclick = function () {
+            deletePopup.style.display = 'none';
+        };
+    }
 </script>
 
 {% endblock %}

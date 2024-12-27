@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
-use App\Entity\Project;
-use App\Form\ProjectType;
-use App\Repository\ProjectRepository;
+use App\Entity\ManagerProject;
+use App\Entity\Tasks;
+use App\Form\ManagerProjectType;
+use App\Form\TaskType;
+use App\Repository\ManagerProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,47 +15,81 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ManagementProjectController extends AbstractController
 {
-    #[Route('/management-project', name: 'app_management_project')]
-    public function managementProject(ProjectRepository $projectRepository, Request $request, EntityManagerInterface $entityManager): Response
-    {
+    #[Route('/management-project/{id}', name: 'app_management_project')]
+    public function managementProject(
+        ManagerProjectRepository $projectRepository,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ?int $id = null
+    ): Response {
         // Création d'un nouveau projet
-        $project = new Project();
-        $form = $this->createForm(ProjectType::class, $project);
-
-        // Traiter la soumission du formulaire
+        $project = new ManagerProject();
+        $form = $this->createForm(ManagerProjectType::class, $project);
+    
+        // Création d'une nouvelle tâche
+        $task = new Tasks();
+        $taskForm = $this->createForm(TaskType::class, $task);
+    
+        // Traiter la soumission des formulaires
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Définir automatiquement la date de début si elle n'est pas définie
-            if (!$project->getStartDate()) {
-                $timezone = new \DateTimeZone('Europe/Paris');
-                $currentDate = new \DateTime('now', $timezone);
-                $project->setStartDate($currentDate);
+        $taskForm->handleRequest($request);
+    
+        // Récupérer les projets de l'utilisateur connecté
+        $projects = $projectRepository->findBy(['projectLeader' => $this->getUser()]);
+    
+        // Identifier le projet courant (sélectionné)
+        $currentProject = null;
+        if ($id) {
+            $currentProject = $projectRepository->find($id);
+            if (!$currentProject || $currentProject->getProjectLeader() !== $this->getUser()) {
+                $this->addFlash('error', 'Projet introuvable ou non autorisé.');
+                return $this->redirectToRoute('app_management_project');
             }
-
-            // Assigner l'utilisateur connecté comme chef de projet
+        }
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (!$project->getStartDate()) {
+                $project->setStartDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+            }
             $project->setProjectLeader($this->getUser());
-
-            // Sauvegarder le projet dans la base de données
+    
             $entityManager->persist($project);
             $entityManager->flush();
-
+    
             $this->addFlash('success', 'Projet créé avec succès !');
             return $this->redirectToRoute('app_management_project');
         }
-
-        // Récupérer les projets de l'utilisateur actuellement connecté
-        $projects = $projectRepository->findBy(['projectLeader' => $this->getUser()]);
-
+    
+        if ($taskForm->isSubmitted() && $taskForm->isValid()) {
+            if (!$task->getTaskDateFrom()) {
+                $task->setTaskDateFrom(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+            }
+    
+            if ($currentProject) {
+                $task->setProject($currentProject);
+            } else {
+                $this->addFlash('error', 'Aucun projet sélectionné pour cette tâche.');
+                return $this->redirectToRoute('app_management_project');
+            }
+    
+            $entityManager->persist($task);
+            $entityManager->flush();
+    
+            $this->addFlash('success', 'Tâche ajoutée avec succès !');
+            return $this->redirectToRoute('app_management_project', ['id' => $currentProject->getId()]);
+        }
+    
         return $this->render('project/management_project.html.twig', [
-            'controller_name' => 'ManagementProjectController',
             'projects' => $projects,
-            'current_project' => $projects[0] ?? null,
+            'current_project' => $currentProject,
             'form' => $form->createView(),
+            'taskForm' => $taskForm->createView(),
+            'tasks' => $currentProject ? $currentProject->getTasks() : [],
         ]);
     }
 
     #[Route('/management-project/delete/{id}', name: 'app_project_delete', methods: ['POST'])]
-    public function deleteProject(Project $project, EntityManagerInterface $entityManager): Response
+    public function deleteProject(ManagerProject $project, EntityManagerInterface $entityManager): Response
     {
         // Vérifier si le projet appartient à l'utilisateur connecté
         if ($project->getProjectLeader() !== $this->getUser()) {
