@@ -28,17 +28,17 @@ class AppFixtures extends Fixture
         $admin->setUserRole('ROLE_ADMIN');
         $manager->persist($admin);
 
-        // Création d'un chef de projet
-        $projectManager = User::create(
-            'Chef',
-            'Projet',
-            'pm@digiworks.fr',
+        // Création d'un responsable
+        $responsable = User::create(
+            'John',
+            'Doe',
+            'responsable@digiworks.fr',
             $this->passwordHasher->hashPassword(new User(), 'Project123!')
         );
-        $projectManager->setUserRole('ROLE_PROJECT_MANAGER');
-        $manager->persist($projectManager);
+        $responsable->setUserRole('ROLE_RESPONSABLE');
+        $manager->persist($responsable);
 
-        // Création d'un team leader
+        // Création d'un chef de projet
         $teamLeader = User::create(
             'Team',
             'Leader',
@@ -48,6 +48,15 @@ class AppFixtures extends Fixture
         $teamLeader->setUserRole('ROLE_TEAM_LEADER');
         $manager->persist($teamLeader);
 
+        // Création d'un lead développeur 
+        $leaddeveloper = User::create(
+            'Dev',
+            'lead',
+            'leadev@digiworks.fr',
+            $this->passwordHasher->hashPassword(new User(), 'Leadev123!')
+        );
+        $leaddeveloper->setUserRole('ROLE_LEAD_DEVELOPER');
+        $manager->persist($leaddeveloper);
         // Création d'un développeur
         $developer = User::create(
             'Dev',

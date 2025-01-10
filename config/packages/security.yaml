@@ -12,6 +12,12 @@ security:
             entity:
                 class: App\Entity\User
                 property: userEmail
+    role_hierarchy:
+        ROLE_DEVELOPER: ROLE_USER
+        ROLE_LEAD_DEV: ROLE_DEVELOPER
+        ROLE_TEAM_LEADER: ROLE_LEAD_DEV
+        ROLE_PROJECT_MANAGER: ROLE_TEAM_LEADER
+        ROLE_ADMIN: [ROLE_PROJECT_MANAGER, ROLE_ALLOWED_TO_SWITCH]
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -40,31 +46,23 @@ security:
         - { path: ^/auth, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }
         
-        # Pages accessibles à tous les utilisateurs connectés
+        # Niveau 1 : Tous les utilisateurs connectés
         - { path: ^/parameter/generaux, roles: ROLE_USER }
         - { path: ^/parameter/about, roles: ROLE_USER }
         
-        # Pages chef de projet
-        - { path: ^/parameter/users$, roles: ROLE_PROJECT_MANAGER } # Vue liste uniquement
+        # Niveau 3 : Team Leader
+        - { path: ^/parameter/team, roles: ROLE_TEAM_LEADER }
+        
+        # Niveau 4 : Chef de projet
+        - { path: ^/parameter/users$, roles: ROLE_PROJECT_MANAGER }
         - { path: ^/parameter/projects, roles: ROLE_PROJECT_MANAGER }
-        - { path: ^/parameter/customers$, roles: ROLE_PROJECT_MANAGER } # Vue liste uniquement
+        - { path: ^/parameter/customers$, roles: ROLE_PROJECT_MANAGER }
         
-        # Pages administrateur
+        # Niveau 5 : Administrateur
         - { path: ^/parameter/app_configuration, roles: ROLE_ADMIN }
-        - { path: ^/parameter/users/, roles: ROLE_ADMIN } # Toutes les actions CRUD
-        - { path: ^/parameter/customers/, roles: ROLE_ADMIN } # Toutes les actions CRUD
-        
-        # Protection générale
-        - { path: ^/, roles: ROLE_USER }
-
+        - { path: ^/parameter/users/, roles: ROLE_ADMIN }
+        - { path: ^/parameter/customers/, roles: ROLE_ADMIN }
 when@test:
     security:
         password_hashers:
             App\Entity\User: 'auto'
-
-    role_hierarchy:
-        ROLE_DEVELOPER: ROLE_USER
-        ROLE_LEAD_DEV: ROLE_DEVELOPER
-        ROLE_TEAM_LEADER: ROLE_LEAD_DEV
-        ROLE_PROJECT_MANAGER: ROLE_TEAM_LEADER
-        ROLE_ADMIN: [ROLE_PROJECT_MANAGER, ROLE_ALLOWED_TO_SWITCH]

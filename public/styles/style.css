@@ -236,24 +236,24 @@ header nav ul li.active a::after {
   gap: 1rem;
   justify-content: flex-start;
 }
+.parameter_menu ul a {
+  width: 90%;
+  text-decoration: none;
+}
 .parameter_menu ul li {
   padding: 1rem;
-  width: 90%;
+  width: 100%;
   border-radius: 1.5rem;
   border: 2px solid rgba(41, 41, 41, 0.15);
   background-color: rgba(41, 41, 41, 0.15);
   cursor: pointer;
-}
-.parameter_menu_active {
-  background-color: var(--d) !important;
-}
-.parameter_menu_active a {
-  color: var(--w) !important;
-}
-.parameter_menu ul li a {
   font-size: 1.5rem;
   text-align: start;
   color: var(--d);
+}
+.parameter_menu_active {
+  background-color: var(--d) !important;
+  color: var(--w) !important;
 }
 /*PARAMETER CONTENT*/
 .parameter_content {
