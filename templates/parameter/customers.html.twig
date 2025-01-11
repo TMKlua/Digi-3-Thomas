@@ -1,23 +1,26 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}Digi-3 - Gestion des clients{% endblock %}
+
 {% block body %}
 {% include 'includes/header.html.twig' with {'user': user} %}
+
 <section class="parameter_landing flex">
     {% include 'parameter/_menu.html.twig' %}
+    
     <div class="parameter_content">
         <div class="customers-page">
             <div class="customers-header flex">
                 <h2>Gestion des clients</h2>
-                <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
-                    Ajouter un client
-                </button>
             </div>
 
-            {% for message in app.flashes('success') %}
-                <div class="alert-success">{{ message }}</div>
-            {% endfor %}
-            {% for message in app.flashes('error') %}
-                <div class="alert-error">{{ message }}</div>
+            {# Gestion des messages flash #}
+            {% for type, messages in app.flashes %}
+                <div class="alert alert-{{ type }}">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
             {% endfor %}
 
             <div class="customers-table">
@@ -26,12 +29,9 @@
                         <tr>
                             <th>Nom</th>
                             <th>Adresse</th>
-                            <th>Code postal</th>
+                            <th>Code Postal</th>
                             <th>Ville</th>
                             <th>Pays</th>
-                            <th>TVA</th>
-                            <th>SIREN</th>
-                            <th>Référence</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -43,158 +43,326 @@
                                 <td>{{ customer.customerAddressZipcode }}</td>
                                 <td>{{ customer.customerAddressCity }}</td>
                                 <td>{{ customer.customerAddressCountry }}</td>
-                                <td>{{ customer.customerVAT }}</td>
-                                <td>{{ customer.customerSIREN }}</td>
-                                <td>{{ customer.customerReference }}</td>
                                 <td class="actions">
-                                    <button class="btn-edit edit-customer" 
-                                            data-customer-id="{{ customer.id }}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editCustomerModal">
-                                        <img src="{{ asset('img/icons/edit.png') }}" alt="Modifier" style="height: 50px; width: 50px; object-fit: contain;">
+                                    <button 
+                                        type="button" 
+                                        class="btn-edit" 
+                                        data-customer-id="{{ customer.id }}"
+                                        data-customer-name="{{ customer.customerName }}"
+                                        data-customer-street="{{ customer.customerAddressStreet }}"
+                                        data-customer-zipcode="{{ customer.customerAddressZipcode }}"
+                                        data-customer-city="{{ customer.customerAddressCity }}"
+                                        data-customer-country="{{ customer.customerAddressCountry }}"
+                                        data-customer-vat="{{ customer.customerVAT }}"
+                                        data-customer-siren="{{ customer.customerSIREN }}"
+                                    >
+                                        <img src="/img/icons/edit.png" alt="Modifier">
                                     </button>
-                                    <button class="btn-delete delete-customer" 
-                                            data-customer-id="{{ customer.id }}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteCustomerModal">
-                                        <img src="{{ asset('img/icons/delete.png') }}" alt="Supprimer" style="height: 50px; width: 50px; object-fit: contain;">
+                                    <button 
+                                        type="button" 
+                                        class="btn-delete" 
+                                        data-customer-id="{{ customer.id }}"
+                                    >
+                                        <img src="/img/icons/delete.png" alt="Supprimer">
                                     </button>
                                 </td>
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="9" class="no-data">Aucun client trouvé</td>
+                                <td colspan="6" class="no-data">Aucun client trouvé</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+
+            <div class="customers-footer flex">
+                <button 
+                    class="btn-add" 
+                    type="button" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#customerModal"
+                >
+                    Ajouter un client
+                </button>
+            </div>
         </div>
     </div>
 </section>
-{# Add Customer Modal #}
-<div class="modal fade" id="addCustomerModal" tabindex="-1">
+
+{# Modale Client #}
+<div class="modal fade" id="customerModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Ajouter un client</h3>
+                <h5 class="modal-title" id="customerModalTitle">Ajouter un client</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addCustomerForm" class="flex-col">
-                    <div class="form-group">
-                        <label for="name">Nom</label>
-                        <input type="text" id="name" name="name" required>
+                <form id="customerForm">
+                    <input type="hidden" name="modalAction" id="modalAction" value="add">
+                    <input type="hidden" name="customerId" id="customerId">
+                    
+                    <div class="mb-3">
+                        <label for="customerName" class="form-label">Nom du client</label>
+                        <input type="text" class="form-control" id="customerName" name="customerName" required>
                     </div>
-                    <div class="form-group">
-                        <label for="street">Adresse</label>
-                        <input type="text" id="street" name="street">
+                    
+                    <div class="mb-3">
+                        <label for="customerAddressStreet" class="form-label">Adresse</label>
+                        <input type="text" class="form-control" id="customerAddressStreet" name="customerAddressStreet">
                     </div>
-                    <div class="form-group">
-                        <label for="zipcode">Code postal</label>
-                        <input type="text" id="zipcode" name="zipcode">
+                    
+                    <div class="mb-3">
+                        <label for="customerAddressZipcode" class="form-label">Code Postal</label>
+                        <input type="text" class="form-control" id="customerAddressZipcode" name="customerAddressZipcode">
                     </div>
-                    <div class="form-group">
-                        <label for="city">Ville</label>
-                        <input type="text" id="city" name="city">
+                    
+                    <div class="mb-3">
+                        <label for="customerAddressCity" class="form-label">Ville</label>
+                        <input type="text" class="form-control" id="customerAddressCity" name="customerAddressCity">
                     </div>
-                    <div class="form-group">
-                        <label for="country">Pays</label>
-                        <input type="text" id="country" name="country">
+                    
+                    <div class="mb-3">
+                        <label for="customerAddressCountry" class="form-label">Pays</label>
+                        <input type="text" class="form-control" id="customerAddressCountry" name="customerAddressCountry">
                     </div>
-                    <div class="form-group">
-                        <label for="vat">TVA</label>
-                        <input type="text" id="vat" name="vat">
+                    
+                    <div class="mb-3">
+                        <label for="customerVAT" class="form-label">N° TVA</label>
+                        <input type="text" class="form-control" id="customerVAT" name="customerVAT">
                     </div>
-                    <div class="form-group">
-                        <label for="siren">SIREN</label>
-                        <input type="text" id="siren" name="siren">
-                    </div>
-                    <div class="form-group">
-                        <label for="reference">Référence</label>
-                        <input type="text" id="reference" name="reference">
+                    
+                    <div class="mb-3">
+                        <label for="customerSIREN" class="form-label">N° SIREN</label>
+                        <input type="text" class="form-control" id="customerSIREN" name="customerSIREN">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-submit" id="saveNewCustomer">Enregistrer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveCustomer">Enregistrer</button>
             </div>
         </div>
     </div>
 </div>
-{# Delete Customer Modal #}
-<div class="modal fade" id="deleteCustomerModal" tabindex="-1">
+
+{# Modale de Confirmation de Suppression #}
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Confirmer la suppression</h3>
+                <h5 class="modal-title">Confirmer la suppression</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer ce client ?</p>
+                <p>Êtes-vous sûr de vouloir supprimer le client <span id="customerToDeleteName"></span> ?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-delete" id="confirmDelete">Supprimer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+
 {% block javascripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add Customer
-        document.getElementById('saveNewCustomer').addEventListener('click', function() {
-            const formData = new FormData(document.getElementById('addCustomerForm'));
-            
-            fetch('{{ path('app_parameter_customer_add') }}', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Une erreur est survenue lors de l\'ajout du client');
-            });
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    const customerModal = document.getElementById('customerModal');
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    const modalTitle = document.getElementById('customerModalTitle');
+    const customerForm = document.getElementById('customerForm');
+    const saveCustomerBtn = document.getElementById('saveCustomer');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    const customerToDeleteName = document.getElementById('customerToDeleteName');
+    let currentCustomerId = null;
 
-        // Delete Customer
-        let customerToDelete = null;
+    // Fonction de débogage pour afficher les données du formulaire
+    function debugFormData(formData) {
+        console.log('Données du formulaire :');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+    }
+
+    // Fonction pour fermer les modales
+    function closeModals() {
+        customerModal.classList.remove('show');
+        deleteConfirmModal.classList.remove('show');
+    }
+
+    // Fonction pour ouvrir la modale d'ajout
+    function openAddCustomerModal() {
+        console.log('Ouverture de la modale d\'ajout');
+        modalTitle.textContent = 'Ajouter un client';
+        saveCustomerBtn.textContent = 'Enregistrer';
+        saveCustomerBtn.classList.remove('btn-danger');
+        saveCustomerBtn.classList.add('btn-primary');
         
-        document.querySelectorAll('.delete-customer').forEach(button => {
-            button.addEventListener('click', function() {
-                customerToDelete = this.dataset.customerId;
-            });
-        });
+        // Réinitialiser le formulaire
+        customerForm.reset();
+        
+        // Changer l'action du bouton
+        saveCustomerBtn.onclick = addCustomer;
 
-        document.getElementById('confirmDelete').addEventListener('click', function() {
-            if (customerToDelete) {
-                fetch(`{{ path('app_parameter_customer_delete', {'id': '__id__'}) }}`.replace('__id__', customerToDelete), {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Une erreur est survenue lors de la suppression');
-                });
+        // Afficher la modale
+        customerModal.classList.add('show');
+    }
+
+    // Fonction pour ouvrir la modale d'édition
+    function openEditModal(button) {
+        console.log('Ouverture de la modale d\'édition');
+        modalTitle.textContent = 'Modifier un client';
+        saveCustomerBtn.textContent = 'Modifier';
+        saveCustomerBtn.classList.remove('btn-danger');
+        saveCustomerBtn.classList.add('btn-primary');
+        
+        // Pré-remplir les champs
+        document.getElementById('customerId').value = button.getAttribute('data-customer-id');
+        document.getElementById('customerName').value = button.getAttribute('data-customer-name');
+        document.getElementById('customerAddressStreet').value = button.getAttribute('data-customer-street');
+        document.getElementById('customerAddressZipcode').value = button.getAttribute('data-customer-zipcode');
+        document.getElementById('customerAddressCity').value = button.getAttribute('data-customer-city');
+        document.getElementById('customerAddressCountry').value = button.getAttribute('data-customer-country');
+        document.getElementById('customerVAT').value = button.getAttribute('data-customer-vat');
+        document.getElementById('customerSIREN').value = button.getAttribute('data-customer-siren');
+
+        // Changer l'action du bouton
+        saveCustomerBtn.onclick = editCustomer;
+
+        // Afficher la modale
+        customerModal.classList.add('show');
+    }
+
+    // Fonction pour ouvrir la modale de confirmation de suppression
+    function openDeleteConfirmModal(button) {
+        console.log('Ouverture de la modale de suppression');
+        currentCustomerId = button.getAttribute('data-customer-id');
+        const customerName = button.closest('tr').querySelector('td:first-child').textContent;
+        customerToDeleteName.textContent = customerName;
+        
+        // Afficher la modale de suppression
+        deleteConfirmModal.classList.add('show');
+    }
+
+    // Fonction d'ajout de client
+    function addCustomer() {
+        console.log('Tentative d\'ajout de client');
+        const formData = new FormData(customerForm);
+        
+        // Débogage : afficher les données du formulaire
+        debugFormData(formData);
+
+        fetch('{{ path('app_parameter_customer_add') }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('Statut de la réponse :', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Données de réponse :', data);
+            if (data.success) {
+                alert('Client créé avec succès');
+                closeModals();
+                location.reload();
+            } else {
+                console.error('Erreur lors de la création :', data.error);
+                alert('Erreur : ' + data.error);
             }
+        })
+        .catch(error => {
+            console.error('Erreur complète lors de la création :', error);
+            alert('Une erreur est survenue lors de la création du client');
         });
+    }
+
+    // Fonction de modification de client
+    function editCustomer() {
+        console.log('Tentative de modification de client');
+        const formData = new FormData(customerForm);
+        const customerId = formData.get('customerId');
+
+        // Débogage : afficher les données du formulaire
+        debugFormData(formData);
+
+        fetch(`{{ path('app_parameter_customer_edit', {'id': '__ID__'}) }}`.replace('__ID__', customerId), {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('Statut de la réponse :', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Données de réponse :', data);
+            if (data.success) {
+                alert('Client modifié avec succès');
+                closeModals();
+                location.reload();
+            } else {
+                console.error('Erreur lors de la modification :', data.error);
+                alert('Erreur : ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur complète lors de la modification :', error);
+            alert('Une erreur est survenue lors de la modification du client');
+        });
+    }
+
+    // Fonction de suppression de client
+    function deleteCustomer() {
+        console.log('Tentative de suppression de client');
+        console.log('ID du client à supprimer :', currentCustomerId);
+
+        fetch(`{{ path('app_parameter_customer_delete', {'id': '__ID__'}) }}`.replace('__ID__', currentCustomerId), {
+            method: 'POST'
+        })
+        .then(response => {
+            console.log('Statut de la réponse :', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Données de réponse :', data);
+            if (data.success) {
+                alert('Client supprimé avec succès');
+                closeModals();
+                location.reload();
+            } else {
+                console.error('Erreur lors de la suppression :', data.error);
+                alert('Erreur : ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur complète lors de la suppression :', error);
+            alert('Une erreur est survenue lors de la suppression du client');
+        });
+    }
+
+    // Événement pour le bouton d'ajout
+    document.querySelector('.btn-add').addEventListener('click', openAddCustomerModal);
+
+    // Événements pour ouvrir les modales d'édition
+    document.querySelectorAll('.btn-edit').forEach(button => {
+        button.addEventListener('click', () => openEditModal(button));
     });
+
+    // Événements pour ouvrir les modales de suppression
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', () => openDeleteConfirmModal(button));
+    });
+
+    // Événement de confirmation de suppression
+    confirmDeleteBtn.addEventListener('click', deleteCustomer);
+
+    // Fermeture des modales
+    document.querySelectorAll('.btn-close, [data-bs-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', closeModals);
+    });
+});
 </script>
 {% endblock %}

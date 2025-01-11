@@ -74,10 +74,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $resetTokenExpiresAt = null;
 
     public const ROLE_USER = 'ROLE_USER';
-    public const ROLE_ADMIN = 'ROLE_ADMIN';
-    public const ROLE_PROJECT_MANAGER = 'ROLE_PROJECT_MANAGER';
-    public const ROLE_TEAM_LEADER = 'ROLE_TEAM_LEADER';
     public const ROLE_DEVELOPER = 'ROLE_DEVELOPER';
+    public const ROLE_LEAD_DEVELOPER = 'ROLE_LEAD_DEVELOPER';
+    public const ROLE_PROJECT_MANAGER = 'ROLE_PROJECT_MANAGER';
+    public const ROLE_RESPONSABLE = 'ROLE_RESPONSABLE';
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
 
     #[ORM\Column(length: 35)]
     private string $userRole = 'ROLE_USER';
