@@ -102,4 +102,28 @@ class ManagementProjectController extends AbstractController
         $this->addFlash('success', 'Projet supprimé avec succès !');
         return $this->redirectToRoute('app_management_project');
     }
+
+    #[Route('/management-project/update-task-status', name: 'app_update_task_status', methods: ['POST'])]
+    public function updateTaskStatus(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $content = json_decode($request->getContent(), true);
+
+        // Vérifier que les données nécessaires sont fournies
+        if (!isset($content['taskId'], $content['newStatus'])) {
+            return $this->json(['error' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Récupérer la tâche par son ID
+        $task = $entityManager->getRepository(Tasks::class)->find($content['taskId']);
+        if (!$task) {
+            return $this->json(['error' => 'Tâche introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Mettre à jour le statut de la tâche
+        $task->setTaskStatus($content['newStatus']);
+        $entityManager->persist($task);
+        $entityManager->flush();
+
+        return $this->json(['success' => 'Statut de la tâche mis à jour'], Response::HTTP_OK);
+    }
 }

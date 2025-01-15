@@ -24,43 +24,81 @@
         </ul>
     </aside>
       
-    <main class="project-details">
-        {% if current_project %}
-            <h2>{{ current_project.name }}</h2>
-            <p>{{ current_project.description }}</p>
+<main class="project-details">
+    {% if current_project %}
+        <h2>{{ current_project.name }}</h2>
+        <p>{{ current_project.description }}</p>
 
-            <div class="project-dates">
-                <div>
-                    <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
-                    <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
-                </div>
-                <div>
-                    <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
-                    <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
-                </div>
-            </div>
-
+        <div class="project-dates">
             <div>
-                <label>Chef de projet :</label>
-                <span>{{ app.user.userFirstName() }}</span>
+                <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
+                <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
             </div>
-
-            {# Liste des tâches associées #}
-            <div class="tasks">
-                <h3>Tâches du projet</h3>
-                <ul>
-                    {% for task in current_project.tasks %}
-                    <li>
-                        <a href="{{ path('app_details_tasks', { 'id': task.id }) }}">
-                            {{ task.taskName }} - {{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Pas de date limite' }}
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
+            <div>
+                <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
+                <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
             </div>
+        </div>
 
-            {# Bouton pour ajouter une tâche #}
+        <div>
+            <label>Chef de projet :</label>
+            <span>{{ app.user.userFirstName() }}</span>
+            <br>           
             <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
+            {% if current_project %}
+            <div id="createTaskForm" style="display: none;">
+                {{ form_start(taskForm) }}
+                    {{ form_row(taskForm.taskName) }}
+                    {{ form_row(taskForm.taskDescription) }}
+                    {{ form_row(taskForm.taskType) }}
+                    {{ form_row(taskForm.taskStatus) }}
+                    {{ form_row(taskForm.taskCategory) }}
+                    {{ form_row(taskForm.taskAttachments) }}
+                    {{ form_row(taskForm.taskDateFrom) }}
+                    {{ form_row(taskForm.taskDateTo) }}
+                    <button type="submit">Ajouter la tâche</button>
+                {{ form_end(taskForm) }}
+            </div>
+            {% endif %}
+        </div>
+
+        <br>
+
+        <div class="kanban-column" data-column="a-faire">
+            <h3>À faire</h3>
+            <div class="kanban-tasks">
+                {% for task in current_project.tasks %}
+                    <div class="task-card" id="task-{{ task.id }}" draggable="true">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Statut :</strong> {{ task.taskStatus }}</p>
+                            <p><strong>Catégorie :</strong> {{ task.taskCategory }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+
+            <div class="kanban-column" data-column="en-cours">
+                <h3>En cours</h3>
+                <div class="kanban-tasks">
+                    {# Placeholder for tasks in 'En cours' #}
+                </div>
+            </div>
+
+            <div class="kanban-column" data-column="terminee">
+                <h3>Terminée</h3>
+                <div class="kanban-tasks">
+                    {# Placeholder for tasks in 'Terminée' #}
+                </div>
+            </div>
+        </div>
+
         {% else %}
             <p>Sélectionnez un projet pour voir les détails.</p>
         {% endif %}
@@ -76,30 +114,15 @@
             {{ form_end(form) }}
         </div>
 
-        {# Formulaire de création de tâche #}
-        {% if current_project %}
-        <div id="createTaskForm" style="display: none;">
-            {{ form_start(taskForm) }}
-                {{ form_row(taskForm.taskName) }}
-                {{ form_row(taskForm.taskDescription) }}
-                {{ form_row(taskForm.taskType) }}
-                {{ form_row(taskForm.taskStatus) }}
-                {{ form_row(taskForm.taskCategory) }}
-                {{ form_row(taskForm.taskAttachments) }}
-                {{ form_row(taskForm.taskDateFrom) }}
-                {{ form_row(taskForm.taskDateTo) }}
-                <button type="submit">Ajouter la tâche</button>
-            {{ form_end(taskForm) }}
-        </div>
-        {% endif %}
-
         {# Messages flash #}
         {% for message in app.flashes('success') %}
             <div class="alert alert-success">
                 {{ message }}
             </div>
         {% endfor %}
-    </main>
+</main>
+
+
 </div>
 
 {# Popup de confirmation de suppression #}
@@ -110,7 +133,6 @@
         <button id="cancelDelete" class="cancel-button">Annuler</button>
     </div>
 </div>
-
 <style>
     .project-management-container {
         display: flex;
@@ -278,6 +300,132 @@
         background-color: #dc3545;
         color: white;
     }
+
+    .task-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px; /* Espace entre les cartes */
+    }
+
+    .task-card {
+        flex: 1 1 calc(20% - 16px); /* 20% pour 5 cartes par ligne */
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        padding: 16px;
+        background-color: #3C3C3C;
+        border-radius: 4px;
+    }
+
+    .task-card {
+        background-color: #3C3C3C;
+        border: 2px solid #fff; /* White border */
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        margin: 30px auto;
+        max-width: 800px;
+        font-family: 'Arial', sans-serif;
+        color: #fff;
+    }
+
+    .task-card h1 {
+        font-size: 26px;
+        color: #00FFCC; /* Greenish color for the title */
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    .task-info p {
+        font-size: 18px;
+        margin: 12px 0;
+        color: black; /* White color for text */
+    }
+
+    .task-info strong {
+        color: #00FFCC; /* Greenish color for strong labels */
+    }
+
+    .task-info p span {
+        font-weight: bold;
+        color: black;
+    }
+
+    .task-info p:last-child {
+        margin-bottom: 0;
+    }
+
+    .clearfix {
+    clear: both;
+    }
+
+    /* Styles pour le kanban */
+.kanban-board {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; /* Espacement entre les colonnes */
+    margin-top: 20px;
+    overflow-x: auto; /* Permet le défilement horizontal si le nombre de colonnes augmente */
+}
+
+.kanban-column {
+    flex: 1 0 300px; /* Largeur fixe des colonnes avec une flexibilité minimale */
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-column h3 {
+    text-align: center;
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.kanban-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacement entre les cartes */
+}
+
+.task-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.task-card h4 {
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #222;
+}
+
+.task-info p {
+    font-size: 14px;
+    margin: 2px 0;
+}
+
+/* Boutons */
+.add-column-button, .add-task-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.add-column-button:hover, .add-task-button:hover {
+    background-color: #0056b3;
+}
+
 </style>
 
 <script>
@@ -337,6 +485,76 @@
             deletePopup.style.display = 'none';
         };
     }
+</script>
+<script>
+    function addColumn() {
+        const columnContainer = document.getElementById('kanbanColumns');
+        const columnName = prompt('Entrez le nom de la nouvelle colonne :');
+        if (columnName) {
+            // Créer une nouvelle colonne
+            const newColumn = document.createElement('div');
+            newColumn.classList.add('kanban-column');
+            newColumn.setAttribute('data-column', columnName.toLowerCase().replace(/\s+/g, '-'));
+            newColumn.innerHTML = `
+                <h3>${columnName}</h3>
+                <div class="kanban-tasks"></div>
+            `;
+            columnContainer.appendChild(newColumn);
+        }
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tasks = document.querySelectorAll('.task-card');
+        const columns = document.querySelectorAll('.kanban-column');
+
+        tasks.forEach(task => {
+            task.draggable = true;
+
+            task.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('taskId', task.dataset.taskId);
+            });
+        });
+
+        columns.forEach(column => {
+            column.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Autoriser le drop
+            });
+
+            column.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const taskId = e.dataTransfer.getData('taskId');
+                const newStatus = column.dataset.column;
+
+                // Déplacer visuellement la tâche
+                const task = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+                column.querySelector('.kanban-tasks').appendChild(task);
+
+                // Envoyer la modification au serveur
+                fetch('/management-project/update-task-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        taskId: taskId,
+                        newStatus: newStatus,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        console.log(data.success);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+            });
+        });
+    });
 </script>
 
 {% endblock %}
