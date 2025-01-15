@@ -42,7 +42,9 @@
 
         <div>
             <label>Chef de projet :</label>
-            <span>{{ app.user.userFirstName() }}</span>
+            <span>
+                {{ app.user ? app.user.userFirstName() ~ ' ' ~ app.user.userLastName() : 'Non défini' }}
+            </span>
             <br>           
             <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
             {% if current_project %}
