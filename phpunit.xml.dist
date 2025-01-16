@@ -26,6 +26,13 @@
         <!-- Gmail SHOULD NOT be used on production, use it in development only. -->
         <!-- MAILER_DSN=gmail://USERNAME:PASSWORD@default -->
         <!-- ###- symfony/google-mailer ### -->
+<<<<<<< ours
+=======
+
+        <!-- ###+ symfony/mailer ### -->
+        <env name="MAILER_DSN" value="null://null"/>
+        <!-- ###- symfony/mailer ### -->
+>>>>>>> theirs
     </php>
 
     <testsuites>
