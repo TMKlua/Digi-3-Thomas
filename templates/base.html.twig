@@ -36,6 +36,7 @@
 <body>
     {% block body %}{% endblock %}
     {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
     <script src="{{ asset('script/parameter.js') }}"></script>
     {% endblock %}
 </body>
