@@ -8,9 +8,9 @@
 
     <div class="dashboard-container">
         <div class="parameter_menu">
-            <div class="user-info">
+            <div class="user-info card">
                 <div class="user-avatar">
-                    <img src="{{user.userAvatar}}" alt="User Avatar" style="height: 30px;">
+                    <img src="{{ user.userAvatar }}" alt="User Avatar">
                 </div>
                 <div class="user-details">
                     <h3>{{ user.userFirstName }}</h3>
@@ -20,9 +20,9 @@
                 </div>
             </div>
 
-            <div class="user-stats">
+            <div class="user-stats card">
                 <div class="tasks">
-                    <p>Taches</p>
+                    <p>Tâches</p>
                     <h3>85% <span class="up-arrow">↑</span></h3>
                 </div>
                 <div class="projects">
@@ -30,57 +30,28 @@
                     <h3>13 <span class="down-arrow">↓</span></h3>
                 </div>
             </div>
-            <nav class="sidebar-nav">
+
+            <nav class="sidebar-nav card">
                 <ul>
-                    <li><a href="#">Page d'accueil <i class="fas fa-home"></i></a></li>
-                    <li><a href="#">Calendrier</a></li>
-                    <li><a href="#">Efficacité des tâches</a></li>
-                    <li><a href="#">Productivité individuelle</a></li>
+                    <a href="#" class="btn-link">Page d'accueil <i class="fas fa-home"></i></a>
+                    <a href="#" class="btn-link">Calendrier</a>
+                    <a href="#" class="btn-link">Efficacité des tâches</a>
+                    <a href="#" class="btn-link">Productivité individuelle</a>
                 </ul>
             </nav>
         </div>
         <div class="main-content">
-            <div class="calendar">
+            <div class="calendar card">
                 <h4>Calendrier</h4>
-                <div class="calendar-box">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Lun</th>
-                                <th>Mar</th>
-                                <th>Mer</th>
-                                <th>Jeu</th>
-                                <th>Ven</th>
-                                <th>Sam</th>
-                                <th>Dim</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>3</td>
-                                <td>4</td>
-                                <td>5</td>
-                            </tr>
-                            <tr>
-                                <td>6</td>
-                                <td>7</td>
-                                <td>8</td>
-                                <td>9</td>
-                                <td>10</td>
-                                <td>11</td>
-                                <td>12</td>
-                            </tr>
-                            <!-- Autres jours du mois -->
-                        </tbody>
-                    </table>
-                </div>
+                <iframe src="https://calendar.google.com/calendar/embed?src=your_calendar_id&ctz=Europe%2FParis" 
+                        style="border: 0" 
+                        width="100%" 
+                        height="400px" 
+                        frameborder="0" 
+                        scrolling="no"></iframe>
             </div>
 
-            <div class="project-info">
+            <div class="project-info card">
                 <h4>12 Projets Actifs</h4>
                 <div class="project-progress">
                     <div class="progress-bar">
@@ -91,11 +62,11 @@
                 <a href="#" class="more-info">En savoir plus</a>
             </div>
 
-            <div class="efficiency-box">
+            <div class="efficiency-box card">
                 <h4>Efficacité des tâches</h4>
             </div>
 
-            <div class="productivity-box">
+            <div class="productivity-box card">
                 <h4>Productivité individuelle</h4>
                 <p>Liste de tâches + un total</p>
                 <p>Comparaison entre effort prévisionnel et réel</p>
@@ -106,5 +77,132 @@
 {% endblock %}
 
 {% block stylesheets %}
+<style>
+    body {
+        color: #000; /* Texte global en noir */
+    }
 
+    .dashboard-container {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .parameter_menu {
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .main-content {
+        flex: 2;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .user-info img {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+        object-fit: cover;
+    }
+
+    .user-details h3, .user-details p {
+        margin: 5px 0;
+        color: #000; /* Texte des détails utilisateur en noir */
+    }
+
+    .user-stats {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .tasks, .projects {
+        text-align: center;
+    }
+
+    .tasks p, .tasks h3,
+    .projects p, .projects h3 {
+        color: #000; /* Texte et flèches des statistiques en noir */
+    }
+
+    .up-arrow {
+        color: green;
+    }
+
+    .down-arrow {
+        color: red;
+    }
+
+    .sidebar-nav ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar-nav li {
+        margin: 10px 0;
+    }
+
+    .sidebar-nav a {
+        display: inline-block;
+        text-decoration: none;
+        color: #fff;
+        font-weight: bold;
+        background-color:rgb(0, 0, 0);
+        border: 1px solidrgb(0, 0, 0);
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-align: center;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .sidebar-nav a:hover {
+        background-color: #1cdaff;
+        color: #fff;
+    }
+
+    .calendar iframe {
+        width: 100%;
+        border-radius: 8px;
+    }
+
+    .progress-bar {
+        background: #eaeaea;
+        border-radius: 8px;
+        position: relative;
+        height: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .progress {
+        display: block;
+        height: 100%;
+        background: #4caf50;
+    }
+
+    .project-info h4, 
+    .project-info p,
+    .efficiency-box h4, 
+    .productivity-box h4, 
+    .productivity-box p {
+        color: #000; /* Texte des sections en noir */
+    }
+
+    .more-info {
+        display: inline-block;
+        margin-top: 10px;
+        color: #000; /* Lien en noir */
+        text-decoration: none;
+    }
+
+    .more-info:hover {
+        text-decoration: underline;
+    }
+</style>
 {% endblock %}
