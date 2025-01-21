@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Log\LoggerInterface;
@@ -25,38 +25,47 @@ class UserController extends AbstractController
         private ValidatorInterface $validator,
         private LoggerInterface $logger,
         private UserRepository $userRepository,
-        private PermissionService $permissionService
+        private PermissionService $permissionService,
+        private Security $security
     ) {}
 
     #[Route('/', name: 'app_parameter_users')]
     public function index(): Response
     {
-        $currentUser = $this->getUser();
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        // Vérifier si l'utilisateur peut voir la liste des utilisateurs
-        if (!$this->permissionService->canViewUserList()) {
-            throw $this->createAccessDeniedException('Accès non autorisé');
+        $currentUser = $this->security->getUser();
+
+        if (!$currentUser instanceof User) {
+            throw $this->createAccessDeniedException('Utilisateur non authentifié');
         }
 
-        // Déterminer si l'utilisateur peut modifier
-        $canEdit = $this->permissionService->canEditUser();
+        if (!$this->permissionService->canViewUserList()) {
+            throw $this->createAccessDeniedException('Accès non autorisé pour votre rôle');
+        }
 
-        // Requête de base pour filtrer les utilisateurs
+        $canEdit = $this->permissionService->canEditUser();
+        $canDelete = $this->permissionService->canDeleteUser(null);
+
         $queryBuilder = $this->userRepository->createQueryBuilder('u')
             ->where('u.userRole != :adminRole')
             ->setParameter('adminRole', 'ROLE_ADMIN');
 
-        // Filtrage selon le rôle de l'utilisateur connecté
         switch ($currentUser->getUserRole()) {
             case 'ROLE_PROJECT_MANAGER':
-                // Le chef de projet ne voit que les développeurs
                 $queryBuilder
                     ->andWhere('u.userRole IN (:allowedRoles)')
                     ->setParameter('allowedRoles', ['ROLE_DEVELOPER', 'ROLE_LEAD_DEVELOPER']);
                 break;
             
+            case 'ROLE_LEAD_DEVELOPER':
+                $queryBuilder
+                    ->andWhere('u.userRole IN (:allowedRoles)')
+                    ->setParameter('allowedRoles', ['ROLE_DEVELOPER']);
+                break;
+            
             case 'ROLE_RESPONSABLE':
-                // Le responsable voit tous les utilisateurs sauf l'admin
+            case 'ROLE_ADMIN':
                 break;
             
             default:
@@ -66,17 +75,16 @@ class UserController extends AbstractController
         $users = $queryBuilder->getQuery()->getResult();
 
         return $this->render('parameter/users.html.twig', [
-            'users' => $users,
             'user' => $currentUser,
+            'users' => $users,
             'canEdit' => $canEdit,
-            'isReadOnly' => !$canEdit // Ajout d'un flag pour le mode lecture seule
+            'canDelete' => $canDelete,
         ]);
     }
 
     #[Route('/add', name: 'app_parameter_user_add', methods: ['POST'])]
     public function add(Request $request): JsonResponse
     {
-        // Seul l'admin et le responsable peuvent ajouter des utilisateurs
         if (!$this->permissionService->canEditUser()) {
             return $this->json([
                 'success' => false,
@@ -85,7 +93,6 @@ class UserController extends AbstractController
         }
 
         try {
-            // Récupérer les données du formulaire
             $userData = [
                 'firstName' => $request->request->get('firstName'),
                 'lastName' => $request->request->get('lastName'),
@@ -93,17 +100,16 @@ class UserController extends AbstractController
                 'role' => $request->request->get('role')
             ];
 
-            // Créer un nouvel utilisateur
+            $this->validateUserData($userData);
+
             $user = new User();
             $user->setUserFirstName($userData['firstName'])
                  ->setUserLastName($userData['lastName'])
                  ->setUserEmail($userData['email'])
                  ->setUserRole($userData['role']);
 
-            // Générer un mot de passe temporaire
             $tempPassword = $this->generateTemporaryPassword($user);
 
-            // Valider l'utilisateur
             $errors = $this->validator->validate($user);
             if (count($errors) > 0) {
                 return $this->json([
@@ -112,9 +118,13 @@ class UserController extends AbstractController
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            // Persister l'utilisateur
             $this->entityManager->persist($user);
             $this->entityManager->flush();
+
+            $this->logger->info('Utilisateur créé', [
+                'id' => $user->getId(),
+                'email' => $user->getUserEmail()
+            ]);
 
             return $this->json([
                 'success' => true,
@@ -123,7 +133,11 @@ class UserController extends AbstractController
             ]);
 
         } catch (\Exception $e) {
-            $this->logger->error('Erreur de création d\'utilisateur : ' . $e->getMessage());
+            $this->logger->error('Erreur de création d\'utilisateur', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return $this->json([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -136,7 +150,13 @@ class UserController extends AbstractController
     {
         $userToEdit = $this->userRepository->find($id);
         
-        // Vérifier si l'utilisateur peut gérer cet utilisateur
+        if (!$userToEdit) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Utilisateur non trouvé'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
         if (!$this->permissionService->canManageUser($userToEdit)) {
             return $this->json([
                 'success' => false,
@@ -145,13 +165,20 @@ class UserController extends AbstractController
         }
 
         try {
-            // Mettre à jour les informations
-            $userToEdit->setUserFirstName($request->request->get('firstName'))
-                        ->setUserLastName($request->request->get('lastName'))
-                        ->setUserEmail($request->request->get('email'))
-                        ->setUserRole($request->request->get('role'));
+            $userData = [
+                'firstName' => $request->request->get('firstName'),
+                'lastName' => $request->request->get('lastName'),
+                'email' => $request->request->get('email'),
+                'role' => $request->request->get('role')
+            ];
 
-            // Valider l'utilisateur
+            $this->validateUserData($userData);
+
+            $userToEdit->setUserFirstName($userData['firstName'])
+                        ->setUserLastName($userData['lastName'])
+                        ->setUserEmail($userData['email'])
+                        ->setUserRole($userData['role']);
+
             $errors = $this->validator->validate($userToEdit);
             if (count($errors) > 0) {
                 return $this->json([
@@ -162,13 +189,22 @@ class UserController extends AbstractController
 
             $this->entityManager->flush();
 
+            $this->logger->info('Utilisateur modifié', [
+                'id' => $userToEdit->getId(),
+                'email' => $userToEdit->getUserEmail()
+            ]);
+
             return $this->json([
                 'success' => true,
                 'message' => 'Utilisateur modifié avec succès'
             ]);
 
         } catch (\Exception $e) {
-            $this->logger->error('Erreur de modification d\'utilisateur : ' . $e->getMessage());
+            $this->logger->error('Erreur de modification d\'utilisateur', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return $this->json([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -181,8 +217,14 @@ class UserController extends AbstractController
     {
         $userToDelete = $this->userRepository->find($id);
         
-        // Seul l'admin et le responsable peuvent supprimer des utilisateurs
-        if (!$this->permissionService->canEditUser()) {
+        if (!$userToDelete) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Utilisateur non trouvé'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$this->permissionService->canDeleteUser($userToDelete)) {
             return $this->json([
                 'success' => false,
                 'error' => 'Vous n\'avez pas les permissions nécessaires'
@@ -190,15 +232,13 @@ class UserController extends AbstractController
         }
 
         try {
-            if ($userToDelete === $this->getUser()) {
-                return $this->json([
-                    'success' => false,
-                    'error' => 'Vous ne pouvez pas supprimer votre propre compte'
-                ], Response::HTTP_BAD_REQUEST);
-            }
-
             $this->entityManager->remove($userToDelete);
             $this->entityManager->flush();
+
+            $this->logger->info('Utilisateur supprimé', [
+                'id' => $userToDelete->getId(),
+                'email' => $userToDelete->getUserEmail()
+            ]);
 
             return $this->json([
                 'success' => true,
@@ -206,7 +246,11 @@ class UserController extends AbstractController
             ]);
 
         } catch (\Exception $e) {
-            $this->logger->error('Erreur de suppression d\'utilisateur : ' . $e->getMessage());
+            $this->logger->error('Erreur de suppression d\'utilisateur', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return $this->json([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -214,61 +258,19 @@ class UserController extends AbstractController
         }
     }
 
-    private function createUserFromRequest(array $userData): User
+    private function validateUserData(array $userData): void
     {
-        $user = new User();
-        $user->setUserFirstName($userData['firstName'] ?? '')
-             ->setUserLastName($userData['lastName'] ?? '')
-             ->setUserEmail($userData['email'] ?? '')
-             ->setUserRole($userData['role'] ?? 'ROLE_USER');
-
-        $errors = $this->validator->validate($user);
-        if (count($errors) > 0) {
-            throw new \InvalidArgumentException((string) $errors);
-        }
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
-
-        return $user;
-    }
-
-    private function updateUserFromRequest(int $id, array $userData): User
-    {
-        $user = $this->userRepository->find($id);
+        $requiredFields = ['firstName', 'lastName', 'email', 'role'];
         
-        if (!$user) {
-            throw new \RuntimeException('Utilisateur non trouvé');
+        foreach ($requiredFields as $field) {
+            if (empty($userData[$field])) {
+                throw new \InvalidArgumentException("Le champ $field est obligatoire");
+            }
         }
 
-        $user->setUserFirstName($userData['firstName'] ?? $user->getUserFirstName())
-             ->setUserLastName($userData['lastName'] ?? $user->getUserLastName())
-             ->setUserEmail($userData['email'] ?? $user->getUserEmail())
-             ->setUserRole($userData['role'] ?? $user->getUserRole());
-
-        $errors = $this->validator->validate($user);
-        if (count($errors) > 0) {
-            throw new \InvalidArgumentException((string) $errors);
+        if (!filter_var($userData['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Format d\'email invalide');
         }
-
-        $this->entityManager->flush();
-        return $user;
-    }
-
-    private function deleteUserById(int $id): void
-    {
-        $user = $this->userRepository->find($id);
-        
-        if (!$user) {
-            throw new \RuntimeException('Utilisateur non trouvé');
-        }
-
-        if ($user === $this->getUser()) {
-            throw new \RuntimeException('Vous ne pouvez pas supprimer votre propre compte');
-        }
-
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
     }
 
     private function generateTemporaryPassword(User $user): string

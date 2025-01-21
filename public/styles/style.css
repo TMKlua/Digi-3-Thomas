@@ -565,6 +565,12 @@ header nav ul li.active a::after {
   transition: opacity 0.3s ease;
 }
 
+#userModal.show {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 #userModal .modal-dialog {
   position: relative;
   width: 500px;
@@ -941,7 +947,6 @@ header nav ul li.active a::after {
     color: var(--w);
 }
 .users-page {
-  background-color: #f4f6f9;
   border-radius: 8px;
   padding: 20px;
 }
@@ -952,13 +957,8 @@ header nav ul li.active a::after {
   margin-bottom: 20px;
 }
 
-.users-header h2 {
-  color: #2c3e50;
-  font-weight: 600;
-}
 
 .users-table {
-  background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -969,14 +969,11 @@ header nav ul li.active a::after {
   border-spacing: 0;
 }
 
-.users-table thead {
-  background-color: #f1f5f9;
-}
+
 
 .users-table th {
   padding: 12px 15px;
-  text-align: left;
-  color: #2c3e50;
+  text-align: center;
   font-weight: 600;
   border-bottom: 2px solid #e2e8f0;
 }
@@ -990,10 +987,6 @@ header nav ul li.active a::after {
   border-bottom: none;
 }
 
-.users-table tr:hover {
-  background-color: #f9fafb;
-  transition: background-color 0.3s ease;
-}
 
 .users-table .actions {
   text-align: center;

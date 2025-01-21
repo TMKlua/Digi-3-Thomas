@@ -2,240 +2,185 @@
 
 namespace App\Service;
 
-use App\Entity\User; // Importez votre entité User
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use App\Entity\User;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class PermissionService
 {
     // Définition de la hiérarchie des rôles
     private const ROLE_HIERARCHY = [
-        'ROLE_ADMIN' => 10,
-        'ROLE_RESPONSABLE' => 9,
-        'ROLE_PROJECT_MANAGER' => 8,
-        'ROLE_LEAD_DEVELOPER' => 7,
-        'ROLE_DEVELOPER' => 6,
-        'ROLE_USER' => 5
+        'ROLE_USER' => [
+            'parent' => null,
+            'permissions' => ['view_general_pages']
+        ],
+        'ROLE_DEVELOPER' => [
+            'parent' => 'ROLE_USER',
+            'permissions' => ['view_projects', 'edit_own_tasks']
+        ],
+        'ROLE_LEAD_DEVELOPER' => [
+            'parent' => 'ROLE_DEVELOPER',
+            'permissions' => ['manage_team_tasks']
+        ],
+        'ROLE_PROJECT_MANAGER' => [
+            'parent' => 'ROLE_LEAD_DEVELOPER',
+            'permissions' => ['edit_users', 'manage_projects', 'view_users']
+        ],
+        'ROLE_RESPONSABLE' => [
+            'parent' => 'ROLE_PROJECT_MANAGER',
+            'permissions' => ['delete_users', 'manage_all_projects', 'view_users']
+        ],
+        'ROLE_ADMIN' => [
+            'parent' => 'ROLE_RESPONSABLE',
+            'permissions' => ['*'] // Tous les droits
+        ]
     ];
 
-    private $tokenStorage;
-    private $authorizationChecker;
-
-    /**
-     * Constructeur avec injection des dépendances
-     * 
-     * @param TokenStorageInterface $tokenStorage Permet d'accéder à l'utilisateur connecté
-     * @param AuthorizationCheckerInterface $authorizationChecker Vérifie les autorisations
-     */
     public function __construct(
-        TokenStorageInterface $tokenStorage, 
-        AuthorizationCheckerInterface $authorizationChecker
-    ) {
-        $this->tokenStorage = $tokenStorage;
-        $this->authorizationChecker = $authorizationChecker;
-    }
+        private Security $security
+    ) {}
 
-    /**
-     * Récupère l'utilisateur actuellement connecté
-     * 
-     * @return User|null L'utilisateur connecté ou null
-     */
-    private function getCurrentUser(): ?User
+    public function hasPermission(?User $user, string $permission): bool
     {
-        $token = $this->tokenStorage->getToken();
-        return $token ? $token->getUser() : null;
+        if (!$user) {
+            return false;
+        }
+
+        // Vérification sécurisée de getUserRole
+        $userRole = $this->getUserRoleSafely($user);
+        
+        while ($userRole !== null) {
+            $roleConfig = self::ROLE_HIERARCHY[$userRole];
+            
+            if (in_array('*', $roleConfig['permissions']) || 
+                in_array($permission, $roleConfig['permissions'])) {
+                return true;
+            }
+            
+            $userRole = $roleConfig['parent'];
+        }
+        
+        return false;
     }
 
-    /**
-     * Vérifie si l'utilisateur a un rôle spécifique
-     * 
-     * @param string $role Le rôle à vérifier
-     * @return bool True si l'utilisateur a le rôle, false sinon
-     */
-    public function hasRole(string $role): bool
+    private function getUserRoleSafely(?User $user): ?string
     {
-        $user = $this->getCurrentUser();
-        return $user && $user->getUserRole() === $role;
+        if (!$user) {
+            return null;
+        }
+
+        // Vérification explicite et sécurisée
+        try {
+            $role = method_exists($user, 'getUserRole') 
+                ? $user->getUserRole() 
+                : ($user->getRoles()[0] ?? null);
+            
+            return $role ?: 'ROLE_USER';
+        } catch (\Exception $e) {
+            // Log de l'erreur si nécessaire
+            return 'ROLE_USER';
+        }
     }
 
     /**
-     * Vérifie si l'utilisateur peut accéder aux pages de paramètres
-     * 
-     * @return bool True si l'accès est autorisé, false sinon
-     */
-    public function canAccessParameterPages(): bool
-    {
-        $user = $this->getCurrentUser();
-        if (!$user) return false;
-
-        // L'admin a un accès total
-        if ($user->getUserRole() === 'ROLE_ADMIN') return true;
-
-        $allowedRoles = [
-            'ROLE_RESPONSABLE', 
-            'ROLE_PROJECT_MANAGER'
-        ];
-
-        return in_array($user->getUserRole(), $allowedRoles);
-    }
-
-    /**
-     * Vérifie si l'utilisateur peut accéder à la configuration
-     * 
-     * @return bool True si l'accès à la configuration est autorisé
-     */
-    public function canAccessConfiguration(): bool
-    {
-        return $this->hasRole('ROLE_ADMIN');
-    }
-
-    /**
-     * Vérifie si l'utilisateur peut gérer les projets
-     * 
-     * @return bool True si la gestion des projets est autorisée
-     */
-    public function canManageProjects(): bool
-    {
-        $user = $this->getCurrentUser();
-        if (!$user) return false;
-
-        // L'admin a un accès total
-        if ($user->getUserRole() === 'ROLE_ADMIN') return true;
-
-        $managementRoles = [
-            'ROLE_PROJECT_MANAGER'
-        ];
-
-        return in_array($user->getUserRole(), $managementRoles);
-    }
-
-    /**
-     * Vérifie si l'utilisateur peut gérer un autre utilisateur
-     * 
-     * @param User $targetUser L'utilisateur cible
-     * @return bool True si la gestion est autorisée
-     */
-    public function canManageUser(User $targetUser): bool
-    {
-        $currentUser = $this->getCurrentUser();
-        if (!$currentUser) return false;
-
-        // L'admin peut tout faire
-        if ($currentUser->getUserRole() === 'ROLE_ADMIN') return true;
-
-        // Récupérer le niveau hiérarchique des rôles
-        $currentUserLevel = self::ROLE_HIERARCHY[$currentUser->getUserRole()] ?? 0;
-        $targetUserLevel = self::ROLE_HIERARCHY[$targetUser->getUserRole()] ?? 0;
-
-        // Un utilisateur ne peut gérer que des utilisateurs de niveau inférieur
-        return $currentUserLevel > $targetUserLevel;
-    }
-
-    /**
-     * Vérifie si l'utilisateur peut voir la liste des utilisateurs
-     * 
-     * @return bool True si la visualisation est autorisée
+     * Vérifie si l'utilisateur connecté peut voir la liste des utilisateurs
      */
     public function canViewUserList(): bool
     {
-        $user = $this->getCurrentUser();
-        if (!$user) return false;
+        $user = $this->security->getUser();
+        
+        if (!$user) {
+            return false;
+        }
 
-        // L'admin a un accès total
-        if ($user->getUserRole() === 'ROLE_ADMIN') return true;
-
-        $allowedRoles = [
-            'ROLE_RESPONSABLE', 
-            'ROLE_PROJECT_MANAGER'
-        ];
-
-        return in_array($user->getUserRole(), $allowedRoles);
+        return $this->hasPermission($user, 'view_users');
     }
 
     /**
-     * Vérifie si l'utilisateur peut voir la liste des clients
-     * 
-     * @return bool True si la visualisation est autorisée
-     */
-    public function canViewCustomerList(): bool
-    {
-        $user = $this->getCurrentUser();
-        if (!$user) return false;
-
-        // L'admin a un accès total
-        if ($user->getUserRole() === 'ROLE_ADMIN') return true;
-
-        $allowedRoles = [
-            'ROLE_RESPONSABLE', 
-            'ROLE_PROJECT_MANAGER'
-        ];
-
-        return in_array($user->getUserRole(), $allowedRoles);
-    }
-
-    /**
-     * Vérifie si l'utilisateur peut éditer un client
-     * 
-     * @return bool True si l'édition est autorisée
-     */
-    public function canEditCustomer(): bool
-    {
-        $user = $this->getCurrentUser();
-        if (!$user) return false;
-
-        $editRoles = [
-            'ROLE_ADMIN', 
-            'ROLE_RESPONSABLE'
-        ];
-
-        return in_array($user->getUserRole(), $editRoles);
-    }
-
-    /**
-     * Vérifie si l'utilisateur peut éditer un utilisateur
-     * 
-     * @return bool True si l'édition est autorisée
+     * Vérifie si l'utilisateur connecté peut éditer des utilisateurs
      */
     public function canEditUser(): bool
     {
-        $user = $this->getCurrentUser();
-        if (!$user) return false;
-
-        $editRoles = [
-            'ROLE_ADMIN', 
-            'ROLE_RESPONSABLE'
-        ];
-
-        return in_array($user->getUserRole(), $editRoles);
+        $user = $this->security->getUser();
+        return $this->hasPermission($user, 'edit_users');
     }
 
     /**
-     * Obtient les rôles autorisés à voir un type de liste
-     * 
-     * @param string $listType Type de liste ('users', 'customers', etc.)
-     * @return array Liste des rôles autorisés
+     * Vérifie si l'utilisateur connecté peut gérer un utilisateur spécifique
      */
+    public function canManageUser(?User $userToManage): bool
+    {
+        $currentUser = $this->security->getUser();
+
+        if (!$currentUser instanceof User || !$userToManage) {
+            return false;
+        }
+
+        // Vérification des permissions basée sur la hiérarchie
+        return $this->hasPermission($currentUser, 'edit_users') || 
+               $this->hasPermission($currentUser, 'delete_users');
+    }
+
+    /**
+     * Vérifie les permissions de suppression
+     */
+    public function canDeleteUser(?User $userToDelete = null): bool
+    {
+        $currentUser = $this->security->getUser();
+        
+        // Un utilisateur ne peut pas se supprimer lui-même
+        if ($currentUser === $userToDelete) {
+            return false;
+        }
+
+        return $this->hasPermission($currentUser, 'delete_users');
+    }
+
     public function getAllowedRolesForList(string $listType): array
     {
         $rolesMap = [
-            'users' => ['ROLE_ADMIN', 'ROLE_RESPONSABLE', 'ROLE_PROJECT_MANAGER'],
-            'customers' => ['ROLE_ADMIN', 'ROLE_RESPONSABLE', 'ROLE_PROJECT_MANAGER'],
-            'projects' => ['ROLE_ADMIN', 'ROLE_RESPONSABLE', 'ROLE_PROJECT_MANAGER']
+            'users' => ['view_users'],
+            'customers' => ['manage_customers'],
+            'projects' => ['manage_projects']
         ];
 
-        return $rolesMap[$listType] ?? [];
+        $allowedRoles = [];
+        $currentRole = $this->getUserRoleSafely($this->security->getUser());
+
+        foreach (self::ROLE_HIERARCHY as $role => $config) {
+            // Si le rôle actuel est inférieur ou égal au rôle en cours de vérification
+            if ($this->isRoleAllowed($currentRole, $role)) {
+                $permissions = $config['permissions'];
+                if (array_intersect($rolesMap[$listType], $permissions) || 
+                    in_array('*', $permissions)) {
+                    $allowedRoles[] = $role;
+                }
+            }
+        }
+
+        return $allowedRoles;
     }
 
-    /**
-     * Vérifie si un utilisateur peut accéder à une liste spécifique
-     * 
-     * @param string $listType Type de liste
-     * @return bool True si l'accès est autorisé
-     */
+    private function isRoleAllowed(string $currentRole, string $targetRole): bool
+    {
+        if ($currentRole === $targetRole) {
+            return true;
+        }
+
+        $currentRoleConfig = self::ROLE_HIERARCHY[$currentRole];
+        while ($currentRoleConfig['parent'] !== null) {
+            if ($currentRoleConfig['parent'] === $targetRole) {
+                return true;
+            }
+            $currentRoleConfig = self::ROLE_HIERARCHY[$currentRoleConfig['parent']];
+        }
+
+        return false;
+    }
+
     public function canAccessList(string $listType): bool
     {
-        $user = $this->getCurrentUser();
-        if (!$user) return false;
+        $user = $this->security->getUser();
+        if (!$user instanceof User) return false;
 
         $allowedRoles = $this->getAllowedRolesForList($listType);
         return in_array($user->getUserRole(), $allowedRoles);

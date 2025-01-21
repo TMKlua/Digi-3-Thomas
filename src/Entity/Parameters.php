@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ParametersRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ParametersRepository::class)]
 class Parameters
@@ -15,15 +16,26 @@ class Parameters
     private ?int $id = null;
 
     #[ORM\Column(length: 35)]
+    #[Assert\NotBlank(message: "La clé du paramètre ne peut pas être vide")]
+    #[Assert\Length(
+        min: 3, 
+        max: 35, 
+        minMessage: "La clé doit faire au moins {{ limit }} caractères",
+        maxMessage: "La clé ne peut pas dépasser {{ limit }} caractères"
+    )]
     private ?string $paramKey = null;
 
-    #[ORM\Column(length: 35)]
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "La valeur du paramètre ne peut pas être vide")]
     private ?string $paramValue = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotNull(message: "La date de début est obligatoire")]
     private ?\DateTimeInterface $paramDateFrom = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotNull(message: "La date de fin est obligatoire")]
+    #[Assert\GreaterThan(propertyPath: "paramDateFrom", message: "La date de fin doit être postérieure à la date de début")]
     private ?\DateTimeInterface $paramDateTo = null;
 
     #[ORM\Column(nullable: true)]
@@ -92,5 +104,17 @@ class Parameters
         $this->paramUserMaj = $paramUserMaj;
 
         return $this;
+    }
+
+    public function isActive(): bool
+    {
+        $now = new \DateTime();
+        return $now >= $this->paramDateFrom && $now <= $this->paramDateTo;
+    }
+
+    public function extractCategory(): ?string
+    {
+        $parts = explode('_', $this->paramKey);
+        return count($parts) > 1 ? $parts[0] : null;
     }
 }

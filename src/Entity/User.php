@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -46,16 +47,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private string $userAvatar = '/img/account/default-avatar.jpg';
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Le mot de passe ne peut pas être vide.')]
-    #[Assert\Length(
-        min: 8,
-        minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caractères.'
-    )]
-    #[Assert\Regex(
-        pattern: '/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&].{8,}$/',
-        message: 'Le mot de passe doit contenir au moins une lettre, un chiffre et un caractère spécial.'
-    )]
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $userPassword = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -80,8 +72,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public const ROLE_RESPONSABLE = 'ROLE_RESPONSABLE';
     public const ROLE_ADMIN = 'ROLE_ADMIN';
 
-    #[ORM\Column(length: 35)]
-    private string $userRole = 'ROLE_USER';
+    #[ORM\Column(length: 255)]
+    private ?string $userRole = null;
 
     public function getEmail(): ?string
     {
@@ -196,7 +188,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->userEmail;
+        return $this->userEmail;
     }
 
     /**
@@ -212,35 +204,46 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        return [$this->userRole];
+        return [$this->userRole ?? 'ROLE_USER'];
     }
 
     /**
-     * @deprecated since Symfony 5.3, use getUserIdentifier() instead
+     * @deprecated 
      */
     public function getUsername(): string
     {
         return $this->getUserIdentifier();
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(string $hashedPassword): self
     {
-        $this->userPassword = $password;
+        $this->userPassword = $hashedPassword;
+        return $this;
+    }
+
+    public function resetPassword(UserPasswordHasherInterface $passwordHasher, string $plainPassword): self
+    {
+        $hashedPassword = $passwordHasher->hashPassword($this, $plainPassword);
+        $this->userPassword = $hashedPassword;
         return $this;
     }
 
     public function eraseCredentials(): void
     {
-        // Si vous stockez des données sensibles temporaires
+        // Effacer les données sensibles si nécessaire
     }
 
     public static function create(
+        UserPasswordHasherInterface $passwordHasher,
         string $firstName,
         string $lastName,
         string $email,
-        string $hashedPassword
+        string $plainPassword,
+        string $role = 'ROLE_USER'
     ): self {
         $user = new self();
+        $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+        
         $user
             ->setUserFirstName($firstName)
             ->setUserLastName($lastName)
@@ -248,7 +251,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             ->setPassword($hashedPassword)
             ->setUserDateFrom(new \DateTime())
             ->setUserAvatar('/img/account/default-avatar.jpg')
-            ->setUserRole('ROLE_USER')
+            ->setUserRole($role)
             ->setResetToken(null)
             ->setResetTokenExpiresAt(null)
             ->setUserDateTo(null)
@@ -257,12 +260,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $user;
     }
 
-    public function getUserRole(): string
+    public function getUserRole(): ?string
     {
         return $this->userRole;
     }
 
-    public function setUserRole(string $userRole): static
+    public function setUserRole(string $userRole): self
     {
         $this->userRole = $userRole;
         return $this;

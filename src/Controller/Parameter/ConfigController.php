@@ -13,32 +13,43 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/parameter/app_configuration')]
 #[IsGranted('ROLE_ADMIN')]
 class ConfigController extends AbstractController
 {
     #[Route('/', name: 'app_parameter_app_configuration', methods: ['GET', 'POST'])]
-    public function index(Request $request, EntityManagerInterface $entityManager, Security $security): Response
-    {   
+    public function index(
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        Security $security
+    ): Response {   
         $user = $security->getUser();
         $createForm = $this->createForm(AppFormParameterType::class);
         $searchForm = $this->createForm(SearchFormType::class);
 
-        // Récupérer la date actuelle
         $currentDateTime = new \DateTime();
-        $parameters = $entityManager->getRepository(Parameters::class)
-            ->createQueryBuilder('p')
-            ->where('p.paramDateFrom <= :currentDate')
-            ->andWhere('p.paramDateTo >= :currentDate')
-            ->setParameter('currentDate', $currentDateTime)
-            ->getQuery()
-            ->getResult();
+        $allParameters = $entityManager->getRepository(Parameters::class)
+            ->findActiveParameters($currentDateTime);
+
+        // Grouper les paramètres par catégorie
+        $generalParameters = array_filter($allParameters, 
+            fn($param) => $param->extractCategory() === 'general');
+        $securityParameters = array_filter($allParameters, 
+            fn($param) => $param->extractCategory() === 'security');
+        $performanceParameters = array_filter($allParameters, 
+            fn($param) => $param->extractCategory() === 'performance');
+        $notificationsParameters = array_filter($allParameters, 
+            fn($param) => $param->extractCategory() === 'notifications');
 
         return $this->render('parameter/config.html.twig', [
             'searchForm' => $searchForm->createView(),
             'createForm' => $createForm->createView(),
-            'parameters' => $parameters,
+            'generalParameters' => $generalParameters,
+            'securityParameters' => $securityParameters,
+            'performanceParameters' => $performanceParameters,
+            'notificationsParameters' => $notificationsParameters,
             'user' => $user
         ]);
     }
@@ -125,67 +136,57 @@ class ConfigController extends AbstractController
     }
 
     #[Route('/create', name: 'app_parameter_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function create(
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        ValidatorInterface $validator
+    ): JsonResponse {
         $parameter = new Parameters();
         $form = $this->createForm(AppFormParameterType::class, $parameter);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                $paramDateFrom = $parameter->getParamDateFrom();
-                $paramDateTo = $parameter->getParamDateTo();
+            // Validation manuelle
+            $errors = $validator->validate($parameter);
+            
+            if (count($errors) === 0) {
+                try {
+                    $entityManager->persist($parameter);
+                    $entityManager->flush();
 
-                if ($paramDateFrom instanceof \DateTimeInterface && $paramDateTo instanceof \DateTimeInterface) {
-                    if ($paramDateFrom <= $paramDateTo) {
-                        $entityManager->persist($parameter);
-                        $entityManager->flush();
-
-                        $parameters = $entityManager->getRepository(Parameters::class)->findAll();
-
-                        $html = $this->renderView('parameter/tableau_parameter.html.twig', [
-                            'parameters' => $parameters,
-                        ]);
-
-                        return $this->json([
-                            'success' => true,
-                            'parameter' => [
-                                'paramKey' => $parameter->getParamKey(),
-                                'paramValue' => $parameter->getParamValue(),
-                                'paramDateFrom' => $paramDateFrom->format('Y-m-d H:i'),
-                                'paramDateTo' => $paramDateTo->format('Y-m-d H:i'),
-                            ],
-                            'html' => $html,
-                        ]);
-                    } else {
-                        return $this->json([
-                            'success' => false,
-                            'message' => 'La date de début ne peut pas être après la date de fin.',
-                        ]);
-                    }
-                } else {
+                    return $this->json([
+                        'success' => true,
+                        'message' => 'Paramètre créé avec succès',
+                        'parameter' => [
+                            'key' => $parameter->getParamKey(),
+                            'value' => $parameter->getParamValue()
+                        ]
+                    ]);
+                } catch (\Exception $e) {
                     return $this->json([
                         'success' => false,
-                        'message' => 'Les dates ne sont pas valides.',
-                    ]);
+                        'message' => 'Erreur lors de la création du paramètre',
+                        'error' => $e->getMessage()
+                    ], 500);
                 }
             } else {
-                $errors = [];
-                foreach ($form->getErrors(true) as $error) {
-                    $errors[] = $error->getMessage();
+                // Gestion des erreurs de validation
+                $errorMessages = [];
+                foreach ($errors as $error) {
+                    $errorMessages[] = $error->getMessage();
                 }
 
                 return $this->json([
                     'success' => false,
-                    'message' => 'Formulaire invalide.',
-                    'errors' => $errors,
-                ]);
+                    'message' => 'Erreur de validation',
+                    'errors' => $errorMessages
+                ], 400);
             }
         }
 
         return $this->json([
             'success' => false,
-            'message' => 'Formulaire non soumis correctement.',
-        ]);
+            'message' => 'Formulaire non valide'
+        ], 400);
     }
 }

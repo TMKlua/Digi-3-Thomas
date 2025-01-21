@@ -19,71 +19,90 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         // Administrateur principal
-        $admin = User::create(
+        $admin = $this->createUser(
             'John', 
             'Doe', 
             'admin@digiworks.fr', 
-            $this->passwordHasher->hashPassword(new User(), 'Admin123!')
+            'Admin123!',
+            'ROLE_ADMIN'
         );
-        $admin->setUserRole(User::ROLE_ADMIN)
-              ->setUserAvatar('/img/account/default-avatar.jpg');
         $manager->persist($admin);
 
         // Responsable
-        $responsable = User::create(
+        $responsable = $this->createUser(
             'Marie', 
             'Dupont', 
             'responsable@digiworks.fr', 
-            $this->passwordHasher->hashPassword(new User(), 'Responsable123!')
+            'Responsable123!',
+            'ROLE_RESPONSABLE'
         );
-        $responsable->setUserRole(User::ROLE_RESPONSABLE)
-                    ->setUserAvatar('/img/account/default-avatar.jpg');
         $manager->persist($responsable);
 
         // Chef de Projet
-        $projectManager = User::create(
+        $projectManager = $this->createUser(
             'Pierre', 
             'Martin', 
             'pm@digiworks.fr', 
-            $this->passwordHasher->hashPassword(new User(), 'ProjectManager123!')
+            'ProjectManager123!',
+            'ROLE_PROJECT_MANAGER'
         );
-        $projectManager->setUserRole(User::ROLE_PROJECT_MANAGER)
-                       ->setUserAvatar('/img/account/default-avatar.jpg');
         $manager->persist($projectManager);
 
-        // Développeur Lead
-        $leadDeveloper = User::create(
+        // Lead Développeur
+        $leadDeveloper = $this->createUser(
             'Sophie', 
             'Leroy', 
             'lead@digiworks.fr', 
-            $this->passwordHasher->hashPassword(new User(), 'LeadDev123!')
+            'LeadDev123!',
+            'ROLE_LEAD_DEVELOPER'
         );
-        $leadDeveloper->setUserRole(User::ROLE_LEAD_DEVELOPER)
-                      ->setUserAvatar('/img/account/default-avatar.jpg');
         $manager->persist($leadDeveloper);
 
         // Développeur
-        $developer = User::create(
+        $developer = $this->createUser(
             'Lucas', 
             'Blanc', 
             'dev@digiworks.fr', 
-            $this->passwordHasher->hashPassword(new User(), 'Dev123!')
+            'Dev123!',
+            'ROLE_DEVELOPER'
         );
-        $developer->setUserRole(User::ROLE_DEVELOPER)
-                  ->setUserAvatar('/img/account/default-avatar.jpg');
         $manager->persist($developer);
 
         // Utilisateur standard
-        $user = User::create(
+        $user = $this->createUser(
             'Emma', 
             'Durand', 
             'user@digiworks.fr', 
-            $this->passwordHasher->hashPassword(new User(), 'User123!')
+            'User123!',
+            'ROLE_USER'
         );
-        $user->setUserRole(User::ROLE_USER)
-             ->setUserAvatar('/img/account/default-avatar.jpg');
         $manager->persist($user);
 
         $manager->flush();
+    }
+
+    private function createUser(
+        string $firstName, 
+        string $lastName, 
+        string $email, 
+        string $plainPassword,
+        string $role
+    ): User {
+        $user = new User();
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+
+        $user->setUserFirstName($firstName)
+             ->setUserLastName($lastName)
+             ->setUserEmail($email)
+             ->setPassword($hashedPassword)
+             ->setUserRole($role)
+             ->setUserAvatar('/img/account/default-avatar.jpg')
+             ->setUserDateFrom(new \DateTime())
+             ->setResetToken(null)
+             ->setResetTokenExpiresAt(null)
+             ->setUserDateTo(null)
+             ->setUserUserMaj(null);
+
+        return $user;
     }
 }

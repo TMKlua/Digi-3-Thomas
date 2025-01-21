@@ -12,7 +12,7 @@
         <div class="users-page">
             <div class="users-header flex">
                 <h2>Gestion des utilisateurs</h2>
-                {% if not isReadOnly %}
+                {% if canEdit %}
                     <button 
                         class="btn-add" 
                         type="button" 
@@ -42,7 +42,7 @@
                             <th>Nom</th>
                             <th>Email</th>
                             <th>Rôle</th>
-                            {% if not isReadOnly %}
+                            {% if canEdit or canDelete %}
                                 <th>Actions</th>
                             {% endif %}
                         </tr>
@@ -63,42 +63,47 @@
                                 <td>{{ user.userEmail }}</td>
                                 <td>
                                     <span class="role-badge {% if user.userRole == 'ROLE_ADMIN' %}role-admin{% else %}role-user{% endif %}">
-                                        {% switch user.userRole %}
-                                            {% case 'ROLE_USER' %}Utilisateur{% endcase %}
-                                            {% case 'ROLE_DEVELOPER' %}Développeur{% endcase %}
-                                            {% case 'ROLE_LEAD_DEVELOPER' %}Développeur Lead{% endcase %}
-                                            {% case 'ROLE_PROJECT_MANAGER' %}Chef de Projet{% endcase %}
-                                            {% case 'ROLE_RESPONSABLE' %}Responsable{% endcase %}
-                                            {% case 'ROLE_ADMIN' %}Administrateur{% endcase %}
-                                            {% default %}{{ user.userRole }}{% endswitch %}
+                                        {% set roleLabels = {
+                                            'ROLE_USER': 'Utilisateur',
+                                            'ROLE_DEVELOPER': 'Développeur',
+                                            'ROLE_LEAD_DEVELOPER': 'Développeur Lead',
+                                            'ROLE_PROJECT_MANAGER': 'Chef de Projet',
+                                            'ROLE_RESPONSABLE': 'Responsable',
+                                            'ROLE_ADMIN': 'Administrateur'
+                                        } %}
+                                        {{ roleLabels[user.userRole] ?? user.userRole }}
                                     </span>
                                 </td>
-                                {% if not isReadOnly %}
+                                {% if canEdit or canDelete %}
                                     <td class="actions">
-                                        <button 
-                                            type="button" 
-                                            class="btn-edit" 
-                                            data-user-id="{{ user.id }}"
-                                            data-user-firstname="{{ user.userFirstName }}"
-                                            data-user-lastname="{{ user.userLastName }}"
-                                            data-user-email="{{ user.userEmail }}"
-                                            data-user-role="{{ user.userRole }}"
-                                        >
-                                            <img src="/img/icons/edit.png" alt="Modifier">
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            class="btn-delete" 
-                                            data-user-id="{{ user.id }}"
-                                        >
-                                            <img src="/img/icons/delete.png" alt="Supprimer">
-                                        </button>
+                                        {% if canEdit %}
+                                            <button 
+                                                type="button" 
+                                                class="btn-edit" 
+                                                data-user-id="{{ user.id }}"
+                                                data-user-firstname="{{ user.userFirstName }}"
+                                                data-user-lastname="{{ user.userLastName }}"
+                                                data-user-email="{{ user.userEmail }}"
+                                                data-user-role="{{ user.userRole }}"
+                                            >
+                                                <img src="/img/icons/edit.png" alt="Modifier">
+                                            </button>
+                                        {% endif %}
+                                        {% if canDelete %}
+                                            <button 
+                                                type="button" 
+                                                class="btn-delete" 
+                                                data-user-id="{{ user.id }}"
+                                            >
+                                                <img src="/img/icons/delete.png" alt="Supprimer">
+                                            </button>
+                                        {% endif %}
                                     </td>
                                 {% endif %}
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="{{ not isReadOnly ? 6 : 5 }}" class="no-data">Aucun utilisateur trouvé</td>
+                                <td colspan="{{ (canEdit or canDelete) ? 6 : 5 }}" class="no-data">Aucun utilisateur trouvé</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -106,21 +111,30 @@
             </div>
         </div>
     </div>
+
+    {# Données de page pour les permissions #}
+    <div id="user-page-data" 
+        data-can-edit="{{ canEdit ? '1' : '0' }}"
+        data-can-delete="{{ canDelete ? '1' : '0' }}"
+        style="display:none;">
+    </div>
 </section>
 
 {# Modale Utilisateur #}
-{% if not isReadOnly %}
+{% if canEdit %}
     <div class="modal fade" id="userModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="userModalTitle">Ajouter un utilisateur</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="userForm">
                         <input type="hidden" name="modalAction" id="modalAction" value="add">
                         <input type="hidden" name="userId" id="userId">
+                        
+                        {# Champs du formulaire #}
                         <div class="mb-3">
                             <label for="firstName" class="form-label">Prénom</label>
                             <input type="text" class="form-control" id="firstName" name="firstName" required>
@@ -136,12 +150,17 @@
                         <div class="mb-3">
                             <label for="role" class="form-label">Rôle</label>
                             <select class="form-select" id="role" name="role" required>
-                                <option value="ROLE_USER">Utilisateur</option>
-                                <option value="ROLE_DEVELOPER">Développeur</option>
-                                <option value="ROLE_LEAD_DEVELOPER">Développeur Lead</option>
-                                <option value="ROLE_PROJECT_MANAGER">Chef de Projet</option>
-                                <option value="ROLE_RESPONSABLE">Responsable</option>
-                                <option value="ROLE_ADMIN">Administrateur</option>
+                                {% set roles = {
+                                    'ROLE_USER': 'Utilisateur',
+                                    'ROLE_DEVELOPER': 'Développeur',
+                                    'ROLE_LEAD_DEVELOPER': 'Développeur Lead',
+                                    'ROLE_PROJECT_MANAGER': 'Chef de Projet',
+                                    'ROLE_RESPONSABLE': 'Responsable',
+                                    'ROLE_ADMIN': 'Administrateur'
+                                } %}
+                                {% for roleValue, roleLabel in roles %}
+                                    <option value="{{ roleValue }}">{{ roleLabel }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </form>
@@ -155,253 +174,31 @@
     </div>
 
     {# Modale de Confirmation de Suppression #}
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmer la suppression</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Êtes-vous sûr de vouloir supprimer l'utilisateur <span id="userToDeleteName"></span> ?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+    {% if canDelete %}
+        <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmer la suppression</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Êtes-vous sûr de vouloir supprimer l'utilisateur <span id="userToDeleteName"></span> ?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    {% endif %}
 {% endif %}
 {% endblock %}
 
 {% block javascripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const isReadOnly = {% if isReadOnly %}true{% else %}false{% endif %};
-
-    // Désactiver tous les boutons et formulaires si en mode lecture seule
-    if (isReadOnly) {
-        document.querySelectorAll('.btn-edit, .btn-delete, .btn-add').forEach(btn => {
-            btn.disabled = true;
-            btn.style.display = 'none';
-        });
-
-        // Optionnel : ajouter un message d'information
-        const headerElement = document.querySelector('.users-header');
-        if (headerElement) {
-            const infoMessage = document.createElement('div');
-            infoMessage.classList.add('alert', 'alert-info');
-            infoMessage.textContent = 'Vous êtes en mode lecture seule. Contactez un administrateur pour effectuer des modifications.';
-            headerElement.appendChild(infoMessage);
-        }
-    }
-
-    const userModal = document.getElementById('userModal');
-    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
-    const modalTitle = document.getElementById('userModalTitle');
-    const userForm = document.getElementById('userForm');
-    const saveUserBtn = document.getElementById('saveUser');
-    const confirmDeleteBtn = document.getElementById('confirmDelete');
-    const userToDeleteName = document.getElementById('userToDeleteName');
-    let currentUserId = null;
-
-    // Fonction de débogage pour afficher les données du formulaire
-    function debugFormData(formData) {
-        console.log('Données du formulaire :');
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-        }
-    }
-
-    // Fonction pour fermer les modales
-    function closeModals() {
-        userModal.classList.remove('show');
-        deleteConfirmModal.classList.remove('show');
-    }
-
-    // Fonction pour ouvrir la modale d'ajout
-    function openAddUserModal() {
-        console.log('Ouverture de la modale d\'ajout');
-        modalTitle.textContent = 'Ajouter un utilisateur';
-        saveUserBtn.textContent = 'Enregistrer';
-        saveUserBtn.classList.remove('btn-danger');
-        saveUserBtn.classList.add('btn-primary');
-        
-        // Réinitialiser le formulaire
-        userForm.reset();
-        
-        // Activer tous les champs
-        document.getElementById('firstName').disabled = false;
-        document.getElementById('lastName').disabled = false;
-        document.getElementById('email').disabled = false;
-        document.getElementById('role').disabled = false;
-
-        // Changer l'action du bouton
-        saveUserBtn.onclick = addUser;
-
-        // Afficher la modale
-        userModal.classList.add('show');
-    }
-
-    // Fonction pour ouvrir la modale d'édition
-    function openEditModal(button) {
-        console.log('Ouverture de la modale d\'édition');
-        modalTitle.textContent = 'Modifier un utilisateur';
-        saveUserBtn.textContent = 'Modifier';
-        saveUserBtn.classList.remove('btn-danger');
-        saveUserBtn.classList.add('btn-primary');
-        
-        // Pré-remplir les champs
-        document.getElementById('userId').value = button.getAttribute('data-user-id');
-        document.getElementById('firstName').value = button.getAttribute('data-user-firstname');
-        document.getElementById('lastName').value = button.getAttribute('data-user-lastname');
-        document.getElementById('email').value = button.getAttribute('data-user-email');
-        document.getElementById('role').value = button.getAttribute('data-user-role');
-
-        // Activer les champs
-        document.getElementById('firstName').disabled = false;
-        document.getElementById('lastName').disabled = false;
-        document.getElementById('email').disabled = false;
-        document.getElementById('role').disabled = false;
-
-        // Changer l'action du bouton
-        saveUserBtn.onclick = editUser;
-
-        // Afficher la modale
-        userModal.classList.add('show');
-    }
-
-    // Fonction pour ouvrir la modale de confirmation de suppression
-    function openDeleteConfirmModal(button) {
-        console.log('Ouverture de la modale de suppression');
-        currentUserId = button.getAttribute('data-user-id');
-        const userName = `${button.closest('tr').querySelector('td:nth-child(3)').textContent} ${button.closest('tr').querySelector('td:nth-child(2)').textContent}`;
-        userToDeleteName.textContent = userName;
-        
-        // Afficher la modale de suppression
-        deleteConfirmModal.classList.add('show');
-    }
-
-    // Fonction d'ajout d'utilisateur
-    function addUser() {
-        console.log('Tentative d\'ajout d\'utilisateur');
-        const formData = new FormData(userForm);
-        
-        // Débogage : afficher les données du formulaire
-        debugFormData(formData);
-
-        fetch(`{{ path('app_parameter_user_add') }}`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => {
-            console.log('Statut de la réponse :', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Données de réponse :', data);
-            if (data.success) {
-                alert('Utilisateur créé avec succès');
-                closeModals();
-                location.reload();
-            } else {
-                console.error('Erreur lors de la création :', data.error);
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur complète lors de la création :', error);
-            alert('Une erreur est survenue lors de la création de l\'utilisateur');
-        });
-    }
-
-    // Fonction de modification d'utilisateur
-    function editUser() {
-        console.log('Tentative de modification d\'utilisateur');
-        const formData = new FormData(userForm);
-        const userId = formData.get('userId');
-
-        // Débogage : afficher les données du formulaire
-        debugFormData(formData);
-
-        fetch(`{{ path('app_parameter_user_edit', {'id': '__ID__'}) }}`.replace('__ID__', userId), {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            console.log('Statut de la réponse :', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Données de réponse :', data);
-            if (data.success) {
-                alert('Utilisateur modifié avec succès');
-                closeModals();
-                location.reload();
-            } else {
-                console.error('Erreur lors de la modification :', data.error);
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur complète lors de la modification :', error);
-            alert('Une erreur est survenue lors de la modification de l\'utilisateur');
-        });
-    }
-
-    // Fonction de suppression d'utilisateur
-    function deleteUser() {
-        console.log('Tentative de suppression d\'utilisateur');
-        console.log('ID de l\'utilisateur à supprimer :', currentUserId);
-
-        fetch(`{{ path('app_parameter_user_delete', {'id': '__ID__'}) }}`.replace('__ID__', currentUserId), {
-            method: 'POST'
-        })
-        .then(response => {
-            console.log('Statut de la réponse :', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Données de réponse :', data);
-            if (data.success) {
-                alert('Utilisateur supprimé avec succès');
-                closeModals();
-                location.reload();
-            } else {
-                console.error('Erreur lors de la suppression :', data.error);
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur complète lors de la suppression :', error);
-            alert('Une erreur est survenue lors de la suppression de l\'utilisateur');
-        });
-    }
-
-    // Événement pour le bouton d'ajout
-    document.querySelector('.btn-add').addEventListener('click', openAddUserModal);
-
-    // Événements pour ouvrir les modales d'édition
-    document.querySelectorAll('.btn-edit').forEach(button => {
-        button.addEventListener('click', () => openEditModal(button));
-    });
-
-    // Événements pour ouvrir les modales de suppression
-    document.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', () => openDeleteConfirmModal(button));
-    });
-
-    // Événement de confirmation de suppression
-    confirmDeleteBtn.addEventListener('click', deleteUser);
-
-    // Fermeture des modales
-    document.querySelectorAll('.btn-close, [data-bs-dismiss="modal"]').forEach(button => {
-        button.addEventListener('click', closeModals);
-    });
-});
-</script>
+    {{ parent() }}
+    <script type="module">
+        import { initUserManagement } from '{{ asset('script/parameter/user-management.js'); }}';
+    </script>
 {% endblock %}

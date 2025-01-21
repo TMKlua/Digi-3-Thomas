@@ -111,7 +111,7 @@ d'authentification{% endblock %} {% block body %}
         
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
-            icon.src = '/img/icons/eye-off.png'; // Change l'icône si tu en as une différente
+            icon.src = '/img/icons/eye-off.png';
         } else {
             passwordInput.type = 'password';
             icon.src = '/img/icons/eye.png';
@@ -221,7 +221,7 @@ d'authentification{% endblock %} {% block body %}
         });
     });
 
-    // Gestion de la navigation entre les sections
+    // Modification des fonctions de navigation
     function showRegisterSection() {
         loginSection.style.display = "none";
         registerSection.style.display = "flex";
@@ -232,14 +232,15 @@ d'authentification{% endblock %} {% block body %}
         loginSection.style.display = "flex";
     }
 
+    // Modification des écouteurs d'événements de navigation
     switchToRegister.addEventListener("click", function (event) {
-        event.preventDefault();
-        showRegisterSection();
+        event.preventDefault(); // Empêche l'action par défaut
+        showRegisterSection(); // Bascule simplement l'affichage
     });
 
     switchToLogin.addEventListener("click", function (event) {
-        event.preventDefault();
-        showLoginSection();
+        event.preventDefault(); // Empêche l'action par défaut
+        showLoginSection(); // Bascule simplement l'affichage
     });
 
     // Gestion de la modale de réinitialisation du mot de passe
