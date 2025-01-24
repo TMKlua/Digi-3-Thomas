@@ -93,9 +93,9 @@ class PermissionService
         }
 
         return in_array($user->getUserRole(), [
-            User::ROLE_PROJECT_MANAGER,
-            User::ROLE_RESPONSABLE,
-            User::ROLE_ADMIN
+            User::ROLE_PROJECT_MANAGER,  // Lecture seule
+            User::ROLE_RESPONSABLE,      // CRUD sauf admin
+            User::ROLE_ADMIN            // CRUD complet
         ]);
     }
 
@@ -110,8 +110,8 @@ class PermissionService
         }
 
         return in_array($user->getUserRole(), [
-            User::ROLE_RESPONSABLE,
-            User::ROLE_ADMIN
+            User::ROLE_RESPONSABLE,  // Peut éditer tous sauf admin
+            User::ROLE_ADMIN        // Peut éditer tous sauf lui-même
         ]);
     }
 
@@ -125,25 +125,23 @@ class PermissionService
             return false;
         }
 
-        // Un admin peut tout faire
-        if ($currentUser->getUserRole() === User::ROLE_ADMIN) {
-            return true;
-        }
+        switch ($currentUser->getUserRole()) {
+            case User::ROLE_ADMIN:
+                // L'admin peut gérer tout le monde sauf lui-même
+                return $currentUser->getId() !== $targetUser->getId();
 
-        // Un responsable peut gérer tous les utilisateurs sauf les admins
-        if ($currentUser->getUserRole() === User::ROLE_RESPONSABLE) {
-            return $targetUser->getUserRole() !== User::ROLE_ADMIN;
-        }
+            case User::ROLE_RESPONSABLE:
+                // Le responsable peut gérer tous les utilisateurs sauf les admins et lui-même
+                return $targetUser->getUserRole() !== User::ROLE_ADMIN 
+                    && $currentUser->getId() !== $targetUser->getId();
 
-        // Un chef de projet peut gérer les développeurs et utilisateurs
-        if ($currentUser->getUserRole() === User::ROLE_PROJECT_MANAGER) {
-            return in_array($targetUser->getUserRole(), [
-                User::ROLE_USER,
-                User::ROLE_DEVELOPER
-            ]);
-        }
+            case User::ROLE_PROJECT_MANAGER:
+                // Le chef de projet peut seulement voir les développeurs et utilisateurs
+                return false;
 
-        return false;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -156,18 +154,19 @@ class PermissionService
             return false;
         }
 
-        // Un admin peut supprimer n'importe qui sauf lui-même
-        if ($currentUser->getUserRole() === User::ROLE_ADMIN) {
-            return $currentUser->getId() !== $targetUser->getId();
-        }
+        switch ($currentUser->getUserRole()) {
+            case User::ROLE_ADMIN:
+                // L'admin peut supprimer tout le monde sauf lui-même
+                return $currentUser->getId() !== $targetUser->getId();
 
-        // Un responsable peut supprimer tous les utilisateurs sauf les admins et lui-même
-        if ($currentUser->getUserRole() === User::ROLE_RESPONSABLE) {
-            return $targetUser->getUserRole() !== User::ROLE_ADMIN 
-                && $currentUser->getId() !== $targetUser->getId();
-        }
+            case User::ROLE_RESPONSABLE:
+                // Le responsable peut supprimer tous les utilisateurs sauf les admins et lui-même
+                return $targetUser->getUserRole() !== User::ROLE_ADMIN 
+                    && $currentUser->getId() !== $targetUser->getId();
 
-        return false;
+            default:
+                return false;
+        }
     }
 
     public function getAllowedRolesForList(string $listType): array

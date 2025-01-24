@@ -40,30 +40,28 @@ security:
 
     # Contrôle d'accès global
     access_control:
-        # Authentification
+        # Routes publiques (non authentifiées)
         - { path: ^/auth, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }
         
-        # Pages générales pour utilisateurs connectés
+        # Routes accessibles à tous les utilisateurs authentifiés (ROLE_USER)
         - { path: ^/parameter/generaux, roles: ROLE_USER }
         - { path: ^/parameter/about, roles: ROLE_USER }
         
-        # Gestion des utilisateurs
-        - { path: ^/parameter/users/, roles: [ROLE_PROJECT_MANAGER, ROLE_RESPONSABLE, ROLE_ADMIN] }
+        # Routes pour les chefs de projet (ROLE_PROJECT_MANAGER)
+        # Accès en lecture seule aux utilisateurs et clients
+        - { path: ^/parameter/users$, roles: ROLE_PROJECT_MANAGER }
+        - { path: ^/parameter/customers$, roles: ROLE_PROJECT_MANAGER }
+        # Accès CRUD aux projets
+        - { path: ^/parameter/projects, roles: ROLE_PROJECT_MANAGER }
         
-        # Gestion des clients
-        - { path: ^/parameter/customers$, roles: [ROLE_PROJECT_MANAGER, ROLE_RESPONSABLE, ROLE_ADMIN] }
-        - { path: ^/parameter/customers/add, roles: ROLE_ADMIN }
-        - { path: ^/parameter/customers/edit, roles: ROLE_ADMIN }
-        - { path: ^/parameter/customers/delete, roles: ROLE_ADMIN }
+        # Routes pour les responsables et administrateurs
+        # Accès CRUD complet aux utilisateurs et clients
+        - { path: ^/parameter/users/, roles: [ROLE_RESPONSABLE, ROLE_ADMIN] }
+        - { path: ^/parameter/customers/, roles: [ROLE_RESPONSABLE, ROLE_ADMIN] }
         
-        # Gestion des projets
-        - { path: ^/parameter/projects$, roles: ROLE_PROJECT_MANAGER }
-        
-        # Configuration et administration
-        - { path: ^/parameter/app_configuration, roles: ROLE_RESPONSABLE }
-        - { path: ^/parameter/users/add, roles: ROLE_RESPONSABLE }
-        - { path: ^/parameter/users/delete, roles: ROLE_RESPONSABLE }
+        # Routes exclusives aux administrateurs
+        - { path: ^/parameter/app_configuration, roles: ROLE_ADMIN }
 
 # Configuration spécifique pour les tests
 when@test:

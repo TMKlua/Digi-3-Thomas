@@ -66,10 +66,16 @@ class UserController extends AbstractController
                 break;
             
             case User::ROLE_RESPONSABLE:
-            case User::ROLE_ADMIN:
                 $queryBuilder
                     ->andWhere('u.userRole != :adminRole')
                     ->setParameter('adminRole', User::ROLE_ADMIN);
+                break;
+            
+            case User::ROLE_ADMIN:
+                // L'admin voit tout le monde sauf lui-même
+                $queryBuilder
+                    ->andWhere('u.id != :currentUserId')
+                    ->setParameter('currentUserId', $currentUser->getId());
                 break;
             
             default:
@@ -78,17 +84,14 @@ class UserController extends AbstractController
 
         $users = $queryBuilder->getQuery()->getResult();
 
-        // Filtrer les utilisateurs selon les permissions spécifiques
-        $filteredUsers = array_filter($users, function($user) {
-            return $this->permissionService->canViewUserListForProjectManager($user);
-        });
-
-        $canEdit = false; // Mode lecture seule pour Project Manager
-        $canDelete = false;
+        // Déterminer les permissions selon le rôle
+        $canEdit = $this->permissionService->canEditUser();
+        // Pour la suppression, on vérifie si l'utilisateur peut supprimer au moins un utilisateur
+        $canDelete = in_array($currentUser->getUserRole(), [User::ROLE_ADMIN, User::ROLE_RESPONSABLE]);
 
         return $this->render('parameter/users.html.twig', [
             'user' => $currentUser,
-            'users' => $filteredUsers,
+            'users' => $users,
             'canEdit' => $canEdit,
             'canDelete' => $canDelete,
         ]);
