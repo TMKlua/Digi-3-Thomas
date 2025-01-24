@@ -5,6 +5,14 @@
 {% block body %}
 {% include 'includes/header.html.twig' with {'user': user} %}
 
+{# Débogage des permissions #}
+<div id="debug-permissions" 
+     data-current-user-role="{{ app.user.userRole }}"
+     data-can-edit="{{ canEdit ? '1' : '0' }}"
+     data-can-delete="{{ canDelete ? '1' : '0' }}"
+     style="display:none;">
+</div>
+
 <section class="parameter_landing flex">
     {% include 'parameter/_menu.html.twig' %}
     
@@ -12,6 +20,13 @@
         <div class="customers-page">
             <div class="customers-header flex">
                 <h2>Gestion des clients</h2>
+                
+                {# Ajout du bloc de débogage visible #}
+                <div class="debug-info" style="margin-left: 20px; color: red;">
+                    <strong>Rôle Actuel:</strong> {{ app.user.userRole }}<br>
+                    <strong>Peut Éditer:</strong> {{ canEdit ? 'Oui' : 'Non' }}<br>
+                    <strong>Peut Supprimer:</strong> {{ canDelete ? 'Oui' : 'Non' }}
+                </div>
             </div>
 
             {# Gestion des messages flash #}
@@ -32,7 +47,9 @@
                             <th>Code Postal</th>
                             <th>Ville</th>
                             <th>Pays</th>
-                            <th>Actions</th>
+                            {% if canEdit or canDelete %}
+                                <th>Actions</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -43,40 +60,46 @@
                                 <td>{{ customer.customerAddressZipcode }}</td>
                                 <td>{{ customer.customerAddressCity }}</td>
                                 <td>{{ customer.customerAddressCountry }}</td>
-                                <td class="actions">
-                                    <button 
-                                        type="button" 
-                                        class="btn-edit" 
-                                        data-customer-id="{{ customer.id }}"
-                                        data-customer-name="{{ customer.customerName }}"
-                                        data-customer-street="{{ customer.customerAddressStreet }}"
-                                        data-customer-zipcode="{{ customer.customerAddressZipcode }}"
-                                        data-customer-city="{{ customer.customerAddressCity }}"
-                                        data-customer-country="{{ customer.customerAddressCountry }}"
-                                        data-customer-vat="{{ customer.customerVAT }}"
-                                        data-customer-siren="{{ customer.customerSIREN }}"
-                                    >
-                                        <img src="/img/icons/edit.png" alt="Modifier">
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        class="btn-delete" 
-                                        data-customer-id="{{ customer.id }}"
-                                    >
-                                        <img src="/img/icons/delete.png" alt="Supprimer">
-                                    </button>
-                                </td>
+                                {% if canEdit or canDelete %}
+                                    <td class="actions">
+                                        {% if canEdit %}
+                                            <button 
+                                                type="button" 
+                                                class="btn-edit" 
+                                                data-customer-id="{{ customer.id }}"
+                                                data-customer-name="{{ customer.customerName }}"
+                                                data-customer-street="{{ customer.customerAddressStreet }}"
+                                                data-customer-zipcode="{{ customer.customerAddressZipcode }}"
+                                                data-customer-city="{{ customer.customerAddressCity }}"
+                                                data-customer-country="{{ customer.customerAddressCountry }}"
+                                                data-customer-vat="{{ customer.customerVAT }}"
+                                                data-customer-siren="{{ customer.customerSIREN }}"
+                                            >
+                                                <img src="/img/icons/edit.png" alt="Modifier">
+                                            </button>
+                                        {% endif %}
+                                        {% if canDelete %}
+                                            <button 
+                                                type="button" 
+                                                class="btn-delete" 
+                                                data-customer-id="{{ customer.id }}"
+                                            >
+                                                <img src="/img/icons/delete.png" alt="Supprimer">
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="6" class="no-data">Aucun client trouvé</td>
+                                <td colspan="{{ (canEdit or canDelete) ? 6 : 5 }}" class="no-data">Aucun client trouvé</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
 
-            <div class="customers-footer flex">
+            {% if canEdit %}
                 <button 
                     class="btn-add" 
                     type="button" 
@@ -85,284 +108,112 @@
                 >
                     Ajouter un client
                 </button>
-            </div>
+            {% endif %}
         </div>
+    </div>
+
+    {# Données de page pour les permissions #}
+    <div id="customer-page-data" 
+        data-can-edit="{{ canEdit ? '1' : '0' }}"
+        data-can-delete="{{ canDelete ? '1' : '0' }}"
+        style="display:none;">
     </div>
 </section>
 
 {# Modale Client #}
-<div class="modal fade" id="customerModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="customerModalTitle">Ajouter un client</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="customerForm">
-                    <input type="hidden" name="modalAction" id="modalAction" value="add">
-                    <input type="hidden" name="customerId" id="customerId">
-                    
-                    <div class="mb-3">
-                        <label for="customerName" class="form-label">Nom du client</label>
-                        <input type="text" class="form-control" id="customerName" name="customerName" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="customerAddressStreet" class="form-label">Adresse</label>
-                        <input type="text" class="form-control" id="customerAddressStreet" name="customerAddressStreet">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="customerAddressZipcode" class="form-label">Code Postal</label>
-                        <input type="text" class="form-control" id="customerAddressZipcode" name="customerAddressZipcode">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="customerAddressCity" class="form-label">Ville</label>
-                        <input type="text" class="form-control" id="customerAddressCity" name="customerAddressCity">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="customerAddressCountry" class="form-label">Pays</label>
-                        <input type="text" class="form-control" id="customerAddressCountry" name="customerAddressCountry">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="customerVAT" class="form-label">N° TVA</label>
-                        <input type="text" class="form-control" id="customerVAT" name="customerVAT">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="customerSIREN" class="form-label">N° SIREN</label>
-                        <input type="text" class="form-control" id="customerSIREN" name="customerSIREN">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" id="saveCustomer">Enregistrer</button>
+{% if canEdit %}
+    <div class="modal fade" id="customerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="customerModalTitle">Ajouter un client</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="customerForm">
+                        <input type="hidden" name="modalAction" id="modalAction" value="add">
+                        <input type="hidden" name="customerId" id="customerId">
+                        
+                        <div class="mb-3">
+                            <label for="customerName" class="form-label">Nom du client</label>
+                            <input type="text" class="form-control" id="customerName" name="customerName" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customerAddressStreet" class="form-label">Adresse</label>
+                            <input type="text" class="form-control" id="customerAddressStreet" name="customerAddressStreet" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customerAddressZipcode" class="form-label">Code Postal</label>
+                            <input type="text" class="form-control" id="customerAddressZipcode" name="customerAddressZipcode" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customerAddressCity" class="form-label">Ville</label>
+                            <input type="text" class="form-control" id="customerAddressCity" name="customerAddressCity" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customerAddressCountry" class="form-label">Pays</label>
+                            <input type="text" class="form-control" id="customerAddressCountry" name="customerAddressCountry" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customerVAT" class="form-label">N° TVA (Format: FR123456789)</label>
+                            <input type="text" class="form-control" id="customerVAT" name="customerVAT" pattern="[A-Z]{2}\d{9,12}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customerSIREN" class="form-label">N° SIREN (9 chiffres)</label>
+                            <input type="text" class="form-control" id="customerSIREN" name="customerSIREN" pattern="\d{9}">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="saveCustomer">Enregistrer</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-{# Modale de Confirmation de Suppression #}
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmer la suppression</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer le client <span id="customerToDeleteName"></span> ?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+    {# Modale de Confirmation de Suppression #}
+    {% if canDelete %}
+        <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmer la suppression</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Êtes-vous sûr de vouloir supprimer le client <span id="customerToDeleteName"></span> ?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    {% endif %}
+{% endif %}
 {% endblock %}
 
 {% block javascripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const customerModal = document.getElementById('customerModal');
-    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
-    const modalTitle = document.getElementById('customerModalTitle');
-    const customerForm = document.getElementById('customerForm');
-    const saveCustomerBtn = document.getElementById('saveCustomer');
-    const confirmDeleteBtn = document.getElementById('confirmDelete');
-    const customerToDeleteName = document.getElementById('customerToDeleteName');
-    let currentCustomerId = null;
-
-    // Fonction de débogage pour afficher les données du formulaire
-    function debugFormData(formData) {
-        console.log('Données du formulaire :');
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-        }
-    }
-
-    // Fonction pour fermer les modales
-    function closeModals() {
-        customerModal.classList.remove('show');
-        deleteConfirmModal.classList.remove('show');
-    }
-
-    // Fonction pour ouvrir la modale d'ajout
-    function openAddCustomerModal() {
-        console.log('Ouverture de la modale d\'ajout');
-        modalTitle.textContent = 'Ajouter un client';
-        saveCustomerBtn.textContent = 'Enregistrer';
-        saveCustomerBtn.classList.remove('btn-danger');
-        saveCustomerBtn.classList.add('btn-primary');
-        
-        // Réinitialiser le formulaire
-        customerForm.reset();
-        
-        // Changer l'action du bouton
-        saveCustomerBtn.onclick = addCustomer;
-
-        // Afficher la modale
-        customerModal.classList.add('show');
-    }
-
-    // Fonction pour ouvrir la modale d'édition
-    function openEditModal(button) {
-        console.log('Ouverture de la modale d\'édition');
-        modalTitle.textContent = 'Modifier un client';
-        saveCustomerBtn.textContent = 'Modifier';
-        saveCustomerBtn.classList.remove('btn-danger');
-        saveCustomerBtn.classList.add('btn-primary');
-        
-        // Pré-remplir les champs
-        document.getElementById('customerId').value = button.getAttribute('data-customer-id');
-        document.getElementById('customerName').value = button.getAttribute('data-customer-name');
-        document.getElementById('customerAddressStreet').value = button.getAttribute('data-customer-street');
-        document.getElementById('customerAddressZipcode').value = button.getAttribute('data-customer-zipcode');
-        document.getElementById('customerAddressCity').value = button.getAttribute('data-customer-city');
-        document.getElementById('customerAddressCountry').value = button.getAttribute('data-customer-country');
-        document.getElementById('customerVAT').value = button.getAttribute('data-customer-vat');
-        document.getElementById('customerSIREN').value = button.getAttribute('data-customer-siren');
-
-        // Changer l'action du bouton
-        saveCustomerBtn.onclick = editCustomer;
-
-        // Afficher la modale
-        customerModal.classList.add('show');
-    }
-
-    // Fonction pour ouvrir la modale de confirmation de suppression
-    function openDeleteConfirmModal(button) {
-        console.log('Ouverture de la modale de suppression');
-        currentCustomerId = button.getAttribute('data-customer-id');
-        const customerName = button.closest('tr').querySelector('td:first-child').textContent;
-        customerToDeleteName.textContent = customerName;
-        
-        // Afficher la modale de suppression
-        deleteConfirmModal.classList.add('show');
-    }
-
-    // Fonction d'ajout de client
-    function addCustomer() {
-        console.log('Tentative d\'ajout de client');
-        const formData = new FormData(customerForm);
-        
-        // Débogage : afficher les données du formulaire
-        debugFormData(formData);
-
-        fetch('{{ path('app_parameter_customer_add') }}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            console.log('Statut de la réponse :', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Données de réponse :', data);
-            if (data.success) {
-                alert('Client créé avec succès');
-                closeModals();
-                location.reload();
-            } else {
-                console.error('Erreur lors de la création :', data.error);
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur complète lors de la création :', error);
-            alert('Une erreur est survenue lors de la création du client');
+    {{ parent() }}
+    <script type="module">
+        // Script de débogage
+        document.addEventListener('DOMContentLoaded', () => {
+            const debugElement = document.getElementById('debug-permissions');
+            console.log('Informations de Débogage:', {
+                userRole: debugElement.dataset.currentUserRole,
+                canEdit: debugElement.dataset.canEdit === '1',
+                canDelete: debugElement.dataset.canDelete === '1'
+            });
         });
-    }
 
-    // Fonction de modification de client
-    function editCustomer() {
-        console.log('Tentative de modification de client');
-        const formData = new FormData(customerForm);
-        const customerId = formData.get('customerId');
-
-        // Débogage : afficher les données du formulaire
-        debugFormData(formData);
-
-        fetch(`{{ path('app_parameter_customer_edit', {'id': '__ID__'}) }}`.replace('__ID__', customerId), {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            console.log('Statut de la réponse :', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Données de réponse :', data);
-            if (data.success) {
-                alert('Client modifié avec succès');
-                closeModals();
-                location.reload();
-            } else {
-                console.error('Erreur lors de la modification :', data.error);
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur complète lors de la modification :', error);
-            alert('Une erreur est survenue lors de la modification du client');
-        });
-    }
-
-    // Fonction de suppression de client
-    function deleteCustomer() {
-        console.log('Tentative de suppression de client');
-        console.log('ID du client à supprimer :', currentCustomerId);
-
-        fetch(`{{ path('app_parameter_customer_delete', {'id': '__ID__'}) }}`.replace('__ID__', currentCustomerId), {
-            method: 'POST'
-        })
-        .then(response => {
-            console.log('Statut de la réponse :', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Données de réponse :', data);
-            if (data.success) {
-                alert('Client supprimé avec succès');
-                closeModals();
-                location.reload();
-            } else {
-                console.error('Erreur lors de la suppression :', data.error);
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur complète lors de la suppression :', error);
-            alert('Une erreur est survenue lors de la suppression du client');
-        });
-    }
-
-    // Événement pour le bouton d'ajout
-    document.querySelector('.btn-add').addEventListener('click', openAddCustomerModal);
-
-    // Événements pour ouvrir les modales d'édition
-    document.querySelectorAll('.btn-edit').forEach(button => {
-        button.addEventListener('click', () => openEditModal(button));
-    });
-
-    // Événements pour ouvrir les modales de suppression
-    document.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', () => openDeleteConfirmModal(button));
-    });
-
-    // Événement de confirmation de suppression
-    confirmDeleteBtn.addEventListener('click', deleteCustomer);
-
-    // Fermeture des modales
-    document.querySelectorAll('.btn-close, [data-bs-dismiss="modal"]').forEach(button => {
-        button.addEventListener('click', closeModals);
-    });
-});
-</script>
+        import { initCustomerManagement } from "{{ asset('script/parameter/customer-management.js') }}";
+    </script>
 {% endblock %}

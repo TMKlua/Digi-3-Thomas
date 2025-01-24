@@ -3,35 +3,36 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Entity\Customers;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class PermissionService
 {
-    // Définition de la hiérarchie des rôles
+    // Utilisation des constantes de User
     private const ROLE_HIERARCHY = [
-        'ROLE_USER' => [
+        User::ROLE_USER => [
             'parent' => null,
             'permissions' => ['view_general_pages']
         ],
-        'ROLE_DEVELOPER' => [
-            'parent' => 'ROLE_USER',
+        User::ROLE_DEVELOPER => [
+            'parent' => User::ROLE_USER,
             'permissions' => ['view_projects', 'edit_own_tasks']
         ],
-        'ROLE_LEAD_DEVELOPER' => [
-            'parent' => 'ROLE_DEVELOPER',
+        User::ROLE_LEAD_DEVELOPER => [
+            'parent' => User::ROLE_DEVELOPER,
             'permissions' => ['manage_team_tasks']
         ],
-        'ROLE_PROJECT_MANAGER' => [
-            'parent' => 'ROLE_LEAD_DEVELOPER',
+        User::ROLE_PROJECT_MANAGER => [
+            'parent' => User::ROLE_LEAD_DEVELOPER,
             'permissions' => ['edit_users', 'manage_projects', 'view_users']
         ],
-        'ROLE_RESPONSABLE' => [
-            'parent' => 'ROLE_PROJECT_MANAGER',
+        User::ROLE_RESPONSABLE => [
+            'parent' => User::ROLE_PROJECT_MANAGER,
             'permissions' => ['delete_users', 'manage_all_projects', 'view_users']
         ],
-        'ROLE_ADMIN' => [
-            'parent' => 'ROLE_RESPONSABLE',
-            'permissions' => ['*'] // Tous les droits
+        User::ROLE_ADMIN => [
+            'parent' => User::ROLE_RESPONSABLE,
+            'permissions' => ['*']
         ]
     ];
 
@@ -87,12 +88,15 @@ class PermissionService
     public function canViewUserList(): bool
     {
         $user = $this->security->getUser();
-        
-        if (!$user) {
+        if (!$user instanceof User) {
             return false;
         }
 
-        return $this->hasPermission($user, 'view_users');
+        return in_array($user->getUserRole(), [
+            User::ROLE_PROJECT_MANAGER,
+            User::ROLE_RESPONSABLE,
+            User::ROLE_ADMIN
+        ]);
     }
 
     /**
@@ -101,38 +105,69 @@ class PermissionService
     public function canEditUser(): bool
     {
         $user = $this->security->getUser();
-        return $this->hasPermission($user, 'edit_users');
+        if (!$user instanceof User) {
+            return false;
+        }
+
+        return in_array($user->getUserRole(), [
+            User::ROLE_RESPONSABLE,
+            User::ROLE_ADMIN
+        ]);
     }
 
     /**
      * Vérifie si l'utilisateur connecté peut gérer un utilisateur spécifique
      */
-    public function canManageUser(?User $userToManage): bool
+    public function canManageUser(User $targetUser): bool
     {
         $currentUser = $this->security->getUser();
-
-        if (!$currentUser instanceof User || !$userToManage) {
+        if (!$currentUser instanceof User) {
             return false;
         }
 
-        // Vérification des permissions basée sur la hiérarchie
-        return $this->hasPermission($currentUser, 'edit_users') || 
-               $this->hasPermission($currentUser, 'delete_users');
+        // Un admin peut tout faire
+        if ($currentUser->getUserRole() === User::ROLE_ADMIN) {
+            return true;
+        }
+
+        // Un responsable peut gérer tous les utilisateurs sauf les admins
+        if ($currentUser->getUserRole() === User::ROLE_RESPONSABLE) {
+            return $targetUser->getUserRole() !== User::ROLE_ADMIN;
+        }
+
+        // Un chef de projet peut gérer les développeurs et utilisateurs
+        if ($currentUser->getUserRole() === User::ROLE_PROJECT_MANAGER) {
+            return in_array($targetUser->getUserRole(), [
+                User::ROLE_USER,
+                User::ROLE_DEVELOPER
+            ]);
+        }
+
+        return false;
     }
 
     /**
      * Vérifie les permissions de suppression
      */
-    public function canDeleteUser(?User $userToDelete = null): bool
+    public function canDeleteUser(User $targetUser): bool
     {
         $currentUser = $this->security->getUser();
-        
-        // Un utilisateur ne peut pas se supprimer lui-même
-        if ($currentUser === $userToDelete) {
+        if (!$currentUser instanceof User) {
             return false;
         }
 
-        return $this->hasPermission($currentUser, 'delete_users');
+        // Un admin peut supprimer n'importe qui sauf lui-même
+        if ($currentUser->getUserRole() === User::ROLE_ADMIN) {
+            return $currentUser->getId() !== $targetUser->getId();
+        }
+
+        // Un responsable peut supprimer tous les utilisateurs sauf les admins et lui-même
+        if ($currentUser->getUserRole() === User::ROLE_RESPONSABLE) {
+            return $targetUser->getUserRole() !== User::ROLE_ADMIN 
+                && $currentUser->getId() !== $targetUser->getId();
+        }
+
+        return false;
     }
 
     public function getAllowedRolesForList(string $listType): array
@@ -184,5 +219,104 @@ class PermissionService
 
         $allowedRoles = $this->getAllowedRolesForList($listType);
         return in_array($user->getUserRole(), $allowedRoles);
+    }
+
+    public function canViewUser(User $userToView): bool
+    {
+        $currentUser = $this->security->getUser();
+        
+        if (!$currentUser instanceof User) {
+            return false;
+        }
+
+        $roleHierarchy = [
+            User::ROLE_USER => 1,
+            User::ROLE_DEVELOPER => 2,
+            User::ROLE_LEAD_DEVELOPER => 3,
+            User::ROLE_PROJECT_MANAGER => 4,
+            User::ROLE_RESPONSABLE => 5,
+            User::ROLE_ADMIN => 6
+        ];
+
+        if ($currentUser->getUserRole() === User::ROLE_PROJECT_MANAGER) {
+            return $roleHierarchy[$userToView->getUserRole()] < $roleHierarchy[User::ROLE_PROJECT_MANAGER];
+        }
+
+        $viewRoles = [
+            User::ROLE_RESPONSABLE, 
+            User::ROLE_ADMIN
+        ];
+
+        return in_array($currentUser->getUserRole(), $viewRoles);
+    }
+
+    public function canViewUserListForProjectManager(User $userToView): bool
+    {
+        $currentUser = $this->security->getUser();
+        
+        if (!$currentUser instanceof User) {
+            return false;
+        }
+
+        // Hiérarchie des rôles pour comparaison
+        $roleHierarchy = [
+            User::ROLE_USER => 1,
+            User::ROLE_DEVELOPER => 2,
+            User::ROLE_LEAD_DEVELOPER => 3,
+            User::ROLE_PROJECT_MANAGER => 4,
+            User::ROLE_RESPONSABLE => 5,
+            User::ROLE_ADMIN => 6
+        ];
+
+        // Vérification spécifique pour le Chef de Projet
+        if ($currentUser->getUserRole() === User::ROLE_PROJECT_MANAGER) {
+            // Le Chef de Projet peut voir uniquement les rôles inférieurs
+            return $roleHierarchy[$userToView->getUserRole()] < $roleHierarchy[User::ROLE_PROJECT_MANAGER];
+        }
+
+        // Pour les autres rôles, utiliser la méthode existante
+        return $this->canViewUser($userToView);
+    }
+
+    // Nouvelles méthodes pour la gestion des clients
+    public function canViewCustomerList(): bool
+    {
+        $user = $this->security->getUser();
+        return $user instanceof User && in_array($user->getUserRole(), [
+            User::ROLE_PROJECT_MANAGER,
+            User::ROLE_RESPONSABLE,
+            User::ROLE_ADMIN
+        ]);
+    }
+
+    public function canViewCustomerForProjectManager(Customers $customer): bool
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof User) return false;
+        
+        return in_array($user->getUserRole(), [
+            User::ROLE_ADMIN, 
+            User::ROLE_RESPONSABLE,
+            User::ROLE_PROJECT_MANAGER
+        ]);
+    }
+
+    public function canEditCustomer(): bool
+    {
+        $user = $this->security->getUser();
+        return $user instanceof User && in_array($user->getUserRole(), [
+            User::ROLE_ADMIN
+        ]);
+    }
+
+    public function canManageCustomer(Customers $customer): bool
+    {
+        return $this->canEditCustomer();
+    }
+
+    public function canDeleteCustomer(): bool
+    {
+        $user = $this->security->getUser();
+        return $user instanceof User && $user->getUserRole() === User::ROLE_ADMIN;
     }
 }

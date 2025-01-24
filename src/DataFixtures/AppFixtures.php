@@ -24,7 +24,7 @@ class AppFixtures extends Fixture
             'Doe', 
             'admin@digiworks.fr', 
             'Admin123!',
-            'ROLE_ADMIN'
+            User::ROLE_ADMIN
         );
         $manager->persist($admin);
 
@@ -34,7 +34,7 @@ class AppFixtures extends Fixture
             'Dupont', 
             'responsable@digiworks.fr', 
             'Responsable123!',
-            'ROLE_RESPONSABLE'
+            User::ROLE_RESPONSABLE
         );
         $manager->persist($responsable);
 
@@ -44,7 +44,7 @@ class AppFixtures extends Fixture
             'Martin', 
             'pm@digiworks.fr', 
             'ProjectManager123!',
-            'ROLE_PROJECT_MANAGER'
+            User::ROLE_PROJECT_MANAGER
         );
         $manager->persist($projectManager);
 
@@ -54,7 +54,7 @@ class AppFixtures extends Fixture
             'Leroy', 
             'lead@digiworks.fr', 
             'LeadDev123!',
-            'ROLE_LEAD_DEVELOPER'
+            User::ROLE_LEAD_DEVELOPER
         );
         $manager->persist($leadDeveloper);
 
@@ -64,7 +64,7 @@ class AppFixtures extends Fixture
             'Blanc', 
             'dev@digiworks.fr', 
             'Dev123!',
-            'ROLE_DEVELOPER'
+            User::ROLE_DEVELOPER
         );
         $manager->persist($developer);
 
@@ -74,7 +74,7 @@ class AppFixtures extends Fixture
             'Durand', 
             'user@digiworks.fr', 
             'User123!',
-            'ROLE_USER'
+            User::ROLE_USER
         );
         $manager->persist($user);
 

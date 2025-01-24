@@ -1,23 +1,27 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    # Configuration du hachage des mots de passe
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
         App\Entity\User:
             algorithm: auto
             cost: 12
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+
+    # Configuration des providers utilisateurs
     providers:
-        # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: userEmail
+
+    # Hiérarchie des rôles
     role_hierarchy:
         ROLE_DEVELOPER: ROLE_USER
-        ROLE_LEAD_DEV: ROLE_DEVELOPER
-        ROLE_TEAM_LEADER: ROLE_LEAD_DEV
-        ROLE_PROJECT_MANAGER: ROLE_TEAM_LEADER
-        ROLE_ADMIN: [ROLE_PROJECT_MANAGER, ROLE_ALLOWED_TO_SWITCH]
+        ROLE_LEAD_DEVELOPER: ROLE_DEVELOPER
+        ROLE_PROJECT_MANAGER: ROLE_LEAD_DEVELOPER
+        ROLE_RESPONSABLE: ROLE_PROJECT_MANAGER
+        ROLE_ADMIN: [ROLE_RESPONSABLE, ROLE_ALLOWED_TO_SWITCH]
+
+    # Configuration des pare-feu
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -33,35 +37,35 @@ security:
                 secret: '%kernel.secret%'
                 lifetime: 604800
                 path: /
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
+    # Contrôle d'accès global
     access_control:
-        # Accès public
+        # Authentification
         - { path: ^/auth, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }
         
-        # Niveau 1 : Tous les utilisateurs connectés
+        # Pages générales pour utilisateurs connectés
         - { path: ^/parameter/generaux, roles: ROLE_USER }
         - { path: ^/parameter/about, roles: ROLE_USER }
         
-        # Niveau 3 : Team Leader
-        - { path: ^/parameter/team, roles: ROLE_TEAM_LEADER }
+        # Gestion des utilisateurs
+        - { path: ^/parameter/users/, roles: [ROLE_PROJECT_MANAGER, ROLE_RESPONSABLE, ROLE_ADMIN] }
         
-        # Niveau 4 : Chef de projet
-        - { path: ^/parameter/users$, roles: ROLE_PROJECT_MANAGER }
-        - { path: ^/parameter/projects, roles: ROLE_PROJECT_MANAGER }
-        - { path: ^/parameter/customers$, roles: ROLE_PROJECT_MANAGER }
+        # Gestion des clients
+        - { path: ^/parameter/customers$, roles: [ROLE_PROJECT_MANAGER, ROLE_RESPONSABLE, ROLE_ADMIN] }
+        - { path: ^/parameter/customers/add, roles: ROLE_ADMIN }
+        - { path: ^/parameter/customers/edit, roles: ROLE_ADMIN }
+        - { path: ^/parameter/customers/delete, roles: ROLE_ADMIN }
         
-        # Niveau 5 : Administrateur
-        - { path: ^/parameter/app_configuration, roles: ROLE_ADMIN }
-        - { path: ^/parameter/users/, roles: ROLE_ADMIN }
-        - { path: ^/parameter/customers/, roles: ROLE_ADMIN }
+        # Gestion des projets
+        - { path: ^/parameter/projects$, roles: ROLE_PROJECT_MANAGER }
+        
+        # Configuration et administration
+        - { path: ^/parameter/app_configuration, roles: ROLE_RESPONSABLE }
+        - { path: ^/parameter/users/add, roles: ROLE_RESPONSABLE }
+        - { path: ^/parameter/users/delete, roles: ROLE_RESPONSABLE }
+
+# Configuration spécifique pour les tests
 when@test:
     security:
         password_hashers:

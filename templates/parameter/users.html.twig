@@ -5,6 +5,14 @@
 {% block body %}
 {% include 'includes/header.html.twig' with {'user': user} %}
 
+{# Débogage des permissions #}
+<div id="debug-permissions" 
+     data-current-user-role="{{ app.user.userRole }}"
+     data-can-edit="{{ canEdit ? '1' : '0' }}"
+     data-can-delete="{{ canDelete ? '1' : '0' }}"
+     style="display:none;">
+</div>
+
 <section class="parameter_landing flex">
     {% include 'parameter/_menu.html.twig' %}
     
@@ -12,16 +20,13 @@
         <div class="users-page">
             <div class="users-header flex">
                 <h2>Gestion des utilisateurs</h2>
-                {% if canEdit %}
-                    <button 
-                        class="btn-add" 
-                        type="button" 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#userModal"
-                    >
-                        Ajouter un utilisateur
-                    </button>
-                {% endif %}
+                
+                {# Ajout du bloc de débogage visible #}
+                <div class="debug-info" style="margin-left: 20px; color: red;">
+                    <strong>Rôle Actuel:</strong> {{ app.user.userRole }}<br>
+                    <strong>Peut Éditer:</strong> {{ canEdit ? 'Oui' : 'Non' }}<br>
+                    <strong>Peut Supprimer:</strong> {{ canDelete ? 'Oui' : 'Non' }}
+                </div>
             </div>
 
             {# Gestion des messages flash #}
@@ -109,6 +114,16 @@
                     </tbody>
                 </table>
             </div>
+            {% if canEdit %}
+            <button 
+                class="btn-add" 
+                type="button" 
+                data-bs-toggle="modal" 
+                data-bs-target="#userModal"
+            >
+                Ajouter un utilisateur
+            </button>
+        {% endif %}
         </div>
     </div>
 
@@ -194,11 +209,22 @@
         </div>
     {% endif %}
 {% endif %}
+
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     <script type="module">
-        import { initUserManagement } from '{{ asset('script/parameter/user-management.js'); }}';
+        // Script de débogage
+        document.addEventListener('DOMContentLoaded', () => {
+            const debugElement = document.getElementById('debug-permissions');
+            console.log('Informations de Débogage:', {
+                userRole: debugElement.dataset.currentUserRole,
+                canEdit: debugElement.dataset.canEdit === '1',
+                canDelete: debugElement.dataset.canDelete === '1'
+            });
+        });
+
+        import { initUserManagement } from "{{ asset('script/parameter/user-management.js') }}";
     </script>
 {% endblock %}

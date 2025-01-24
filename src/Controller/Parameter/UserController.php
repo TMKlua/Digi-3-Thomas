@@ -40,32 +40,36 @@ class UserController extends AbstractController
             throw $this->createAccessDeniedException('Utilisateur non authentifié');
         }
 
+        // Débogage
+        $this->logger->info('Tentative d\'accès à la liste des utilisateurs', [
+            'current_user_role' => $currentUser->getUserRole(),
+            'current_user_email' => $currentUser->getUserEmail()
+        ]);
+
         if (!$this->permissionService->canViewUserList()) {
+            $this->logger->warning('Accès refusé à la liste des utilisateurs', [
+                'current_user_role' => $currentUser->getUserRole()
+            ]);
             throw $this->createAccessDeniedException('Accès non autorisé pour votre rôle');
         }
 
-        $canEdit = $this->permissionService->canEditUser();
-        $canDelete = $this->permissionService->canDeleteUser(null);
-
-        $queryBuilder = $this->userRepository->createQueryBuilder('u')
-            ->where('u.userRole != :adminRole')
-            ->setParameter('adminRole', 'ROLE_ADMIN');
+        $queryBuilder = $this->userRepository->createQueryBuilder('u');
 
         switch ($currentUser->getUserRole()) {
-            case 'ROLE_PROJECT_MANAGER':
+            case User::ROLE_PROJECT_MANAGER:
                 $queryBuilder
                     ->andWhere('u.userRole IN (:allowedRoles)')
-                    ->setParameter('allowedRoles', ['ROLE_DEVELOPER', 'ROLE_LEAD_DEVELOPER']);
+                    ->setParameter('allowedRoles', [
+                        User::ROLE_USER, 
+                        User::ROLE_DEVELOPER
+                    ]);
                 break;
             
-            case 'ROLE_LEAD_DEVELOPER':
+            case User::ROLE_RESPONSABLE:
+            case User::ROLE_ADMIN:
                 $queryBuilder
-                    ->andWhere('u.userRole IN (:allowedRoles)')
-                    ->setParameter('allowedRoles', ['ROLE_DEVELOPER']);
-                break;
-            
-            case 'ROLE_RESPONSABLE':
-            case 'ROLE_ADMIN':
+                    ->andWhere('u.userRole != :adminRole')
+                    ->setParameter('adminRole', User::ROLE_ADMIN);
                 break;
             
             default:
@@ -74,9 +78,17 @@ class UserController extends AbstractController
 
         $users = $queryBuilder->getQuery()->getResult();
 
+        // Filtrer les utilisateurs selon les permissions spécifiques
+        $filteredUsers = array_filter($users, function($user) {
+            return $this->permissionService->canViewUserListForProjectManager($user);
+        });
+
+        $canEdit = false; // Mode lecture seule pour Project Manager
+        $canDelete = false;
+
         return $this->render('parameter/users.html.twig', [
             'user' => $currentUser,
-            'users' => $users,
+            'users' => $filteredUsers,
             'canEdit' => $canEdit,
             'canDelete' => $canDelete,
         ]);
