@@ -11,6 +11,10 @@ framework:
     #esi: true
     #fragments: true
 
+    cache:
+        app: cache.adapter.apcu
+        system: cache.adapter.system
+
 when@test:
     framework:
         test: true

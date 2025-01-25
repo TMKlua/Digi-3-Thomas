@@ -109,15 +109,9 @@ header nav ul li.active a::after {
 }
 /*LOGOUT*/
 .logout-form {
-  height: 3rem;
-  width: 3rem;
+ 
   border-radius: 0.5rem;
-  border: 1px solid #df6666;
-  background-color: white;
-}
-
-.logout-form button img {
-  height: 2rem;
+  border: 1px solid #ffffff;
 }
 
 .logout-dialog {
@@ -242,24 +236,33 @@ header nav ul li.active a::after {
   gap: 1rem;
   justify-content: flex-start;
 }
+.parameter_menu ul a{
+  width: 100%;
+}
 .parameter_menu ul li {
   padding: 1rem;
-  width: 90%;
   border-radius: 1.5rem;
   border: 2px solid rgba(41, 41, 41, 0.15);
   background-color: rgba(41, 41, 41, 0.15);
-  cursor: pointer;
-}
-.parameter_menu_active {
-  background-color: var(--d) !important;
-}
-.parameter_menu_active a {
-  color: var(--w) !important;
-}
-.parameter_menu ul li a {
   font-size: 1.5rem;
   text-align: start;
   color: var(--d);
+}
+.parameter_menu_active {
+  background-color: var(--d) !important;
+  color: var(--w) !important;
+}
+
+.users-footer {
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-add {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(90deg, var(--b), var(--g));
+  color: var(--d);
+  border-radius: 10px;
 }
 /*PARAMETER CONTENT*/
 .parameter_content {
@@ -282,7 +285,7 @@ header nav ul li.active a::after {
 /*ACCOUNT-HEADER*/
 .account-header {
   justify-content: space-between;
-  padding: 1rem;
+  padding: 2rem;
   border: 2px solid rgba(41,41,41, 0.15);
   background: rgba(41,41,41, 0.15);
   border-radius: 2rem;
@@ -394,6 +397,22 @@ header nav ul li.active a::after {
   background: linear-gradient(-130deg, var(--b), var(--g));
 }
 .btn-submit:active {
+}
+.password-field {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.toggle-password img {
+  width: 15px;
+  height: 15px;
 }
 /**************ABOUT-PAGE***************/
 .about-page {
@@ -527,7 +546,130 @@ header nav ul li.active a::after {
 #deleteBtn img {
   height: 20px;
 }
+/*************************GESTION UTILISATEURS****************************/
+/* Styles pour la modale utilisateur */
+#userModal {
+  display: flex;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(41, 41, 41, 0.4);
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
 
+#userModal.show {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#userModal .modal-dialog {
+  position: relative;
+  width: 500px;
+  max-width: 90%;
+  background: var(--d);
+  border-radius: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#userModal .modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: var(--d);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+#userModal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+#userModal .modal-title {
+  color: var(--w);
+  font-size: 1.5rem;
+}
+
+#userModal .btn-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  cursor: pointer;
+  color: var(--w);
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+}
+
+#userModal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#userModal .form-label {
+  color: var(--w);
+  text-align: start;
+}
+
+#userModal .form-control,
+#userModal .form-select {
+  background-color: rgba(41, 41, 41, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: var(--w);
+}
+
+#userModal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding-top: 1rem;
+}
+
+#userModal .btn-secondary {
+  background-color: rgba(41, 41, 41, 0.15);
+  color: var(--w);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+#userModal .btn-primary {
+  background: linear-gradient(90deg, var(--b), var(--g));
+  color: var(--d);
+  border: none;
+}
+
+#userModal .btn-danger {
+  background-color: #df6666;
+  color: var(--w);
+  border: none;
+}
+
+#userModal .btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+#userModal .btn:hover {
+  opacity: 0.8;
+}
 /*************************AUTHENTIFICATION LOGIN & SIGN UP****************************/
 .auth-section {
   background-image: url(/img/bg.png);
@@ -654,4 +796,240 @@ header nav ul li.active a::after {
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
+}
+
+/* Styles pour les modales de confirmation et d'édition */
+#customerModal,
+#deleteConfirmModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(41, 41, 41, 0.4);
+    justify-content: center;
+    align-items: center;
+    opacity: 0; /* Ajoutez une opacité initiale */
+    pointer-events: none; /* Désactive les interactions */
+    transition: opacity 0.3s ease; /* Animation douce */
+}
+
+/* États actifs pour les modales */
+#customerModal.show,
+#deleteConfirmModal.show {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Styles spécifiques pour la page de gestion des clients */
+.customers-page {
+    width: 100%;
+    padding: 20px;
+}
+
+.customers-header {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.customers-header h2 {
+    color: var(--w);
+    font-size: 1.8rem;
+}
+
+.customers-table {
+    width: 100%;
+    background-color: var(--d-c);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.customers-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.customers-table thead {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.customers-table th, 
+.customers-table td {
+    padding: 12px 15px;
+    text-align: left;
+    color: var(--w);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.customers-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: var(--w-cm);
+}
+
+.customers-table .actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.customers-table .actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    transition: transform 0.2s ease;
+}
+
+.customers-table .actions button:hover {
+    transform: scale(1.1);
+}
+
+.customers-table .actions button img {
+    width: 20px;
+    height: 20px;
+}
+
+.customers-table .no-data {
+    text-align: center;
+    color: var(--w-cm);
+    padding: 20px;
+}
+
+.customers-footer {
+    margin-top: 20px;
+    justify-content: flex-end;
+}
+
+.btn-add {
+    background: linear-gradient(90deg, var(--b), var(--g));
+    color: var(--d);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: opacity 0.3s ease;
+}
+
+.btn-add:hover {
+    opacity: 0.9;
+}
+
+/* Styles pour la modale de client */
+#customerModal .modal-content,
+#deleteConfirmModal .modal-content {
+    background-color: var(--d);
+    color: var(--w);
+    border-radius: 10px;
+}
+
+#customerModal .form-label {
+    color: var(--w-cm);
+}
+
+#customerModal .form-control {
+    background-color: var(--d-c);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--w);
+}
+
+#customerModal .form-control:focus {
+    background-color: var(--d-c);
+    border-color: var(--b);
+    box-shadow: 0 0 0 0.25rem rgba(28, 218, 255, 0.25);
+    color: var(--w);
+}
+.users-page {
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.users-header {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+
+.users-table {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.users-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+
+
+.users-table th {
+  padding: 12px 15px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.users-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+
+.users-table .actions {
+  text-align: center;
+}
+
+.users-table .actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 0 5px;
+  padding: 5px;
+  transition: transform 0.2s ease;
+}
+
+.users-table .actions button:hover {
+  transform: scale(1.1);
+}
+
+.users-table .actions button img {
+  width: 20px;
+  height: 20px;
+}
+
+.users-table .no-data {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+}
+
+.users-footer {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.users-footer .btn-add {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.users-footer .btn-add:hover {
+  background-color: #2980b9;
 }

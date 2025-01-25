@@ -1,0 +1,24 @@
+{# Paramètres attendus : id, editData (optionnel), entityName #}
+
+<td class="actions">
+    {% if canEdit %}
+        <button 
+            type="button" 
+            class="btn-edit" 
+            {% for key, value in editData|default([]) %}
+                data-{{ entityName }}-{{ key }}="{{ value }}"
+            {% endfor %}
+        >
+            <img src="/img/icons/edit.png" alt="Modifier">
+        </button>
+    {% endif %}
+    {% if canDelete %}
+        <button 
+            type="button" 
+            class="btn-delete" 
+            data-{{ entityName }}-id="{{ id }}"
+        >
+            <img src="/img/icons/delete.png" alt="Supprimer">
+        </button>
+    {% endif %}
+</td> 

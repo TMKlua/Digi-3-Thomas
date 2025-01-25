@@ -1,0 +1,47 @@
+# SYMFONY
+symfony console                     # Liste des commandes
+symfony console make:controller     # Créer un contrôleur
+symfony console make:entity         # Créer une entité
+symfony console make:migration      # Créer une migration
+symfony console make:form           # Créer un formulaire
+
+# BASE DE DONNÉES
+symfony console doctrine:database:create       # Créer la base de données
+symfony console doctrine:migrations:diff       # Générer migration
+symfony console doctrine:migrations:migrate    # Appliquer migrations
+symfony console doctrine:fixtures:load         # Charger fixtures
+
+# CACHE
+symfony console cache:clear         # Vider le cache
+symfony console cache:warmup        # Préchauffer le cache
+
+# SERVEUR
+symfony server:start                # Démarrer serveur
+symfony server:stop                 # Arrêter serveur
+
+# COMPOSER
+composer install                    # Installer dépendances
+composer update                     # Mettre à jour dépendances
+composer require package            # Ajouter package
+composer remove package             # Supprimer package
+
+# GIT
+git status                          # Voir état des fichiers
+git add .                           # Ajouter tous fichiers
+git commit -m "message"             # Commiter
+git push                            # Envoyer modifications
+git pull                            # Récupérer modifications
+git branch                          # Lister branches
+git checkout -b nom_branche         # Créer nouvelle branche
+
+# NPM/YARN
+npm install                         # Installer dépendances
+npm run dev                         # Compiler assets (dev)
+npm run build                       # Compiler assets (prod)
+
+# BASH
+pwd                                 # Répertoire courant
+ls                                  # Lister fichiers
+cd dossier                          # Changer répertoire
+mkdir nom_dossier                   # Créer dossier
+touch fichier.txt                   # Créer fichier 
