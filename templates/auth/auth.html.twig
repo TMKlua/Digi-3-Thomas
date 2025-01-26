@@ -18,7 +18,7 @@ d'authentification{% endblock %} {% block body %}
       <div class="password-container">
         <input type="password" id="login_password" name="password" required />
         <span class="toggle-password" onclick="togglePasswordVisibility('login_password')">
-          <img src="/img/icons/eye.png" alt="Afficher/Masquer le mot de passe" style="width: 15px; height: 15px;">
+          <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe" style="width: 15px; height: 15px;">
         </span>
       </div>
 
@@ -69,7 +69,7 @@ d'authentification{% endblock %} {% block body %}
       <div class="password-container">
         <input type="password" id="register_password" name="password" required />
         <span class="toggle-password" onclick="togglePasswordVisibility('register_password')">
-          <img src="/img/icons/eye.png" alt="Afficher/Masquer le mot de passe" style="width: 15px; height: 15px;">
+          <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe" style="width: 15px; height: 15px;">
         </span>
       </div>
 
@@ -94,201 +94,202 @@ d'authentification{% endblock %} {% block body %}
     </div>
 </div>
 {% endblock %} {% block javascripts %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Éléments DOM
-    const loginSection = document.getElementById("loginSection");
-    const registerSection = document.getElementById("registerSection");
-    const switchToRegister = document.getElementById("switchToRegister");
-    const switchToLogin = document.getElementById("switchToLogin");
-    const registerForm = document.getElementById("register_form");
-    const passwordInput = document.getElementById("register_password");
+    {{ parent() }}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Éléments DOM
+            const loginSection = document.getElementById("loginSection");
+            const registerSection = document.getElementById("registerSection");
+            const switchToRegister = document.getElementById("switchToRegister");
+            const switchToLogin = document.getElementById("switchToLogin");
+            const registerForm = document.getElementById("register_form");
+            const passwordInput = document.getElementById("register_password");
 
-    // Fonction pour basculer la visibilité du mot de passe
-    window.togglePasswordVisibility = function(inputId) {
-        const passwordInput = document.getElementById(inputId);
-        const icon = passwordInput.parentElement.querySelector('.toggle-password img');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.src = '/img/icons/eye-off.png';
-        } else {
-            passwordInput.type = 'password';
-            icon.src = '/img/icons/eye.png';
-        }
-    }
-
-    // Fonction de validation du mot de passe
-    function validatePassword(password) {
-        const constraints = {
-            minLength: 8,
-            requireSpecialChar: true,
-            requireNumber: true,
-            requireUppercase: true
-        };
-
-        const errors = [];
-
-        if (password.length < constraints.minLength) {
-            errors.push('Le mot de passe doit contenir au moins 8 caractères');
-        }
-
-        if (constraints.requireSpecialChar && !/[^a-zA-Z\d]/.test(password)) {
-            errors.push('Le mot de passe doit contenir au moins un caractère spécial');
-        }
-
-        if (constraints.requireNumber && !/\d/.test(password)) {
-            errors.push('Le mot de passe doit contenir au moins un chiffre');
-        }
-
-        if (constraints.requireUppercase && !/[A-Z]/.test(password)) {
-            errors.push('Le mot de passe doit contenir au moins une majuscule');
-        }
-
-        return errors;
-    }
-
-    // Validation en temps réel
-    passwordInput.addEventListener('input', function() {
-        const errors = validatePassword(this.value);
-        const existingErrors = registerForm.querySelectorAll('.password-error');
-        existingErrors.forEach(error => error.remove());
-
-        if (errors.length > 0) {
-            const errorContainer = document.createElement('div');
-            errorContainer.className = 'password-error';
-            errorContainer.style.color = 'red';
-            errorContainer.style.marginTop = '5px';
-            errorContainer.innerHTML = errors.join('<br>');
-            this.parentNode.appendChild(errorContainer);
-        }
-    });
-
-    // Gestion du formulaire d'inscription
-    registerForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        const password = passwordInput.value;
-        const passwordErrors = validatePassword(password);
-
-        if (passwordErrors.length > 0) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.style.color = 'red';
-            errorDiv.textContent = passwordErrors.join(', ');
-            this.insertBefore(errorDiv, this.firstChild);
-            return;
-        }
-
-        const submitButton = this.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.innerHTML = 'Inscription en cours...';
-
-        const formData = new FormData(this);
-
-        fetch('{{ path('app_register') }}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Réponse du serveur:', data); // Ajoutez ceci
-            if (data.success) {
-                submitButton.innerHTML = 'Inscription réussie !';
-                submitButton.style.backgroundColor = '#4CAF50';
-                setTimeout(() => {
-                    window.location.href = data.redirect;
-                }, 1000);
-            } else {
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'error';
-                errorDiv.style.color = 'red';
-                errorDiv.textContent = data.errors;
-                this.insertBefore(errorDiv, this.firstChild);
+            // Fonction pour basculer la visibilité du mot de passe
+            window.togglePasswordVisibility = function(inputId) {
+                const passwordInput = document.getElementById(inputId);
+                const icon = passwordInput.parentElement.querySelector('.toggle-password img');
+                
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.src = "{{ asset('build/images/icons/eye-off.png') }}";
+                } else {
+                    passwordInput.type = 'password';
+                    icon.src = "{{ asset('build/images/icons/eye.png') }}";
+                }
             }
-        })
-        .catch(error => {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.style.color = 'red';
-            errorDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
-            this.insertBefore(errorDiv, this.firstChild);
-        })
-        .finally(() => {
-            submitButton.disabled = false;
-            if (!submitButton.innerHTML.includes('réussie')) {
-                submitButton.innerHTML = 'S\'inscrire';
+
+            // Fonction de validation du mot de passe
+            function validatePassword(password) {
+                const constraints = {
+                    minLength: 8,
+                    requireSpecialChar: true,
+                    requireNumber: true,
+                    requireUppercase: true
+                };
+
+                const errors = [];
+
+                if (password.length < constraints.minLength) {
+                    errors.push('Le mot de passe doit contenir au moins 8 caractères');
+                }
+
+                if (constraints.requireSpecialChar && !/[^a-zA-Z\d]/.test(password)) {
+                    errors.push('Le mot de passe doit contenir au moins un caractère spécial');
+                }
+
+                if (constraints.requireNumber && !/\d/.test(password)) {
+                    errors.push('Le mot de passe doit contenir au moins un chiffre');
+                }
+
+                if (constraints.requireUppercase && !/[A-Z]/.test(password)) {
+                    errors.push('Le mot de passe doit contenir au moins une majuscule');
+                }
+
+                return errors;
             }
-        });
-    });
 
-    // Modification des fonctions de navigation
-    function showRegisterSection() {
-        loginSection.style.display = "none";
-        registerSection.style.display = "flex";
-    }
+            // Validation en temps réel
+            passwordInput.addEventListener('input', function() {
+                const errors = validatePassword(this.value);
+                const existingErrors = registerForm.querySelectorAll('.password-error');
+                existingErrors.forEach(error => error.remove());
 
-    function showLoginSection() {
-        registerSection.style.display = "none";
-        loginSection.style.display = "flex";
-    }
+                if (errors.length > 0) {
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'password-error';
+                    errorContainer.style.color = 'red';
+                    errorContainer.style.marginTop = '5px';
+                    errorContainer.innerHTML = errors.join('<br>');
+                    this.parentNode.appendChild(errorContainer);
+                }
+            });
 
-    // Modification des écouteurs d'événements de navigation
-    switchToRegister.addEventListener("click", function (event) {
-        event.preventDefault(); // Empêche l'action par défaut
-        showRegisterSection(); // Bascule simplement l'affichage
-    });
+            // Gestion du formulaire d'inscription
+            registerForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const password = passwordInput.value;
+                const passwordErrors = validatePassword(password);
 
-    switchToLogin.addEventListener("click", function (event) {
-        event.preventDefault(); // Empêche l'action par défaut
-        showLoginSection(); // Bascule simplement l'affichage
-    });
+                if (passwordErrors.length > 0) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error';
+                    errorDiv.style.color = 'red';
+                    errorDiv.textContent = passwordErrors.join(', ');
+                    this.insertBefore(errorDiv, this.firstChild);
+                    return;
+                }
 
-    // Gestion de la modale de réinitialisation du mot de passe
-    const forgotPasswordLink = document.getElementById("forgotPasswordLink");
-    const resetPasswordModal = document.getElementById("resetPasswordModal");
-    const closeModal = resetPasswordModal.querySelector(".close");
-    const resetPasswordForm = document.getElementById("resetPasswordForm");
+                const submitButton = this.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Inscription en cours...';
 
-    forgotPasswordLink.addEventListener("click", function (event) {
-        event.preventDefault();
-        loginSection.style.display = "none";
-        resetPasswordModal.style.display = "block";
-    });
+                const formData = new FormData(this);
 
-    closeModal.addEventListener("click", function () {
-        resetPasswordModal.style.display = "none";
-    });
+                fetch('{{ path('app_register') }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Réponse du serveur:', data); // Ajoutez ceci
+                    if (data.success) {
+                        submitButton.innerHTML = 'Inscription réussie !';
+                        submitButton.style.backgroundColor = '#4CAF50';
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1000);
+                    } else {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error';
+                        errorDiv.style.color = 'red';
+                        errorDiv.textContent = data.errors;
+                        this.insertBefore(errorDiv, this.firstChild);
+                    }
+                })
+                .catch(error => {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error';
+                    errorDiv.style.color = 'red';
+                    errorDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+                    this.insertBefore(errorDiv, this.firstChild);
+                })
+                .finally(() => {
+                    submitButton.disabled = false;
+                    if (!submitButton.innerHTML.includes('réussie')) {
+                        submitButton.innerHTML = 'S\'inscrire';
+                    }
+                });
+            });
 
-    window.addEventListener("click", function (event) {
-        if (event.target === resetPasswordModal) {
-            resetPasswordModal.style.display = "none";
-        }
-    });
+            // Modification des fonctions de navigation
+            function showRegisterSection() {
+                loginSection.style.display = "none";
+                registerSection.style.display = "flex";
+            }
 
-    resetPasswordForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        const email = document.getElementById("reset_email").value;
+            function showLoginSection() {
+                registerSection.style.display = "none";
+                loginSection.style.display = "flex";
+            }
 
-        fetch('{{ path('app_reset_password') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email: email })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Un lien de réinitialisation a été envoyé à votre adresse email.');
+            // Modification des écouteurs d'événements de navigation
+            switchToRegister.addEventListener("click", function (event) {
+                event.preventDefault(); // Empêche l'action par défaut
+                showRegisterSection(); // Bascule simplement l'affichage
+            });
+
+            switchToLogin.addEventListener("click", function (event) {
+                event.preventDefault(); // Empêche l'action par défaut
+                showLoginSection(); // Bascule simplement l'affichage
+            });
+
+            // Gestion de la modale de réinitialisation du mot de passe
+            const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+            const resetPasswordModal = document.getElementById("resetPasswordModal");
+            const closeModal = resetPasswordModal.querySelector(".close");
+            const resetPasswordForm = document.getElementById("resetPasswordForm");
+
+            forgotPasswordLink.addEventListener("click", function (event) {
+                event.preventDefault();
+                loginSection.style.display = "none";
+                resetPasswordModal.style.display = "block";
+            });
+
+            closeModal.addEventListener("click", function () {
                 resetPasswordModal.style.display = "none";
-            } else {
-                alert('Erreur : ' + data.error);
-            }
-        })
-        .catch(error => {
-            alert('Une erreur est survenue. Veuillez réessayer.');
+            });
+
+            window.addEventListener("click", function (event) {
+                if (event.target === resetPasswordModal) {
+                    resetPasswordModal.style.display = "none";
+                }
+            });
+
+            resetPasswordForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const email = document.getElementById("reset_email").value;
+
+                fetch('{{ path('app_reset_password') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Un lien de réinitialisation a été envoyé à votre adresse email.');
+                        resetPasswordModal.style.display = "none";
+                    } else {
+                        alert('Erreur : ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Une erreur est survenue. Veuillez réessayer.');
+                });
+            });
         });
-    });
-  });
-</script>
+    </script>
 {% endblock %}

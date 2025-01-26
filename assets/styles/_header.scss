@@ -1,0 +1,106 @@
+@use 'variables' as *;
+
+header {
+    nav {
+        justify-content: space-between !important;
+        padding: 1rem 3rem;
+
+        ul {
+            width: 50vw;
+            justify-content: space-between !important;
+
+            li {
+                a {
+                    font-size: 1.5rem;
+                    position: relative;
+                }
+
+                &.active a::after {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    bottom: -5px;
+                    width: 100%;
+                    height: 4px;
+                    background: $primary-gradient;
+                    border-radius: 2px;
+                }
+            }
+        }
+    }
+}
+
+// Logo et Logout
+.header-logo {
+    img {
+        height: 3rem;
+    }
+}
+
+.logout-btn {
+    img {
+        height: 2rem;
+    }
+}
+
+// Login / Sign up
+.header-buttons {
+    border-radius: 15px;
+    border: 2px solid transparent;
+    padding: 0.5rem 1rem;
+    background: linear-gradient($dark, $dark) padding-box,
+                $primary-gradient border-box;
+    
+    a {
+        font-size: 1.5rem;
+        background: $primary-gradient;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+}
+
+// Modale Logout
+.logout-dialog {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.4);
+
+    &-content {
+        background-color: $dark;
+        border: 2px solid $dark-alpha-15;
+        margin: 15% auto;
+        padding: 20px;
+        width: 300px;
+        text-align: center;
+        border-radius: 8px;
+    }
+
+    &-header {
+        margin-bottom: 1rem;
+    }
+
+    &-buttons {
+        margin-top: 1.5rem;
+        gap: 1rem;
+    }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.dialog-btn {
+    padding: 10px 15px;
+    background: $primary-gradient;
+
+    &:nth-child(2) {
+        background: #df6666;
+    }
+} 

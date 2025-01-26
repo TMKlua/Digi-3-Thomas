@@ -1,5 +1,2 @@
-import { startStimulusApp } from '@symfony/stimulus-bundle';
-
-const app = startStimulusApp();
-// register any custom, 3rd party controllers here
-// app.register('some_controller_name', SomeImportedController);
+// Ce fichier est actuellement vide mais pourra être utilisé pour initialiser
+// des fonctionnalités JavaScript globales plus tard 

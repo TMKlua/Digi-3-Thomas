@@ -69,7 +69,7 @@
                                                 data-customer-country="{{ customer.customerAddressCountry }}"
                                                 data-customer-vat="{{ customer.customerVAT }}"
                                             >
-                                                <img src="/img/icons/edit.png" alt="Modifier">
+                                                <img src="{{ asset('build/images/icons/edit.png') }}" alt="Modifier">
                                             </button>
                                         {% endif %}
                                         {% if canDelete %}
@@ -78,7 +78,7 @@
                                                 class="btn-delete" 
                                                 data-customer-id="{{ customer.id }}"
                                             >
-                                                <img src="/img/icons/delete.png" alt="Supprimer">
+                                                <img src="{{ asset('build/images/icons/delete.png') }}" alt="Supprimer">
                                             </button>
                                         {% endif %}
                                     </td>
@@ -177,6 +177,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script type="module">
-        import { initCustomerManagement } from "{{ asset('script/parameter/customer-management.js') }}";
+        import { CustomerManager } from "{{ asset('build/js/parameter/customer-management.js') }}";
+        new CustomerManager();
     </script>
 {% endblock %}

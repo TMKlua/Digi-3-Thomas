@@ -2,7 +2,7 @@
     <nav class="flex">
         <div class="header-logo">
             <a href="{{ path('home_index') }}" class="flex">
-                <img src="/img/header/home-logo.png" alt="Logo Digi-3">
+                <img src="{{ asset('build/images/header/home-logo.png') }}" alt="Logo Digi-3">
             </a> 
         </div>
         <ul class="flex">
@@ -16,11 +16,9 @@
                 <a href="{{ path('app_parameter_generaux') }}">Paramètres</a>
             </li>
         </ul>
-        <a href="{{ path('app_parameter_generaux') }}" class="header-account flex">
-        </a>
         <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
             <button type="submit" class="logout-btn flex">
-                <img src="/img/header/deconnect.png" alt="Icône déconnexion">
+                <img src="{{ asset('build/images/header/deconnect.png') }}" alt="Icône déconnexion">
             </button>
         </form>
     </nav>
@@ -43,39 +41,3 @@
         </div>
     </div>
 </header>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const logoutDialog = document.getElementById('logout-dialog');
-        const logoutForm = document.querySelector('.logout-form');
-
-        // Fermeture avec la touche Echap
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && logoutDialog.style.display === 'block') {
-                closeLogoutDialog();
-            }
-        });
-
-        window.showLogoutDialog = function(event) {
-            event.preventDefault();
-            logoutDialog.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Empêche le scroll
-            return false;
-        };
-
-        window.closeLogoutDialog = function() {
-            logoutDialog.style.display = 'none';
-            document.body.style.overflow = ''; // Réactive le scroll
-        };
-
-        window.confirmLogout = function() {
-            const btnConfirm = document.querySelector('.logout-dialog-buttons button:last-child');
-            btnConfirm.disabled = true;
-            btnConfirm.textContent = 'Déconnexion...';
-            
-            setTimeout(() => {
-                logoutForm.submit();
-            }, 500);
-        };
-    });
-</script>

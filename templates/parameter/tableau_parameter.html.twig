@@ -13,10 +13,10 @@
         {% if parameter.paramDateTo > 'now'|date('Y-m-d H:i') %}
             <div class="parameter-actions flex">
                 <button type="button" class="btn-edit-param" data-id="{{ parameter.id }}">
-                    <img src="/img/icons/edit.png" alt="Modifier">
+                    <img src="{{ asset('build/images/icons/edit.png') }}" alt="Modifier">
                 </button>
                 <button type="button" class="btn-delete-param" data-id="{{ parameter.id }}">
-                    <img src="/img/icons/delete.png" alt="Supprimer">
+                    <img src="{{ asset('build/images/icons/delete.png') }}" alt="Supprimer">
                 </button>
             </div>
         {% endif %}

@@ -4,7 +4,7 @@ title %}Digi-3 - Page d'accueil{% endblock %} {% block body %}
   <nav class="flex">
     <div class="header-logo">
       <a href="{{ path('home_index') }}" class="flex">
-        <img src="/img/header/home-logo.png" alt="Logo Digi-3" />
+        <img src="{{ asset('build/images/header/home-logo.png') }}" alt="Logo Digi-3" />
       </a>
     </div>
     {% if app.user %}
@@ -30,7 +30,7 @@ title %}Digi-3 - Page d'accueil{% endblock %} {% block body %}
         réalisées par vos salariés
       </p>
     </div>
-    <img src="/img/gestion.png" alt="Image gestion de projets" />
+    <img src="{{ asset('build/images/gestion.png') }}" alt="Image gestion de projets" />
   </div>
 </section>
 {% endblock %}

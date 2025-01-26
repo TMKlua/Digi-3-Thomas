@@ -1,0 +1,38 @@
+// Variables de couleurs
+:root {
+    --w: #ffffff;
+    --w-c: rgba(255, 255, 255, 0.85);
+    --w-cm: rgba(255, 255, 255, 0.5);
+    --w-cp: rgba(255, 255, 255, 0.15);
+  
+    --d: rgba(41, 41, 41, 1);
+    --d-c: rgba(41, 41, 41, 0.85);
+    --d-cm: rgba(41, 41, 41, 0.5);
+    --d-cp: rgba(41, 41, 41, 0.15);
+  
+    --b: #1cdaff;
+    --g: #00fca8;
+    --gr: #d9d9d9;
+}
+
+// Variables SCSS
+$white: var(--w);
+$white-alpha-85: var(--w-c);
+$white-alpha-50: var(--w-cm);
+$white-alpha-15: var(--w-cp);
+
+$dark: var(--d);
+$dark-alpha-85: var(--d-c);
+$dark-alpha-50: var(--d-cm);
+$dark-alpha-15: var(--d-cp);
+
+$blue: var(--b);
+$green: var(--g);
+$gray: var(--gr);
+
+// Couleur primaire
+$primary: $blue;
+
+// Gradients
+$primary-gradient: linear-gradient(90deg, $blue, $green);
+$header-gradient: linear-gradient(-130deg, $blue, $green); 

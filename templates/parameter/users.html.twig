@@ -43,7 +43,7 @@
                             <tr>
                                 <td>
                                     <img 
-                                        src="{{ asset(user.userAvatar ?: 'img/account/default-avatar.jpg') }}" 
+                                        src="{{ asset(user.userAvatar ?: 'build/images/account/default-avatar.jpg') }}" 
                                         alt="Avatar" 
                                         class="user-avatar" 
                                         style="height: 50px; width: 50px; object-fit: cover"
@@ -77,7 +77,7 @@
                                                 data-user-email="{{ user.userEmail }}"
                                                 data-user-role="{{ user.userRole }}"
                                             >
-                                                <img src="/img/icons/edit.png" alt="Modifier">
+                                                <img src="{{ asset('build/images/icons/edit.png') }}" alt="Modifier">
                                             </button>
                                         {% endif %}
                                         {% if canDelete %}
@@ -86,7 +86,7 @@
                                                 class="btn-delete" 
                                                 data-user-id="{{ user.id }}"
                                             >
-                                                <img src="/img/icons/delete.png" alt="Supprimer">
+                                                <img src="{{ asset('build/images/icons/delete.png') }}" alt="Supprimer">
                                             </button>
                                         {% endif %}
                                     </td>
@@ -211,6 +211,7 @@
             });
         });
 
-        import { initUserManagement } from "{{ asset('script/parameter/user-management.js') }}";
+        import { UserManager } from "{{ asset('build/js/parameter/user-management.js') }}";
+        new UserManager();
     </script>
 {% endblock %}

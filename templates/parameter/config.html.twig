@@ -87,36 +87,10 @@
 </section>
 
 {% block javascripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Gestion des onglets
-        const tabs = document.querySelectorAll('.tab');
-        const panels = document.querySelectorAll('.category-panel');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const category = this.dataset.category;
-
-                // Désactiver tous les onglets et panneaux
-                tabs.forEach(t => t.classList.remove('active'));
-                panels.forEach(p => p.classList.remove('active'));
-
-                // Activer l'onglet et le panneau courants
-                this.classList.add('active');
-                document.getElementById(`${category}-params`).classList.add('active');
-            });
-        });
-
-        // Gestion des actions sur les paramètres
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.btn-edit-param')) {
-                // Logique d'édition
-            }
-            if (e.target.closest('.btn-delete-param')) {
-                // Logique de suppression
-            }
-        });
-    });
-</script>
+    {{ parent() }}
+    <script type="module">
+        import { ConfigManager } from "{{ asset('build/js/parameter/config-management.js') }}";
+        new ConfigManager();
+    </script>
 {% endblock %}
 {% endblock %}

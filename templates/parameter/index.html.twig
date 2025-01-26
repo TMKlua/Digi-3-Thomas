@@ -17,7 +17,7 @@
           <div class="profile-pic flex">
             <label class="flex" for="file">
               <img
-                src="/img/account/account-change.png"
+                src="{{ asset('build/images/account/account-change.png') }}"
                 alt="Icone changement de photo de profil"
               />
             </label>
@@ -39,7 +39,7 @@
           <div class="password-field">
             {{ form_row(emailForm.password, {'id': 'email_form_password'}) }}
             <span class="toggle-password" onclick="togglePasswordVisibility('email_form_password')">
-              <img src="/img/icons/eye.png" alt="Afficher/Masquer le mot de passe">
+              <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe">
             </span>
           </div>
           <button type="submit" class="btn-submit">Nouvelle adresse e-mail</button>
@@ -58,13 +58,13 @@
           <div class="password-field">
             {{ form_row(passwordForm.actual_password, {'id': 'password_form_actual'}) }}
             <span class="toggle-password" onclick="togglePasswordVisibility('password_form_actual')">
-              <img src="/img/icons/eye.png" alt="Afficher/Masquer le mot de passe">
+              <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe">
             </span>
           </div>
           <div class="password-field">
             {{ form_row(passwordForm.password, {'id': 'password_form_new'}) }}
             <span class="toggle-password" onclick="togglePasswordVisibility('password_form_new')">
-              <img src="/img/icons/eye.png" alt="Afficher/Masquer le mot de passe">
+              <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe">
             </span>
           </div>
           <button type="submit" class="btn-submit">Nouveau mot de passe</button>
@@ -80,6 +80,7 @@
 {% endblock %}
 
 {% block javascripts %}
+{{ parent() }}
 <script>
   function togglePasswordVisibility(inputId) {
     const input = document.getElementById(inputId);
@@ -102,10 +103,10 @@
     
     if (input.type === 'password') {
         input.type = 'text';
-        icon.src = '/img/icons/eye-off.png';
+        icon.src = "{{ asset('build/images/icons/eye-off.png') }}";
     } else {
         input.type = 'password';
-        icon.src = '/img/icons/eye.png';
+        icon.src = "{{ asset('build/images/icons/eye.png') }}";
     }
   }
 

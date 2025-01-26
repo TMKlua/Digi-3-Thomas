@@ -1,0 +1,174 @@
+@use 'variables' as *;
+
+.auth-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: $header-gradient;
+}
+
+.auth-section {
+    width: 80%;
+    max-width: 1000px;
+    height: 80%;
+    background: $white;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+
+    form {
+        width: 50%;
+        padding: 4rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        label {
+            font-size: 1.2rem;
+            color: $dark;
+        }
+
+        input {
+            padding: 0.8rem;
+            border: 1px solid $dark-alpha-15;
+            border-radius: 8px;
+            font-size: 1rem;
+
+            &:focus {
+                outline: none;
+                border-color: $primary;
+            }
+        }
+    }
+}
+
+.auth-decorate {
+    width: 50%;
+    padding: 4rem;
+    background: $primary-gradient;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 2rem;
+
+    h3 {
+        font-size: 2rem;
+        color: $dark;
+    }
+
+    p {
+        color: $dark;
+        font-size: 1.2rem;
+        line-height: 1.6;
+    }
+
+    a {
+        padding: 0.8rem 2rem;
+        border: 2px solid $dark;
+        border-radius: 25px;
+        color: $dark;
+        font-weight: bold;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background: $dark;
+            color: $white;
+        }
+    }
+}
+
+.auth-submit {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: $primary-gradient;
+    border: none;
+    border-radius: 8px;
+    color: $dark;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        
+        img {
+            width: 20px;
+            height: 20px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+.forgot-password-link {
+    color: $primary;
+    text-decoration: none;
+    font-size: 0.9rem;
+    align-self: flex-end;
+    
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .modal-content {
+        background: $white;
+        padding: 2rem;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: $dark;
+        }
+
+        h2 {
+            margin-bottom: 1.5rem;
+            color: $dark;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+    }
+} 
