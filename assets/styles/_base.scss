@@ -59,4 +59,26 @@ th,
 td {
     text-align: center;
     color: $white;
+}
+
+// Styles pour la scrollbar
+.need-scrollbar {
+    overflow-y: scroll;
+    
+    &::-webkit-scrollbar {
+        width: 9px;
+        border-radius: 5px;
+        border: 1px solid $dark-alpha-15;
+        background: $dark-alpha-15;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        border-radius: 5px;
+        background: rgba(41, 41, 41, 0.56);
+        border: 1px solid $dark-alpha-15;
+        
+        &:hover {
+            background: #555;
+        }
+    }
 } 

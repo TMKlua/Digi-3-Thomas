@@ -17,13 +17,22 @@
     border-radius: 20px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    background-image: url('../images/bg.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
 
     form {
-        width: 50%;
-        padding: 4rem;
+        width: 50vw;
+        gap: 4rem;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+
+        h2 {
+            font-size: 3rem;
+        }
 
         label {
             font-size: 1.2rem;
@@ -31,14 +40,35 @@
         }
 
         input {
-            padding: 0.8rem;
-            border: 1px solid $dark-alpha-15;
-            border-radius: 8px;
-            font-size: 1rem;
+            padding: 1rem 0.5rem;
+            border-radius: 10px;
+            border: 1px solid $white;
+            background-color: transparent;
+            width: auto;
+            box-sizing: border-box;
+            color: rgba(255, 255, 255, 0.7);
 
-            &:focus {
-                outline: none;
-                border-color: $primary;
+            &::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+        }
+
+        div:nth-child(3) {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+
+            input {
+                order: 0;
+                height: 20px;
+                width: 20px;
+            }
+
+            label {
+                font-size: 1rem;
+                order: 1;
+                padding: 0;
             }
         }
     }
@@ -52,22 +82,26 @@
     align-items: center;
     text-align: center;
     gap: 2rem;
+    height: 100vh;
+    width: 50vw;
+    background-image: linear-gradient($green, $blue);
 
     h3 {
-        font-size: 2rem;
+        font-size: 3rem;
         color: $dark;
     }
 
     p {
         color: $dark;
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         line-height: 1.6;
+        width: 75%;
     }
 
     a {
-        padding: 0.8rem 2rem;
+        padding: 0.5rem 1.5rem;
+        border-radius: 15px;
         border: 2px solid $dark;
-        border-radius: 25px;
         color: $dark;
         font-weight: bold;
         transition: all 0.3s ease;
@@ -81,12 +115,12 @@
 
 .auth-submit {
     margin-top: 1rem;
-    padding: 1rem;
-    background: $primary-gradient;
+    padding: 1rem 3rem;
+    background-image: linear-gradient($green, $blue);
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     color: $dark;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -99,11 +133,11 @@
 
 .password-container {
     position: relative;
-    width: 100%;
+    width: 50% !important;
 
     .toggle-password {
         position: absolute;
-        right: 10px;
+        right: 0.5rem;
         top: 50%;
         transform: translateY(-50%);
         cursor: pointer;
@@ -169,6 +203,64 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+        }
+    }
+}
+
+// Formulaires
+#login_form,
+#register_form {
+    display: flex;
+    flex-direction: column;
+    width: 65%;
+    gap: 2rem;
+
+    // Conteneurs des champs
+    div {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    // Champs de texte et labels
+    input,
+    label {
+        font-size: 1.5rem;
+        text-align: start;
+    }
+
+    input {
+        padding: 1rem 0.5rem;
+        border-radius: 10px;
+        border: 1px solid $white;
+        background-color: transparent;
+        width: auto;
+        box-sizing: border-box;
+        color: rgba(255, 255, 255, 0.7);
+
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+    }
+
+    // Section "Rester connecté"
+    div:nth-child(3) {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+
+        input {
+            order: 0;
+            height: 20px;
+            width: 20px;
+        }
+
+        label {
+            font-size: 1rem;
+            order: 1;
+            padding: 0;
         }
     }
 } 

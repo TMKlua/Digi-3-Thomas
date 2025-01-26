@@ -16,19 +16,19 @@
 }
 
 // Variables SCSS
-$white: var(--w);
-$white-alpha-85: var(--w-c);
-$white-alpha-50: var(--w-cm);
-$white-alpha-15: var(--w-cp);
+$white: #ffffff;
+$white-alpha-85: rgba(255, 255, 255, 0.85);
+$white-alpha-50: rgba(255, 255, 255, 0.5);
+$white-alpha-15: rgba(255, 255, 255, 0.15);
 
-$dark: var(--d);
-$dark-alpha-85: var(--d-c);
-$dark-alpha-50: var(--d-cm);
-$dark-alpha-15: var(--d-cp);
+$dark: rgba(41, 41, 41, 1);
+$dark-alpha-85: rgba(41, 41, 41, 0.85);
+$dark-alpha-50: rgba(41, 41, 41, 0.5);
+$dark-alpha-15: rgba(41, 41, 41, 0.15);
 
-$blue: var(--b);
-$green: var(--g);
-$gray: var(--gr);
+$blue: #1cdaff;
+$green: #00fca8;
+$grey: #d9d9d9;
 
 // Couleur primaire
 $primary: $blue;
