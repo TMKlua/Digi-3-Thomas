@@ -5,6 +5,7 @@ namespace App\Controller\Parameter;
 use App\Entity\Parameters;
 use App\Form\Parameter\SearchFormType;
 use App\Form\Parameter\AppFormParameterType;
+use App\Service\PermissionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -19,59 +20,113 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[IsGranted('ROLE_ADMIN')]
 class ConfigController extends AbstractController
 {
+    private const PARAMETER_CATEGORIES = [
+        'project' => [
+            'PROJECT_STATUS_',
+            'TASK_STATUS_',
+            'TASK_PRIORITY_',
+            'TASK_COMPLEXITY_'
+        ],
+        'resources' => [
+            'RESOURCE_TYPE_',
+            'RESOURCE_RATE_'
+        ],
+        'security' => [
+            'SECURITY_',
+            'PASSWORD_',
+            'AUTH_'
+        ],
+        'performance' => [
+            'CACHE_',
+            'OPTIMIZATION_',
+            'LIMIT_'
+        ],
+        'notifications' => [
+            'NOTIFICATION_',
+            'ALERT_',
+            'EMAIL_'
+        ]
+    ];
+
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private Security $security,
+        private PermissionService $permissionService
+    ) {}
+
     #[Route('/', name: 'app_parameter_app_configuration', methods: ['GET', 'POST'])]
-    public function index(
-        Request $request, 
-        EntityManagerInterface $entityManager, 
-        Security $security
-    ): Response {   
-        $user = $security->getUser();
+    public function index(Request $request): Response
+    {   
+        if (!$this->permissionService->canAccessConfiguration()) {
+            throw $this->createAccessDeniedException('Accès non autorisé à la configuration');
+        }
+
+        $user = $this->security->getUser();
         $createForm = $this->createForm(AppFormParameterType::class);
         $searchForm = $this->createForm(SearchFormType::class);
 
         $currentDateTime = new \DateTime();
-        $allParameters = $entityManager->getRepository(Parameters::class)
+        $allParameters = $this->entityManager->getRepository(Parameters::class)
             ->findActiveParameters($currentDateTime);
 
         // Grouper les paramètres par catégorie
-        $generalParameters = array_filter($allParameters, 
-            fn($param) => $param->extractCategory() === 'general');
-        $securityParameters = array_filter($allParameters, 
-            fn($param) => $param->extractCategory() === 'security');
-        $performanceParameters = array_filter($allParameters, 
-            fn($param) => $param->extractCategory() === 'performance');
-        $notificationsParameters = array_filter($allParameters, 
-            fn($param) => $param->extractCategory() === 'notifications');
+        $parameters = [];
+        foreach (self::PARAMETER_CATEGORIES as $category => $prefixes) {
+            $parameters[$category] = array_filter($allParameters, function($param) use ($prefixes) {
+                foreach ($prefixes as $prefix) {
+                    if (str_starts_with($param->getParamKey(), $prefix)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        }
 
         return $this->render('parameter/config.html.twig', [
             'searchForm' => $searchForm->createView(),
             'createForm' => $createForm->createView(),
-            'generalParameters' => $generalParameters,
-            'securityParameters' => $securityParameters,
-            'performanceParameters' => $performanceParameters,
-            'notificationsParameters' => $notificationsParameters,
-            'user' => $user
+            'projectParameters' => $parameters['project'],
+            'resourceParameters' => $parameters['resources'],
+            'securityParameters' => $parameters['security'],
+            'performanceParameters' => $parameters['performance'],
+            'notificationsParameters' => $parameters['notifications'],
+            'user' => $user,
+            'canEdit' => $this->permissionService->canEditConfiguration()
         ]);
     }
 
     #[Route('/search', name: 'app_ajax_search', methods: ['POST'])]
-    public function search(Request $request, EntityManagerInterface $entityManager): Response
+    public function search(Request $request): Response
     {
+        if (!$this->permissionService->canViewConfiguration()) {
+            throw $this->createAccessDeniedException('Accès non autorisé à la recherche de configuration');
+        }
+
         $form = $this->createForm(SearchFormType::class);
         $form->handleRequest($request);
         $parameters = [];
         $currentDateTime = new \DateTime();
+        $category = $request->request->get('category', '');
 
         if ($form->isSubmitted() && $form->isValid()) {
             $searchTerm = $form->get('searchTerm')->getData();
             $showAll = $form->get('showAll')->getData();
             $dateSelect = $form->get('dateSelect')->getData();
 
-            $qb = $entityManager->getRepository(Parameters::class)->createQueryBuilder('p');
+            $qb = $this->entityManager->getRepository(Parameters::class)->createQueryBuilder('p');
 
             if ($searchTerm) {
                 $qb->andWhere('p.paramKey LIKE :searchTerm')
                     ->setParameter('searchTerm', '%' . $searchTerm . '%');
+            }
+
+            if ($category && isset(self::PARAMETER_CATEGORIES[$category])) {
+                $orX = $qb->expr()->orX();
+                foreach (self::PARAMETER_CATEGORIES[$category] as $prefix) {
+                    $orX->add($qb->expr()->like('p.paramKey', ':prefix_' . md5($prefix)));
+                    $qb->setParameter('prefix_' . md5($prefix), $prefix . '%');
+                }
+                $qb->andWhere($orX);
             }
 
             if (!$showAll) {
@@ -91,6 +146,7 @@ class ConfigController extends AbstractController
 
         $html = $this->renderView('parameter/tableau_parameter.html.twig', [
             'parameters' => $parameters,
+            'category' => $category
         ]);
 
         return $this->json([
@@ -100,9 +156,13 @@ class ConfigController extends AbstractController
     }
 
     #[Route('/delete/{id}', name: 'app_parameter_delete', methods: ['POST'])]
-    public function delete(int $id, EntityManagerInterface $entityManager, Request $request): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
-        $parameter = $entityManager->getRepository(Parameters::class)->find($id);
+        if (!$this->permissionService->canEditConfiguration()) {
+            return $this->json(['success' => false, 'message' => 'Accès non autorisé'], Response::HTTP_FORBIDDEN);
+        }
+
+        $parameter = $this->entityManager->getRepository(Parameters::class)->find($id);
 
         if (!$parameter) {
             return $this->json(['success' => false, 'message' => 'Paramètre non trouvé.'], 404);
@@ -116,31 +176,48 @@ class ConfigController extends AbstractController
         $parameter->setParamDateTo($currentDateTime);
 
         try {
-            $entityManager->persist($parameter);
-            $entityManager->flush();
+            $this->entityManager->persist($parameter);
+            $this->entityManager->flush();
+
+            // Récupérer la catégorie du paramètre
+            $category = $this->getCategoryFromKey($parameter->getParamKey());
+            $parameters = $this->getParametersByCategory($this->entityManager, $category);
+
+            $html = $this->renderView('parameter/tableau_parameter.html.twig', [
+                'parameters' => $parameters,
+                'category' => $category
+            ]);
+
+            return $this->json([
+                'success' => true,
+                'html' => $html,
+                'category' => $category
+            ]);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => 'Erreur lors de la mise à jour.'], 500);
         }
-
-        $allParameters = $entityManager->getRepository(Parameters::class)->findAll();
-
-        $html = $this->renderView('parameter/tableau_parameter.html.twig', [
-            'parameters' => $allParameters,
-        ]);
-
-        return $this->json([
-            'success' => true,
-            'html' => $html,
-            'parameters' => $allParameters,
-        ]);
     }
 
     #[Route('/create', name: 'app_parameter_create', methods: ['POST'])]
     public function create(
-        Request $request, 
-        EntityManagerInterface $entityManager, 
+        Request $request,
         ValidatorInterface $validator
     ): JsonResponse {
+        if (!$this->permissionService->canEditConfiguration()) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Accès non autorisé à la création de paramètres'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $category = $request->request->get('paramCategory');
+        if (!isset(self::PARAMETER_CATEGORIES[$category])) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Catégorie invalide'
+            ], 400);
+        }
+
         $parameter = new Parameters();
         $form = $this->createForm(AppFormParameterType::class, $parameter);
         $form->handleRequest($request);
@@ -151,8 +228,22 @@ class ConfigController extends AbstractController
             
             if (count($errors) === 0) {
                 try {
-                    $entityManager->persist($parameter);
-                    $entityManager->flush();
+                    // Ajouter le préfixe approprié à la clé
+                    $key = $parameter->getParamKey();
+                    $prefixes = self::PARAMETER_CATEGORIES[$category];
+                    $hasValidPrefix = false;
+                    foreach ($prefixes as $prefix) {
+                        if (str_starts_with($key, $prefix)) {
+                            $hasValidPrefix = true;
+                            break;
+                        }
+                    }
+                    if (!$hasValidPrefix) {
+                        $parameter->setParamKey($prefixes[0] . $key);
+                    }
+
+                    $this->entityManager->persist($parameter);
+                    $this->entityManager->flush();
 
                     return $this->json([
                         'success' => true,
@@ -170,7 +261,6 @@ class ConfigController extends AbstractController
                     ], 500);
                 }
             } else {
-                // Gestion des erreurs de validation
                 $errorMessages = [];
                 foreach ($errors as $error) {
                     $errorMessages[] = $error->getMessage();
@@ -188,5 +278,34 @@ class ConfigController extends AbstractController
             'success' => false,
             'message' => 'Formulaire non valide'
         ], 400);
+    }
+
+    private function getCategoryFromKey(string $key): string
+    {
+        foreach (self::PARAMETER_CATEGORIES as $category => $prefixes) {
+            foreach ($prefixes as $prefix) {
+                if (str_starts_with($key, $prefix)) {
+                    return $category;
+                }
+            }
+        }
+        return 'general';
+    }
+
+    private function getParametersByCategory(EntityManagerInterface $entityManager, string $category): array
+    {
+        if (!isset(self::PARAMETER_CATEGORIES[$category])) {
+            return [];
+        }
+
+        $qb = $entityManager->getRepository(Parameters::class)->createQueryBuilder('p');
+        $orX = $qb->expr()->orX();
+        
+        foreach (self::PARAMETER_CATEGORIES[$category] as $prefix) {
+            $orX->add($qb->expr()->like('p.paramKey', ':prefix_' . md5($prefix)));
+            $qb->setParameter('prefix_' . md5($prefix), $prefix . '%');
+        }
+        
+        return $qb->andWhere($orX)->getQuery()->getResult();
     }
 }

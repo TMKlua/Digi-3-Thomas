@@ -1,100 +1,130 @@
 export class ConfigManager {
     constructor() {
-        this.initTabs();
-        this.initForms();
+        this.canEdit = document.querySelector('.parameter_content')?.dataset.canEdit === '1';
+        this.initSearchForm();
+        this.initParameterActions();
+        this.initCreateForm();
     }
 
-    initTabs() {
-        const tabs = document.querySelectorAll('.tab');
-        const panels = document.querySelectorAll('.category-panel');
+    initSearchForm() {
+        const searchForm = document.getElementById('searchForm');
+        if (!searchForm) return;
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const category = tab.dataset.category;
+        const filterParameters = () => {
+            const category = document.getElementById('category').value.toLowerCase();
+            const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
+            const showAll = document.getElementById('showAll').checked;
+            const now = new Date();
 
-                // Désactiver tous les onglets et panneaux
-                tabs.forEach(t => t.classList.remove('active'));
-                panels.forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.parameter-row').forEach(row => {
+                const rowCategory = row.dataset.category;
+                const key = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const value = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const endDate = new Date(row.querySelector('td:nth-child(5)').dataset.date);
 
-                // Activer l'onglet et le panneau courants
-                tab.classList.add('active');
-                document.getElementById(`${category}-params`).classList.add('active');
+                const matchesCategory = !category || rowCategory === category;
+                const matchesSearch = !searchTerm || 
+                    key.includes(searchTerm) || 
+                    value.includes(searchTerm);
+                const matchesDate = showAll || endDate > now;
+
+                row.style.display = (matchesCategory && matchesSearch && matchesDate) ? '' : 'none';
             });
+        };
+
+        searchForm.querySelectorAll('select, input').forEach(element => {
+            element.addEventListener('change', filterParameters);
+            element.addEventListener('keyup', filterParameters);
         });
     }
 
-    initForms() {
-        // Gestion du formulaire de création
-        const createForm = document.getElementById('createParameterForm');
-        if (createForm) {
-            createForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(createForm);
+    initParameterActions() {
+        if (!this.canEdit) return;
 
-                try {
-                    const response = await fetch(createForm.action, {
-                        method: 'POST',
-                        body: formData
-                    });
+        document.addEventListener('click', e => {
+            const editBtn = e.target.closest('.btn-edit-param');
+            const deleteBtn = e.target.closest('.btn-delete-param');
 
-                    const data = await response.json();
+            if (editBtn) this.handleEdit(editBtn);
+            if (deleteBtn) this.handleDelete(deleteBtn);
+        });
+    }
 
-                    if (data.success) {
-                        // Mettre à jour le tableau correspondant
-                        const category = formData.get('paramCategory');
-                        const tableBody = document.getElementById(`${category}-parameter-table`);
-                        if (tableBody) {
-                            tableBody.innerHTML = data.html;
-                        }
-                        createForm.reset();
-                    } else {
-                        alert(data.error || 'Une erreur est survenue');
-                    }
-                } catch (error) {
-                    console.error('Erreur:', error);
-                    alert('Une erreur est survenue lors de la création du paramètre');
+    initCreateForm() {
+        const form = document.getElementById('createParameterForm');
+        if (!form || !this.canEdit) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await this.handleCreate(form);
+        });
+    }
+
+    async handleEdit(button) {
+        const paramId = button.dataset.id;
+        const paramKey = button.dataset.key;
+        const paramValue = button.dataset.value;
+        const dateFrom = button.dataset.dateFrom;
+        const dateTo = button.dataset.dateTo;
+
+        // Implémenter la logique d'édition avec modal
+        // TODO: Créer et afficher une modal d'édition
+    }
+
+    async handleDelete(button) {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce paramètre ?')) return;
+
+        const paramId = button.dataset.id;
+        try {
+            const response = await fetch(`/parameter/app_configuration/delete/${paramId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+
+            const data = await response.json();
+            if (data.success) {
+                button.closest('tr').remove();
+                this.showAlert('Paramètre supprimé avec succès', 'success');
+            } else {
+                this.showAlert(data.message || 'Erreur lors de la suppression', 'danger');
+            }
+        } catch (error) {
+            this.showAlert('Erreur lors de la suppression', 'danger');
+            console.error('Erreur:', error);
         }
+    }
 
-        // Gestion des actions sur les paramètres
-        document.addEventListener('click', async (e) => {
-            const editButton = e.target.closest('.btn-edit-param');
-            const deleteButton = e.target.closest('.btn-delete-param');
+    async handleCreate(form) {
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData
+            });
 
-            if (editButton) {
-                const paramId = editButton.dataset.id;
-                // Logique d'édition à implémenter
+            const data = await response.json();
+            if (data.success) {
+                location.reload(); // Recharger pour afficher le nouveau paramètre
+            } else {
+                this.showAlert(data.message || 'Erreur lors de la création', 'danger');
             }
+        } catch (error) {
+            this.showAlert('Erreur lors de la création', 'danger');
+            console.error('Erreur:', error);
+        }
+    }
 
-            if (deleteButton) {
-                const paramId = deleteButton.dataset.id;
-                if (confirm('Êtes-vous sûr de vouloir supprimer ce paramètre ?')) {
-                    try {
-                        const response = await fetch(`/parameter/delete/${paramId}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        });
-
-                        const data = await response.json();
-
-                        if (data.success) {
-                            const row = deleteButton.closest('tr');
-                            if (row) {
-                                row.remove();
-                            }
-                        } else {
-                            alert(data.error || 'Une erreur est survenue');
-                        }
-                    } catch (error) {
-                        console.error('Erreur:', error);
-                        alert('Une erreur est survenue lors de la suppression');
-                    }
-                }
-            }
-        });
+    showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        
+        const container = document.querySelector('.parameter_content');
+        if (container) {
+            container.insertBefore(alertDiv, container.firstChild);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
     }
 } 

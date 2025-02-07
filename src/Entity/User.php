@@ -9,11 +9,29 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[UniqueEntity(fields: ['userEmail'], message: 'Cet email est déjà utilisé')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    public const ROLE_USER = 'ROLE_USER';
+    public const ROLE_DEVELOPER = 'ROLE_DEVELOPER';
+    public const ROLE_LEAD_DEVELOPER = 'ROLE_LEAD_DEVELOPER';
+    public const ROLE_PROJECT_MANAGER = 'ROLE_PROJECT_MANAGER';
+    public const ROLE_RESPONSABLE = 'ROLE_RESPONSABLE';
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
+
+    public const VALID_ROLES = [
+        self::ROLE_USER,
+        self::ROLE_DEVELOPER,
+        self::ROLE_LEAD_DEVELOPER,
+        self::ROLE_PROJECT_MANAGER,
+        self::ROLE_RESPONSABLE,
+        self::ROLE_ADMIN
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -41,17 +59,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 35, unique: true)]
     #[Assert\NotBlank(message: 'L\'email ne peut pas être vide.')]
-    #[Assert\Email(message: 'L\'email n\'est pas valide.')]
+    #[Assert\Email(
+        message: 'L\'email {{ value }} n\'est pas valide.',
+        mode: 'strict'
+    )]
     private ?string $userEmail = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private string $userAvatar = '/img/account/default-avatar.jpg';
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank(message: 'Le mot de passe ne peut pas être vide.')]
     private ?string $userPassword = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $userDateFrom = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private \DateTimeInterface $userDateFrom;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $userDateTo = null;
@@ -65,15 +88,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $resetTokenExpiresAt = null;
 
-    public const ROLE_USER = 'ROLE_USER';
-    public const ROLE_DEVELOPER = 'ROLE_DEVELOPER';
-    public const ROLE_LEAD_DEVELOPER = 'ROLE_LEAD_DEVELOPER';
-    public const ROLE_PROJECT_MANAGER = 'ROLE_PROJECT_MANAGER';
-    public const ROLE_RESPONSABLE = 'ROLE_RESPONSABLE';
-    public const ROLE_ADMIN = 'ROLE_ADMIN';
-
     #[ORM\Column(length: 255)]
-    private ?string $userRole = null;
+    #[Assert\Choice(
+        choices: self::VALID_ROLES,
+        message: 'Le rôle sélectionné n\'est pas valide.'
+    )]
+    private string $userRole = self::ROLE_USER;
+
+    public function __construct()
+    {
+        $this->userDateFrom = new \DateTime();
+    }
 
     public function getEmail(): ?string
     {
@@ -204,7 +229,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        return [$this->userRole ?? 'ROLE_USER'];
+        $roles = [$this->userRole];
+        
+        // Garantit que tous les utilisateurs ont au moins ROLE_USER
+        if (!in_array(self::ROLE_USER, $roles, true)) {
+            $roles[] = self::ROLE_USER;
+        }
+
+        return array_unique($roles);
     }
 
     /**
@@ -230,7 +262,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // Effacer les données sensibles si nécessaire
+        // Si vous stockez des données sensibles temporaires
+        // $this->plainPassword = null;
     }
 
     public static function create(
@@ -239,34 +272,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         string $lastName,
         string $email,
         string $plainPassword,
-        string $role = 'ROLE_USER'
+        string $role = self::ROLE_USER
     ): self {
-        $user = new self();
-        $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-        
-        $user
-            ->setUserFirstName($firstName)
-            ->setUserLastName($lastName)
-            ->setUserEmail($email)
-            ->setPassword($hashedPassword)
-            ->setUserDateFrom(new \DateTime())
-            ->setUserAvatar('/img/account/default-avatar.jpg')
-            ->setUserRole($role)
-            ->setResetToken(null)
-            ->setResetTokenExpiresAt(null)
-            ->setUserDateTo(null)
-            ->setUserUserMaj(null);
+        if (!in_array($role, self::VALID_ROLES, true)) {
+            throw new \InvalidArgumentException('Rôle invalide fourni.');
+        }
 
-        return $user;
+        $user = new self();
+        
+        try {
+            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+            
+            $user
+                ->setUserFirstName($firstName)
+                ->setUserLastName($lastName)
+                ->setUserEmail($email)
+                ->setPassword($hashedPassword)
+                ->setUserRole($role);
+
+            return $user;
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Erreur lors de la création de l\'utilisateur: ' . $e->getMessage());
+        }
     }
 
-    public function getUserRole(): ?string
+    public function getUserRole(): string
     {
         return $this->userRole;
     }
 
     public function setUserRole(string $userRole): self
     {
+        if (!in_array($userRole, self::VALID_ROLES, true)) {
+            throw new \InvalidArgumentException('Rôle invalide fourni.');
+        }
+        
         $this->userRole = $userRole;
         return $this;
     }

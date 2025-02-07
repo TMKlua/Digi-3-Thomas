@@ -1,0 +1,108 @@
+{# templates/parameter/_base_crud.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Digi-3 - {{ page_title }}{% endblock %}
+
+{% block body %}
+{% include 'includes/header.html.twig' with {'user': user} %}
+
+<section class="parameter_landing flex">
+    {% include 'parameter/_menu.html.twig' %}
+    
+    <div class="parameter_content">
+        <div class="crud-page {{ entity_name }}-page">
+            {# En-tête avec titre et bouton d'ajout #}
+            <div class="crud-header flex">
+                <h2>{{ page_title }}</h2>
+                {% if canEdit %}
+                    <button 
+                        class="btn-add" 
+                        type="button" 
+                        data-dismiss="modal"
+                    >
+                        Ajouter {{ entity_label }}
+                    </button>
+                {% endif %}
+            </div>
+
+            {# Messages flash #}
+            {% include 'parameter/components/_flash_messages.html.twig' %}
+
+            {# Table principale #}
+            <div class="crud-table">
+                <table>
+                    <thead>
+                        <tr>
+                            {% block table_headers %}{% endblock %}
+                            {% if canEdit or canDelete %}
+                                <th>Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% block table_body %}{% endblock %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Données de page pour les permissions #}
+    <div id="{{ entity_name }}-page-data" 
+        data-can-edit="{{ canEdit ? '1' : '0' }}"
+        data-can-delete="{{ canDelete ? '1' : '0' }}"
+        style="display:none;">
+    </div>
+</section>
+
+{# Modales #}
+{% block modals %}
+    {# Modal de base #}
+    {% if canEdit %}
+        <div class="modal" id="{{ entity_name }}Modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="{{ entity_name }}ModalTitle">Ajouter {{ entity_label }}</h5>
+                        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% block modal_form %}{% endblock %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="save{{ entity_name|capitalize }}">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Modal de confirmation de suppression #}
+        {% if canDelete %}
+            <div class="modal" id="deleteConfirmModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirmer la suppression</h5>
+                            <button type="button" class="btn-close" data-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Êtes-vous sûr de vouloir supprimer {{ entity_label }} <span id="{{ entity_name }}ToDeleteName"></span> ?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                            <button type="button" class="btn btn-danger" id="confirmDelete">Supprimer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% block crud_scripts %}{% endblock %}
+{% endblock %} 

@@ -135,13 +135,12 @@ class SecurityController extends AbstractController
                 return $this->createJsonResponse(false, 'Cet email est déjà utilisé');
             }
 
-            $hashedPassword = $passwordHasher->hashPassword(new User(), $plainPassword);
-
             $user = User::create(
+                $passwordHasher,
                 $firstName,
                 $lastName,
                 $email,
-                $hashedPassword
+                $plainPassword
             );
 
             $this->logger->debug('Données utilisateur avant persist:', [

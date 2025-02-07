@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\Customers;
+use App\Service\RoleHierarchyService;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class PermissionService
@@ -23,15 +24,23 @@ class PermissionService
         ],
         User::ROLE_PROJECT_MANAGER => [
             'parent' => User::ROLE_LEAD_DEVELOPER,
-            'permissions' => ['edit_users', 'manage_projects', 'view_users']
+            'permissions' => ['view_users', 'view_customers', 'manage_projects']
         ],
         User::ROLE_RESPONSABLE => [
             'parent' => User::ROLE_PROJECT_MANAGER,
-            'permissions' => ['delete_users', 'manage_all_projects', 'view_users', 'manage_customers']
+            'permissions' => [
+                'edit_users', 
+                'delete_users', 
+                'manage_customers', 
+                'manage_all_projects'
+            ]
         ],
         User::ROLE_ADMIN => [
             'parent' => User::ROLE_RESPONSABLE,
-            'permissions' => ['*']
+            'permissions' => [
+                '*',
+                'manage_configuration'  // Permission spécifique pour la configuration
+            ]
         ]
     ];
 
@@ -42,7 +51,7 @@ class PermissionService
             'delete' => 'delete_users'
         ],
         'customer' => [
-            'view' => 'manage_customers',
+            'view' => 'view_customers',
             'edit' => 'manage_customers',
             'delete' => 'manage_customers'
         ],
@@ -50,11 +59,17 @@ class PermissionService
             'view' => 'view_projects',
             'edit' => 'manage_projects',
             'delete' => 'manage_all_projects'
+        ],
+        'configuration' => [
+            'view' => 'manage_configuration',
+            'edit' => 'manage_configuration',
+            'delete' => 'manage_configuration'
         ]
     ];
 
     public function __construct(
-        private Security $security
+        private Security $security,
+        private RoleHierarchyService $roleHierarchy
     ) {}
 
     private function getCurrentUser(): ?User
@@ -66,24 +81,13 @@ class PermissionService
     private function getUserRole(?User $user): ?string
     {
         if (!$user) return null;
-        
-        try {
-            return method_exists($user, 'getUserRole') 
-                ? $user->getUserRole() 
-                : ($user->getRoles()[0] ?? 'ROLE_USER');
-        } catch (\Exception) {
-            return 'ROLE_USER';
-        }
+        return $user->getUserRole();
     }
 
     public function hasPermission(?User $user, string $permission): bool
     {
         if (!$user) return false;
-        
-        $role = $this->getUserRole($user);
-        if (!$role || !isset(self::ROLE_HIERARCHY[$role])) return false;
-
-        return $this->checkPermissionInHierarchy($role, $permission);
+        return $this->roleHierarchy->hasPermission($user->getUserRole(), $permission);
     }
 
     private function checkPermissionInHierarchy(string $role, string $permission): bool
@@ -160,7 +164,7 @@ class PermissionService
     // API publique pour la gestion des utilisateurs
     public function canViewUserList(): bool
     {
-        return $this->canManageEntity('user', 'view');
+        return $this->hasPermission($this->getCurrentUser(), 'view_users');
     }
 
     public function canViewUser(User $user): bool
@@ -170,7 +174,7 @@ class PermissionService
 
     public function canEditUser(): bool
     {
-        return $this->canManageEntity('user', 'edit');
+        return $this->hasPermission($this->getCurrentUser(), 'edit_users');
     }
 
     public function canManageUser(User $user): bool
@@ -180,13 +184,19 @@ class PermissionService
 
     public function canDeleteUser(User $user): bool
     {
-        return $this->canManageEntity('user', 'delete', $user);
+        $currentUser = $this->getCurrentUser();
+        if (!$currentUser || $currentUser->getId() === $user->getId()) {
+            return false;
+        }
+        
+        return $this->hasPermission($currentUser, 'delete_users') &&
+               $this->roleHierarchy->hasRole($currentUser->getUserRole(), $user->getUserRole());
     }
 
     // API publique pour la gestion des clients
     public function canViewCustomerList(): bool
     {
-        return $this->canManageEntity('customer', 'view');
+        return $this->hasPermission($this->getCurrentUser(), 'view_customers');
     }
 
     public function canViewCustomerForProjectManager(Customers $customer): bool
@@ -196,7 +206,7 @@ class PermissionService
 
     public function canEditCustomer(): bool
     {
-        return $this->canManageEntity('customer', 'edit');
+        return $this->hasPermission($this->getCurrentUser(), 'manage_customers');
     }
 
     public function canManageCustomer(Customers $customer): bool
@@ -206,7 +216,21 @@ class PermissionService
 
     public function canDeleteCustomer(): bool
     {
-        return $this->canManageEntity('customer', 'delete') && 
-               $this->getCurrentUser()?->getUserRole() === User::ROLE_ADMIN;
+        return $this->hasPermission($this->getCurrentUser(), 'manage_customers');
+    }
+
+    public function canAccessConfiguration(): bool
+    {
+        return $this->hasPermission($this->getCurrentUser(), 'manage_configuration');
+    }
+
+    public function canViewConfiguration(): bool
+    {
+        return $this->canAccessConfiguration();
+    }
+
+    public function canEditConfiguration(): bool
+    {
+        return $this->canAccessConfiguration();
     }
 }

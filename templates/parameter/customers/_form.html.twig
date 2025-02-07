@@ -1,0 +1,34 @@
+{# Formulaire client #}
+<form id="customerForm">
+    <input type="hidden" name="modalAction" id="modalAction" value="add">
+    <input type="hidden" name="customerId" id="customerId">
+    
+    <div class="mb-3">
+        <label for="customerName" class="form-label">Nom</label>
+        <input type="text" class="form-control" id="customerName" name="customerName" required>
+    </div>
+    <div class="mb-3">
+        <label for="customerAddressStreet" class="form-label">Adresse</label>
+        <input type="text" class="form-control" id="customerAddressStreet" name="customerAddressStreet" required>
+    </div>
+    <div class="mb-3">
+        <label for="customerAddressZipcode" class="form-label">Code Postal</label>
+        <input type="text" class="form-control" id="customerAddressZipcode" name="customerAddressZipcode" required>
+    </div>
+    <div class="mb-3">
+        <label for="customerAddressCity" class="form-label">Ville</label>
+        <input type="text" class="form-control" id="customerAddressCity" name="customerAddressCity" required>
+    </div>
+    <div class="mb-3">
+        <label for="customerAddressCountry" class="form-label">Pays</label>
+        <input type="text" class="form-control" id="customerAddressCountry" name="customerAddressCountry" required>
+    </div>
+    <div class="mb-3">
+        <label for="customerVAT" class="form-label">TVA</label>
+        <input type="text" class="form-control" id="customerVAT" name="customerVAT">
+    </div>
+    <div class="mb-3">
+        <label for="customerSIREN" class="form-label">SIREN</label>
+        <input type="text" class="form-control" id="customerSIREN" name="customerSIREN">
+    </div>
+</form> 

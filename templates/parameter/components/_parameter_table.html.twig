@@ -1,3 +1,4 @@
+{# Tableau de paramètres #}
 {% for parameter in parameters %}
 <tr class="parameter-item" 
     data-param-id="{{ parameter.id }}" 
@@ -10,12 +11,12 @@
     <td>{{ parameter.paramDateFrom|date('Y-m-d H:i') }}</td>
     <td>{{ parameter.paramDateTo|date('Y-m-d H:i') }}</td>
     <td>
-        {% if parameter.paramDateTo > 'now'|date('Y-m-d H:i') %}
+        {% if parameter.paramDateTo > 'now'|date('Y-m-d H:i') and canEdit %}
             <div class="parameter-actions flex">
-                <button type="button" class="btn-edit-param" data-id="{{ parameter.id }}">
+                <button type="button" class="btn-edit-param" data-id="{{ parameter.id }}" title="Modifier">
                     <img src="{{ asset('build/images/icons/edit.png') }}" alt="Modifier">
                 </button>
-                <button type="button" class="btn-delete-param" data-id="{{ parameter.id }}">
+                <button type="button" class="btn-delete-param" data-id="{{ parameter.id }}" title="Supprimer">
                     <img src="{{ asset('build/images/icons/delete.png') }}" alt="Supprimer">
                 </button>
             </div>
@@ -26,4 +27,4 @@
 <tr>
     <td colspan="5" class="no-data">Aucun paramètre configuré</td>
 </tr>
-{% endfor %}
+{% endfor %} 

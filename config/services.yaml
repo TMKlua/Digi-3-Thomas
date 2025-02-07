@@ -21,10 +21,14 @@ services:
     Symfony\Bundle\SecurityBundle\Security:
         alias: security.helper
 
-    # Service personnalisé de Permission
+    # Service personnalisé de Permission et Rôles
+    App\Service\RoleHierarchyService:
+        public: true
+
     App\Service\PermissionService:
         arguments:
             $security: '@security.helper'
+            $roleHierarchy: '@App\Service\RoleHierarchyService'
 
     # Rend les classes de src/ disponibles en tant que services
     App\:

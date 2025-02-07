@@ -2,23 +2,17 @@
 
 <td class="actions">
     {% if canEdit %}
-        <button 
-            type="button" 
-            class="btn-edit" 
-            {% for key, value in editData|default([]) %}
-                data-{{ entityName }}-{{ key }}="{{ value }}"
+        <button type="button" class="btn-edit" 
+            {% for attr, value in edit_data %}
+                data-{{ attr }}="{{ value }}"
             {% endfor %}
         >
-            <img src="/img/icons/edit.png" alt="Modifier">
+            <img src="{{ asset('build/images/icons/edit.png') }}" alt="Modifier">
         </button>
     {% endif %}
     {% if canDelete %}
-        <button 
-            type="button" 
-            class="btn-delete" 
-            data-{{ entityName }}-id="{{ id }}"
-        >
-            <img src="/img/icons/delete.png" alt="Supprimer">
+        <button type="button" class="btn-delete" data-id="{{ id }}">
+            <img src="{{ asset('build/images/icons/delete.png') }}" alt="Supprimer">
         </button>
     {% endif %}
 </td> 
