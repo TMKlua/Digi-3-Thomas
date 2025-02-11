@@ -1,12 +1,15 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
-    csrf_protection: true
-
+    # csrf_protection est activé par défaut depuis Symfony 7.2
+    
     # Note that the session will be started ONLY if you read or write from it.
     session:
         cookie_secure: true
         cookie_samesite: lax
+        
+    http_method_override: false
+    handle_all_throwables: true
 
     #esi: true
     #fragments: true
