@@ -3,10 +3,9 @@
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         backupGlobals="false"
          colors="true"
          bootstrap="tests/bootstrap.php"
-         convertDeprecationsToExceptions="false"
+         cacheDirectory=".phpunit.cache"
 >
     <php>
         <ini name="display_errors" value="1" />
@@ -14,7 +13,8 @@
         <server name="APP_ENV" value="test" force="true" />
         <server name="SHELL_VERBOSITY" value="-1" />
         <server name="SYMFONY_PHPUNIT_REMOVE" value="" />
-        <server name="SYMFONY_PHPUNIT_VERSION" value="9.5" />
+        <server name="SYMFONY_PHPUNIT_VERSION" value="9.6" />
+        <server name="KERNEL_CLASS" value="App\Kernel" />
 
         <!-- ###+ symfony/lock ### -->
         <!-- Choose one of the stores below -->
@@ -26,39 +26,44 @@
         <!-- Gmail SHOULD NOT be used on production, use it in development only. -->
         <!-- MAILER_DSN=gmail://USERNAME:PASSWORD@default -->
         <!-- ###- symfony/google-mailer ### -->
-<<<<<<< ours
-=======
 
         <!-- ###+ symfony/mailer ### -->
         <env name="MAILER_DSN" value="null://null"/>
         <!-- ###- symfony/mailer ### -->
->>>>>>> theirs
-<<<<<<< ours
-=======
 
         <!-- ###+ symfony/framework-bundle ### -->
         <env name="APP_ENV" value="dev"/>
         <env name="APP_SECRET" value=""/>
         <!-- ###- symfony/framework-bundle ### -->
->>>>>>> theirs
     </php>
 
     <testsuites>
-        <testsuite name="Project Test Suite">
-            <directory>tests</directory>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Functional">
+            <directory>tests/Functional</directory>
         </testsuite>
     </testsuites>
 
-    <coverage processUncoveredFiles="true">
+    <coverage>
         <include>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <directory>src/DataFixtures</directory>
+            <directory>src/Migrations</directory>
+        </exclude>
     </coverage>
 
     <listeners>
-        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
     </listeners>
 
     <extensions>
+        <extension class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension"/>
     </extensions>
 </phpunit>

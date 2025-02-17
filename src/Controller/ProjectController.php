@@ -2,11 +2,11 @@
 
 namespace App\Controller;
 
-use App\Entity\ManagerProject;
+use App\Entity\Project;
 use App\Entity\Tasks;
-use App\Form\ManagerProjectType;
+use App\Form\ProjectType;
 use App\Form\TaskType;
-use App\Repository\ManagerProjectRepository;
+use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,14 +17,14 @@ class ManagementProjectController extends AbstractController
 {
     #[Route('/management-project/{id}', name: 'app_management_project')]
     public function managementProject(
-        ManagerProjectRepository $projectRepository,
+        ProjectRepository $projectRepository,
         Request $request,
         EntityManagerInterface $entityManager,
         ?int $id = null
     ): Response {
         // Création d'un nouveau projet
-        $project = new ManagerProject();
-        $form = $this->createForm(ManagerProjectType::class, $project);
+        $project = new Project();
+        $form = $this->createForm(ProjectType::class, $project);
     
         // Création d'une nouvelle tâche
         $task = new Tasks();
@@ -89,7 +89,7 @@ class ManagementProjectController extends AbstractController
     }
 
     #[Route('/management-project/delete/{id}', name: 'app_project_delete', methods: ['POST'])]
-    public function deleteProject(ManagerProject $project, EntityManagerInterface $entityManager): Response
+    public function deleteProject(Project $project, EntityManagerInterface $entityManager): Response
     {
         // Vérifier si le projet appartient à l'utilisateur connecté
         if ($project->getProjectLeader() !== $this->getUser()) {
