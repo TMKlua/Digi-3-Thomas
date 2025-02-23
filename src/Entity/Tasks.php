@@ -58,9 +58,10 @@ class Tasks
     #[ORM\Column(name: 'task_description', type: 'text', nullable: true)]
     private ?string $taskDescription = null;
 
-    #[ORM\Column(type: 'string', enumType: TaskStatus::class)]
+    #[ORM\Column(length: 20, enumType: TaskStatus::class)]
     private TaskStatus $taskStatus = TaskStatus::NEW;
 
+    #[ORM\Column(length: 20, enumType: TaskPriority::class)]
     #[ORM\Column(name: 'task_priority', type: 'string', enumType: TaskPriority::class)]
     private TaskPriority $taskPriority = TaskPriority::MEDIUM;
 

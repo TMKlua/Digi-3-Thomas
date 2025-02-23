@@ -38,7 +38,7 @@ class Project
     #[ORM\Column(name: 'project_description', type: 'text', nullable: true)]
     private ?string $projectDescription = null;
 
-    #[ORM\Column(type: 'string', enumType: ProjectStatus::class)]
+    #[ORM\Column(length: 20, enumType: ProjectStatus::class)]
     private ProjectStatus $projectStatus = ProjectStatus::NEW;
 
     #[ORM\ManyToOne(targetEntity: Customers::class)]

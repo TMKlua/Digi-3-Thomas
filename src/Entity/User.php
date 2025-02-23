@@ -73,7 +73,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(message: 'Le mot de passe ne peut pas être vide.')]
     private ?string $userPassword = null;
 
-    #[ORM\Column(name: 'user_role', type: 'string', enumType: UserRole::class)]
+    #[ORM\Column(length: 20, enumType: UserRole::class)]
     private UserRole $userRole = UserRole::USER;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
