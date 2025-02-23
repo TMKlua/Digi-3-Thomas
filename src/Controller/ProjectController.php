@@ -12,9 +12,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\PermissionService;
 
-class ManagementProjectController extends AbstractController
+class ProjectController extends AbstractController
 {
+    private PermissionService $permissionService;
+
+    public function __construct(PermissionService $permissionService)
+    {
+        $this->permissionService = $permissionService;
+    }
+
     #[Route('/management-project/{id}', name: 'app_management_project')]
     public function managementProject(
         ProjectRepository $projectRepository,
@@ -22,6 +30,10 @@ class ManagementProjectController extends AbstractController
         EntityManagerInterface $entityManager,
         ?int $id = null
     ): Response {
+        if (!$this->permissionService->canCreateProject()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour gérer les projets.');
+        }
+
         // Création d'un nouveau projet
         $project = new Project();
         $form = $this->createForm(ProjectType::class, $project);
@@ -35,23 +47,23 @@ class ManagementProjectController extends AbstractController
         $taskForm->handleRequest($request);
     
         // Récupérer les projets de l'utilisateur connecté
-        $projects = $projectRepository->findBy(['projectLeader' => $this->getUser()]);
+        $projects = $projectRepository->findBy(['projectManager' => $this->getUser()]);
     
         // Identifier le projet courant (sélectionné)
         $currentProject = null;
         if ($id) {
             $currentProject = $projectRepository->find($id);
-            if (!$currentProject || $currentProject->getProjectLeader() !== $this->getUser()) {
+            if (!$currentProject || $currentProject->getProjectManager() !== $this->getUser()) {
                 $this->addFlash('error', 'Projet introuvable ou non autorisé.');
                 return $this->redirectToRoute('app_management_project');
             }
         }
     
         if ($form->isSubmitted() && $form->isValid()) {
-            if (!$project->getStartDate()) {
-                $project->setStartDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+            if (!$project->getProjectStartDate()) {
+                $project->setProjectStartDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
             }
-            $project->setProjectLeader($this->getUser());
+            $project->setProjectManager($this->getUser());
     
             $entityManager->persist($project);
             $entityManager->flush();
@@ -61,12 +73,12 @@ class ManagementProjectController extends AbstractController
         }
     
         if ($taskForm->isSubmitted() && $taskForm->isValid()) {
-            if (!$task->getTaskDateFrom()) {
-                $task->setTaskDateFrom(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
+            if (!$task->getTaskStartDate()) {
+                $task->setTaskStartDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
             }
     
             if ($currentProject) {
-                $task->setProject($currentProject);
+                $task->setTaskProject($currentProject);
             } else {
                 $this->addFlash('error', 'Aucun projet sélectionné pour cette tâche.');
                 return $this->redirectToRoute('app_management_project');
@@ -91,8 +103,12 @@ class ManagementProjectController extends AbstractController
     #[Route('/management-project/delete/{id}', name: 'app_project_delete', methods: ['POST'])]
     public function deleteProject(Project $project, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->permissionService->canDeleteProject()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour supprimer ce projet.');
+        }
+
         // Vérifier si le projet appartient à l'utilisateur connecté
-        if ($project->getProjectLeader() !== $this->getUser()) {
+        if ($project->getProjectManager() !== $this->getUser()) {
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à supprimer ce projet.');
         }
 
@@ -117,6 +133,11 @@ class ManagementProjectController extends AbstractController
         $task = $entityManager->getRepository(Tasks::class)->find($content['taskId']);
         if (!$task) {
             return $this->json(['error' => 'Tâche introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Vérifier les permissions
+        if (!$this->permissionService->canEditTask($task)) {
+            return $this->json(['error' => 'Vous n\'avez pas les permissions nécessaires'], Response::HTTP_FORBIDDEN);
         }
 
         // Mettre à jour le statut de la tâche

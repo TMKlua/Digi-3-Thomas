@@ -24,15 +24,17 @@ class TasksAttachments
     #[Assert\NotBlank(message: 'Le nom du fichier ne peut pas être vide.')]
     private string $name;
 
-    #[ORM\Column(name: 'attachment_path', length: 255)]
-    #[Assert\NotBlank(message: 'Le chemin du fichier ne peut pas être vide.')]
-    private string $path;
+    #[ORM\Column(name: 'attachment_original_name', length: 255)]
+    private string $originalName;
 
-    #[ORM\Column(name: 'attachment_type', length: 100)]
-    private string $type;
+    #[ORM\Column(name: 'attachment_file_size')]
+    private int $fileSize;
 
-    #[ORM\Column(name: 'attachment_size')]
-    private int $size;
+    #[ORM\Column(name: 'attachment_mime_type', length: 100)]
+    private string $mimeType;
+
+    #[ORM\Column(name: 'attachment_description', type: 'text', nullable: true)]
+    private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(name: 'attachment_uploaded_by', referencedColumnName: 'id', nullable: false)]
@@ -73,36 +75,67 @@ class TasksAttachments
         return $this;
     }
 
-    public function getPath(): string
+    public function getFileName(): string
     {
-        return $this->path;
+        return $this->name;
     }
 
-    public function setPath(string $path): static
+    public function setFileName(string $fileName): static
     {
-        $this->path = $path;
+        return $this->setName($fileName);
+    }
+
+    public function getOriginalName(): string
+    {
+        return $this->originalName;
+    }
+
+    public function setOriginalName(string $originalName): static
+    {
+        $this->originalName = $originalName;
         return $this;
     }
 
-    public function getType(): string
+    public function getOriginalFileName(): string
     {
-        return $this->type;
+        return $this->originalName;
     }
 
-    public function setType(string $type): static
+    public function setOriginalFileName(string $originalFileName): static
     {
-        $this->type = $type;
+        return $this->setOriginalName($originalFileName);
+    }
+
+    public function getFileSize(): int
+    {
+        return $this->fileSize;
+    }
+
+    public function setFileSize(int $fileSize): static
+    {
+        $this->fileSize = $fileSize;
         return $this;
     }
 
-    public function getSize(): int
+    public function getMimeType(): string
     {
-        return $this->size;
+        return $this->mimeType;
     }
 
-    public function setSize(int $size): static
+    public function setMimeType(string $mimeType): static
     {
-        $this->size = $size;
+        $this->mimeType = $mimeType;
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
         return $this;
     }
 

@@ -56,7 +56,7 @@ class TasksAttachmentsRepository extends ServiceEntityRepository
     public function findByFileType(string $type): array
     {
         return $this->createQueryBuilder('a')
-            ->andWhere('a.type = :type')
+            ->andWhere('a.mimeType = :type')
             ->setParameter('type', $type)
             ->orderBy('a.createdAt', 'DESC')
             ->getQuery()
@@ -88,23 +88,35 @@ class TasksAttachmentsRepository extends ServiceEntityRepository
         }
 
         if (isset($criteria['type'])) {
-            $qb->andWhere('a.type = :type')
+            $qb->andWhere('a.mimeType = :type')
                ->setParameter('type', $criteria['type']);
         }
 
         if (isset($criteria['minSize'])) {
-            $qb->andWhere('a.size >= :minSize')
+            $qb->andWhere('a.fileSize >= :minSize')
                ->setParameter('minSize', $criteria['minSize']);
         }
 
         if (isset($criteria['maxSize'])) {
-            $qb->andWhere('a.size <= :maxSize')
+            $qb->andWhere('a.fileSize <= :maxSize')
                ->setParameter('maxSize', $criteria['maxSize']);
         }
 
         $qb->orderBy('a.createdAt', 'DESC');
 
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Trouve les pièces jointes orphelines (sans tâche associée)
+     */
+    public function findOrphanedAttachments(): array
+    {
+        return $this->createQueryBuilder('a')
+            ->leftJoin('a.task', 't')
+            ->where('t.id IS NULL')
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

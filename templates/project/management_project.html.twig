@@ -9,16 +9,20 @@
 <div class="project-management-container">
     <aside class="parameter_menu">
         <h3>Liste des projets</h3>
-                <button class="create-project-button" onclick="showCreateForm()">Créer un projet</button>
+        {% if permissionService.canCreateProject() %}
+            <button class="create-project-button" onclick="showCreateForm()">Créer un projet</button>
+        {% endif %}
         <ul>
             {% for project in projects %}
             <li class="{{ current_project and current_project.id == project.id ? 'active' : '' }}">
                 <a href="{{ path('app_management_project', { 'id': project.id }) }}">
-                    {{ project.name }}
+                    {{ project.projectName }}
                 </a>
-                <button type="button" class="delete-button" onclick="showDeletePopup({{ project.id }})">
-                    <img src="/img/delete.png" alt="Supprimer" class="delete-icon">
-                </button>
+                {% if permissionService.canDeleteProject() %}
+                    <button type="button" class="delete-button" onclick="showDeletePopup({{ project.id }})">
+                        <img src="/img/delete.png" alt="Supprimer" class="delete-icon">
+                    </button>
+                {% endif %}
             </li>
             {% endfor %}
         </ul>
@@ -26,17 +30,18 @@
       
 <main class="project-details">
     {% if current_project %}
-        <h2>{{ current_project.name }}</h2>
-        <p>{{ current_project.description }}</p>
+        <h2>{{ current_project.projectName }}</h2>
+        <p>{{ current_project.projectDescription }}</p>
 
         <div class="project-dates">
             <div>
-                <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
-                <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
+                <span>Début :</span> {{ current_project.projectStartDate ? current_project.projectStartDate|date('d-m-Y') : 'Non défini' }}
             </div>
             <div>
-                <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
-                <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
+                <span>Date cible :</span> {{ current_project.projectTargetDate ? current_project.projectTargetDate|date('d-m-Y') : 'Non défini' }}
+            </div>
+            <div>
+                <span>Fin :</span> {{ current_project.projectEndDate ? current_project.projectEndDate|date('d-m-Y') : 'Non défini' }}
             </div>
         </div>
 
@@ -101,20 +106,28 @@
             </div>
         </div>
 
+        {% if permissionService.canEditProject(current_project) %}
+            <div class="project-actions">
+                <button onclick="showEditForm()">Modifier le projet</button>
+            </div>
+        {% endif %}
+
         {% else %}
             <p>Sélectionnez un projet pour voir les détails.</p>
         {% endif %}
 
         {# Formulaire de création de projet #}
-        <div id="createProjectForm" style="display: none;">
-            {{ form_start(form) }}
-                {{ form_row(form.name) }}
-                {{ form_row(form.description) }}
-                {{ form_row(form.startDateForecast) }}
-                {{ form_row(form.endDateForecast) }}
-                <button type="submit">Créer un nouveau projet</button>
-            {{ form_end(form) }}
-        </div>
+        {% if permissionService.canCreateProject() %}
+            <div id="createProjectForm" style="display: none;">
+                {{ form_start(form) }}
+                    {{ form_row(form.projectName) }}
+                    {{ form_row(form.projectDescription) }}
+                    {{ form_row(form.projectStartDate) }}
+                    {{ form_row(form.projectTargetDate) }}
+                    <button type="submit">Créer un nouveau projet</button>
+                {{ form_end(form) }}
+            </div>
+        {% endif %}
 
         {# Messages flash #}
         {% for message in app.flashes('success') %}
@@ -128,13 +141,15 @@
 </div>
 
 {# Popup de confirmation de suppression #}
-<div id="deletePopup" class="popup" style="display: none;">
-    <div class="popup-content">
-        <p>Êtes-vous sûr de vouloir supprimer ce projet ?</p>
-        <button id="confirmDelete" class="confirm-button">Confirmer</button>
-        <button id="cancelDelete" class="cancel-button">Annuler</button>
+{% if permissionService.canDeleteProject() %}
+    <div id="deletePopup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <p>Êtes-vous sûr de vouloir supprimer ce projet ?</p>
+            <button id="confirmDelete" class="confirm-button">Confirmer</button>
+            <button id="cancelDelete" class="cancel-button">Annuler</button>
+        </div>
     </div>
-</div>
+{% endif %}
 <style>
     .project-management-container {
         display: flex;

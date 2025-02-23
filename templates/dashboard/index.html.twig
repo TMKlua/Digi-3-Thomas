@@ -8,69 +8,87 @@
 
     <div class="dashboard-container">
         <div class="parameter_menu">
-            <div class="user-info card">
-                <div class="user-avatar">
-                    <img src="{{ user.userAvatar }}" alt="User Avatar">
+            {% if permissionService.hasPermission('view_own_profile') %}
+                <div class="user-info card">
+                    <div class="user-avatar">
+                        <img src="{{ user.userAvatar }}" alt="User Avatar">
+                    </div>
+                    <div class="user-details">
+                        <h3>{{ user.userFirstName }}</h3>
+                        <h3>{{ user.userLastName }}</h3>
+                        <p>{{ user.userEmail }}</p>
+                        <p>{{ user.userRole|replace({'ROLE_': ''}) }}</p>
+                    </div>
                 </div>
-                <div class="user-details">
-                    <h3>{{ user.userFirstName }}</h3>
-                    <h3>{{ user.userLastName }}</h3>
-                    <p>{{ user.userEmail }}</p>
-                    <p>Salarié</p>
-                </div>
-            </div>
+            {% endif %}
 
-            <div class="user-stats card">
-                <div class="tasks">
-                    <p>Tâches</p>
-                    <h3>85% <span class="up-arrow">↑</span></h3>
+            {% if permissionService.hasPermission('view_team_tasks') %}
+                <div class="user-stats card">
+                    <div class="tasks">
+                        <p>Tâches</p>
+                        <h3>85% <span class="up-arrow">↑</span></h3>
+                    </div>
+                    {% if permissionService.hasPermission('view_projects') %}
+                        <div class="projects">
+                            <p>Projets</p>
+                            <h3>13 <span class="down-arrow">↓</span></h3>
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="projects">
-                    <p>Projets</p>
-                    <h3>13 <span class="down-arrow">↓</span></h3>
-                </div>
-            </div>
+            {% endif %}
 
             <nav class="sidebar-nav card">
                 <ul>
-                    <a href="#" class="btn-link">Page d'accueil <i class="fas fa-home"></i></a>
-                    <a href="#" class="btn-link">Calendrier</a>
-                    <a href="#" class="btn-link">Efficacité des tâches</a>
-                    <a href="#" class="btn-link">Productivité individuelle</a>
+                    <a href="{{ path('home_index') }}" class="btn-link">Page d'accueil <i class="fas fa-home"></i></a>
+                    {% if permissionService.hasPermission('view_team_tasks') %}
+                        <a href="#" class="btn-link">Calendrier</a>
+                        <a href="#" class="btn-link">Efficacité des tâches</a>
+                    {% endif %}
+                    {% if permissionService.hasPermission('view_project_statistics') %}
+                        <a href="#" class="btn-link">Productivité individuelle</a>
+                    {% endif %}
                 </ul>
             </nav>
         </div>
         <div class="main-content">
-            <div class="calendar card">
-                <h4>Calendrier</h4>
-                <iframe src="https://calendar.google.com/calendar/embed?src=your_calendar_id&ctz=Europe%2FParis" 
-                        style="border: 0" 
-                        width="100%" 
-                        height="400px" 
-                        frameborder="0" 
-                        scrolling="no"></iframe>
-            </div>
-
-            <div class="project-info card">
-                <h4>12 Projets Actifs</h4>
-                <div class="project-progress">
-                    <div class="progress-bar">
-                        <span class="progress" style="width: 66%;"></span>
-                    </div>
-                    <p>8 en cours</p>
+            {% if permissionService.hasPermission('view_team_tasks') %}
+                <div class="calendar card">
+                    <h4>Calendrier</h4>
+                    <iframe src="https://calendar.google.com/calendar/embed?src=your_calendar_id&ctz=Europe%2FParis" 
+                            style="border: 0" 
+                            width="100%" 
+                            height="400px" 
+                            frameborder="0" 
+                            scrolling="no"></iframe>
                 </div>
-                <a href="#" class="more-info">En savoir plus</a>
-            </div>
+            {% endif %}
 
-            <div class="efficiency-box card">
-                <h4>Efficacité des tâches</h4>
-            </div>
+            {% if permissionService.hasPermission('view_projects') %}
+                <div class="project-info card">
+                    <h4>12 Projets Actifs</h4>
+                    <div class="project-progress">
+                        <div class="progress-bar">
+                            <span class="progress" style="width: 66%;"></span>
+                        </div>
+                        <p>8 en cours</p>
+                    </div>
+                    <a href="{{ path('app_management_project') }}" class="more-info">En savoir plus</a>
+                </div>
+            {% endif %}
 
-            <div class="productivity-box card">
-                <h4>Productivité individuelle</h4>
-                <p>Liste de tâches + un total</p>
-                <p>Comparaison entre effort prévisionnel et réel</p>
-            </div>
+            {% if permissionService.hasPermission('view_team_tasks') %}
+                <div class="efficiency-box card">
+                    <h4>Efficacité des tâches</h4>
+                </div>
+            {% endif %}
+
+            {% if permissionService.hasPermission('view_project_statistics') %}
+                <div class="productivity-box card">
+                    <h4>Productivité individuelle</h4>
+                    <p>Liste de tâches + un total</p>
+                    <p>Comparaison entre effort prévisionnel et réel</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 

@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use App\Enum\UserRole;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
@@ -17,18 +18,18 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     public const ROLE_ADMIN = 'ROLE_ADMIN';
-    public const ROLE_TEAM_MANAGER = 'ROLE_TEAM_MANAGER';
+    public const ROLE_RESPONSABLE = 'ROLE_RESPONSABLE';
     public const ROLE_PROJECT_MANAGER = 'ROLE_PROJECT_MANAGER';
-    public const ROLE_LEAD_DEV = 'ROLE_LEAD_DEV';
-    public const ROLE_DEV = 'ROLE_DEV';
+    public const ROLE_LEAD_DEVELOPER = 'ROLE_LEAD_DEVELOPER';
+    public const ROLE_DEVELOPER = 'ROLE_DEVELOPER';
     public const ROLE_USER = 'ROLE_USER';
 
     public const VALID_ROLES = [
         self::ROLE_ADMIN,
-        self::ROLE_TEAM_MANAGER,
+        self::ROLE_RESPONSABLE,
         self::ROLE_PROJECT_MANAGER,
-        self::ROLE_LEAD_DEV,
-        self::ROLE_DEV,
+        self::ROLE_LEAD_DEVELOPER,
+        self::ROLE_DEVELOPER,
         self::ROLE_USER
     ];
 
@@ -72,12 +73,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(message: 'Le mot de passe ne peut pas être vide.')]
     private ?string $userPassword = null;
 
-    #[ORM\Column(type: 'string', enumType: 'string')]
-    #[Assert\Choice(
-        choices: self::VALID_ROLES,
-        message: 'Le rôle sélectionné n\'est pas valide.'
-    )]
-    private string $userRole = self::ROLE_DEV;
+    #[ORM\Column(name: 'user_role', type: 'string', enumType: UserRole::class)]
+    private UserRole $userRole = UserRole::USER;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private \DateTimeInterface $userCreatedAt;
@@ -210,7 +207,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return [$this->userRole];
+        return [$this->userRole->value];
     }
 
     public function eraseCredentials(): void
@@ -224,17 +221,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getUserRole(): string
+    public function getUserRole(): UserRole
     {
         return $this->userRole;
     }
 
-    public function setUserRole(string $userRole): self
+    public function setUserRole(UserRole $userRole): self
     {
-        if (!in_array($userRole, self::VALID_ROLES, true)) {
-            throw new \InvalidArgumentException('Rôle invalide fourni.');
-        }
-        
         $this->userRole = $userRole;
         return $this;
     }
@@ -245,27 +238,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         string $lastName,
         string $email,
         string $plainPassword,
-        string $role = self::ROLE_USER
+        UserRole $role = UserRole::USER
     ): self {
-        if (!in_array($role, self::VALID_ROLES, true)) {
-            throw new \InvalidArgumentException('Rôle invalide fourni.');
-        }
-
         $user = new self();
-        
-        try {
-            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-            
-            $user
-                ->setUserFirstName($firstName)
-                ->setUserLastName($lastName)
-                ->setUserEmail($email)
-                ->setPassword($hashedPassword)
-                ->setUserRole($role);
-
-            return $user;
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Erreur lors de la création de l\'utilisateur: ' . $e->getMessage());
-        }
+        $user->setUserFirstName($firstName);
+        $user->setUserLastName($lastName);
+        $user->setUserEmail($email);
+        $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+        $user->setUserRole($role);
+        return $user;
     }
 }

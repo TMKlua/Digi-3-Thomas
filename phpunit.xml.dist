@@ -3,8 +3,10 @@
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         backupGlobals="false"
          colors="true"
          bootstrap="tests/bootstrap.php"
+         convertDeprecationsToExceptions="false"
          cacheDirectory=".phpunit.cache"
 >
     <php>
@@ -38,24 +40,31 @@
     </php>
 
     <testsuites>
+        <testsuite name="Project Test Suite">
+            <directory>tests</directory>
+        </testsuite>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
         <testsuite name="Integration">
             <directory>tests/Integration</directory>
         </testsuite>
-        <testsuite name="Functional">
-            <directory>tests/Functional</directory>
+        <testsuite name="Repository">
+            <directory>tests/Repository</directory>
+        </testsuite>
+        <testsuite name="Service">
+            <directory>tests/Service</directory>
         </testsuite>
     </testsuites>
 
-    <coverage>
+    <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">src</directory>
         </include>
         <exclude>
             <directory>src/DataFixtures</directory>
             <directory>src/Migrations</directory>
+            <file>src/Kernel.php</file>
         </exclude>
     </coverage>
 

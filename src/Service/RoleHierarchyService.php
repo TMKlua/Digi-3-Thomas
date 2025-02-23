@@ -8,13 +8,6 @@ class RoleHierarchyService
 {
     private const ROLE_HIERARCHY = [
         User::ROLE_ADMIN => [
-            User::ROLE_RESPONSABLE,
-            User::ROLE_PROJECT_MANAGER,
-            User::ROLE_LEAD_DEVELOPER,
-            User::ROLE_DEVELOPER,
-            User::ROLE_USER
-        ],
-        User::ROLE_RESPONSABLE => [
             User::ROLE_PROJECT_MANAGER,
             User::ROLE_LEAD_DEVELOPER,
             User::ROLE_DEVELOPER,
@@ -36,70 +29,99 @@ class RoleHierarchyService
     ];
 
     private const ROLE_PERMISSIONS = [
-        User::ROLE_USER => [
-            'view_general_pages',
-            'view_own_profile'
-        ],
-        User::ROLE_DEVELOPER => [
+        User::ROLE_ADMIN => [
+            'manage_configuration',
+            'view_logs',
+            'manage_system_settings',
+            'manage_users',
+            'create_projects',
+            'edit_projects',
+            'view_project_statistics',
+            'manage_team_tasks',
             'view_projects',
-            'edit_own_tasks'
+            'edit_own_tasks',
+            'view_own_profile',
+            'view_assigned_tasks'
+        ],
+        User::ROLE_PROJECT_MANAGER => [
+            'create_projects',
+            'edit_projects',
+            'view_project_statistics',
+            'manage_team_tasks',
+            'view_projects',
+            'edit_own_tasks',
+            'view_own_profile',
+            'view_assigned_tasks'
         ],
         User::ROLE_LEAD_DEVELOPER => [
             'manage_team_tasks',
-            'view_team_performance'
+            'view_projects',
+            'edit_own_tasks',
+            'view_own_profile',
+            'view_assigned_tasks'
         ],
-        User::ROLE_PROJECT_MANAGER => [
-            'view_users',
-            'view_customers',
-            'manage_projects'
+        User::ROLE_DEVELOPER => [
+            'view_projects',
+            'edit_own_tasks',
+            'view_own_profile',
+            'view_assigned_tasks'
         ],
-        User::ROLE_RESPONSABLE => [
-            'edit_users',
-            'delete_users',
-            'manage_customers'
-        ],
-        User::ROLE_ADMIN => [
-            'manage_configuration',
-            'manage_system_settings'
+        User::ROLE_USER => [
+            'view_own_profile',
+            'view_assigned_tasks'
         ]
     ];
 
-    public function getRoleHierarchy(string $role): array
+    public function getReachableRoleNames(array $roles): array
     {
-        return self::ROLE_HIERARCHY[$role] ?? [];
+        $allRoles = [];
+        foreach ($roles as $role) {
+            $allRoles[] = $role;
+            $allRoles = array_merge($allRoles, $this->getRoleHierarchy($role));
+        }
+        return array_unique($allRoles);
+    }
+
+    public function isGranted(array $userRoles, string $requiredRole): bool
+    {
+        $reachableRoles = $this->getReachableRoleNames($userRoles);
+        return in_array($requiredRole, $reachableRoles);
     }
 
     public function hasRole(string $userRole, string $requiredRole): bool
     {
-        if ($userRole === $requiredRole) {
-            return true;
-        }
+        return $this->isGranted([$userRole], $requiredRole);
+    }
 
-        return in_array($requiredRole, self::ROLE_HIERARCHY[$userRole] ?? []);
+    public function hasPermission(string $role, string $permission): bool
+    {
+        $permissions = $this->getPermissionsForRole($role);
+        return in_array($permission, $permissions);
     }
 
     public function getPermissionsForRole(string $role): array
     {
         $permissions = [];
+        $roles = $this->getReachableRoleNames([$role]);
         
-        // Ajouter les permissions du rôle actuel
-        if (isset(self::ROLE_PERMISSIONS[$role])) {
-            $permissions = array_merge($permissions, self::ROLE_PERMISSIONS[$role]);
-        }
-
-        // Ajouter les permissions des rôles inférieurs
-        foreach ($this->getRoleHierarchy($role) as $inheritedRole) {
-            if (isset(self::ROLE_PERMISSIONS[$inheritedRole])) {
-                $permissions = array_merge($permissions, self::ROLE_PERMISSIONS[$inheritedRole]);
+        foreach ($roles as $reachableRole) {
+            if (isset(self::ROLE_PERMISSIONS[$reachableRole])) {
+                $permissions = array_merge($permissions, self::ROLE_PERMISSIONS[$reachableRole]);
             }
         }
-
+        
         return array_unique($permissions);
     }
 
-    public function hasPermission(string $userRole, string $permission): bool
+    public function getRoleHierarchy(string $role): array
     {
-        $permissions = $this->getPermissionsForRole($userRole);
-        return in_array($permission, $permissions);
+        $reachableRoles = [];
+        if (isset(self::ROLE_HIERARCHY[$role])) {
+            $reachableRoles = self::ROLE_HIERARCHY[$role];
+            foreach (self::ROLE_HIERARCHY[$role] as $subRole) {
+                $reachableRoles = array_merge($reachableRoles, $this->getRoleHierarchy($subRole));
+            }
+        }
+        return array_unique($reachableRoles);
     }
 } 

@@ -6,15 +6,23 @@
             </a> 
         </div>
         <ul class="flex">
-            <li class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}">
-                <a href="{{ path('app_dashboard') }}">Dashboard</a>
-            </li>
-            <li class="{% if app.request.attributes.get('_route') == 'app_management_project' %}active{% endif %}">
-                <a href="{{ path('app_management_project') }}">Gestion de projets</a>
-            </li>
-            <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}active{% endif %}">
-                <a href="{{ path('app_parameter_generaux') }}">Paramètres</a>
-            </li>
+            {% if permissionService.hasPermission('view_dashboard') %}
+                <li class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}">
+                    <a href="{{ path('app_dashboard') }}">Dashboard</a>
+                </li>
+            {% endif %}
+            
+            {% if permissionService.hasPermission('view_projects') %}
+                <li class="{% if app.request.attributes.get('_route') == 'app_management_project' %}active{% endif %}">
+                    <a href="{{ path('app_management_project') }}">Gestion de projets</a>
+                </li>
+            {% endif %}
+            
+            {% if permissionService.hasPermission('view_own_profile') %}
+                <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}active{% endif %}">
+                    <a href="{{ path('app_parameter_generaux') }}">Paramètres</a>
+                </li>
+            {% endif %}
         </ul>
         <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
             <button type="submit" class="logout-btn flex">

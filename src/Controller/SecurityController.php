@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Service\PermissionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,17 +25,20 @@ class SecurityController extends AbstractController
     private RateLimiterFactory $loginLimiter;
     private LoggerInterface $logger;
     private AppCustomAuthenticator $authenticator;
+    private PermissionService $permissionService;
     private const TOKEN_LENGTH = 40;
     private const TOKEN_EXPIRATION = '+1 hour';
 
     public function __construct(
         RateLimiterFactory $loginLimiter,
         LoggerInterface $logger,
-        AppCustomAuthenticator $authenticator
+        AppCustomAuthenticator $authenticator,
+        PermissionService $permissionService
     ) {
         $this->loginLimiter = $loginLimiter;
         $this->logger = $logger;
         $this->authenticator = $authenticator;
+        $this->permissionService = $permissionService;
     }
 
     private function validatePassword(string $password): array
@@ -100,6 +104,11 @@ class SecurityController extends AbstractController
         UserAuthenticatorInterface $userAuthenticator,
         Security $security
     ): Response {
+        // Vérifier si l'utilisateur a le droit de créer des utilisateurs
+        if (!$this->permissionService->canManageUsers()) {
+            return $this->createJsonResponse(false, 'Vous n\'avez pas les permissions nécessaires pour créer des utilisateurs.');
+        }
+
         try {
             $submittedToken = $request->request->get('csrf_token');
             if (!$this->isCsrfTokenValid('authenticate', $submittedToken)) {
@@ -110,7 +119,9 @@ class SecurityController extends AbstractController
             $lastName = trim(strip_tags($request->request->get('last_name', '')));
             $email = trim(strip_tags($request->request->get('email', '')));
             $plainPassword = $request->request->get('password');
+            $role = $request->request->get('role', User::ROLE_USER);
 
+            // Validation des champs requis
             $requiredFields = [
                 'first_name' => $firstName,
                 'last_name' => $lastName,
@@ -119,39 +130,42 @@ class SecurityController extends AbstractController
             ];
 
             foreach ($requiredFields as $field => $value) {
-                $this->logger->debug("Champ {$field}: " . ($value ?: 'vide'));
                 if (empty($value)) {
                     return $this->createJsonResponse(false, sprintf('Le champ %s est requis', str_replace('_', ' ', $field)));
                 }
             }
 
+            // Validation du rôle
+            if (!in_array($role, User::VALID_ROLES, true)) {
+                return $this->createJsonResponse(false, 'Rôle invalide');
+            }
+
+            // Vérifier si l'utilisateur a le droit d'attribuer ce rôle
+            if (!$this->permissionService->canManageRoles()) {
+                return $this->createJsonResponse(false, 'Vous n\'avez pas les permissions nécessaires pour attribuer ce rôle.');
+            }
+
+            // Validation du mot de passe
             $passwordErrors = $this->validatePassword($plainPassword);
             if (!empty($passwordErrors)) {
                 return $this->createJsonResponse(false, implode(', ', $passwordErrors));
             }
 
+            // Vérification de l'unicité de l'email
             $existingUser = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
             if ($existingUser) {
                 return $this->createJsonResponse(false, 'Cet email est déjà utilisé');
             }
 
+            // Création de l'utilisateur
             $user = User::create(
                 $passwordHasher,
                 $firstName,
                 $lastName,
                 $email,
-                $plainPassword
+                $plainPassword,
+                $role
             );
-
-            $this->logger->debug('Données utilisateur avant persist:', [
-                'firstName' => $user->getUserFirstName(),
-                'lastName' => $user->getUserLastName(),
-                'email' => $user->getUserEmail(),
-                'hasPassword' => !empty($user->getPassword()),
-                'dateFrom' => $user->getUserDateFrom()->format('Y-m-d H:i:s'),
-                'avatar' => $user->getUserAvatar(),
-                'role' => $user->getUserRole()
-            ]);
 
             try {
                 $entityManager->persist($user);
@@ -161,6 +175,7 @@ class SecurityController extends AbstractController
                 return $this->createJsonResponse(false, 'Erreur lors de la création du compte');
             }
 
+            // Authentification automatique
             try {
                 $userAuthenticator->authenticateUser(
                     $user,
@@ -195,6 +210,11 @@ class SecurityController extends AbstractController
         MailerInterface $mailer,
         TokenGeneratorInterface $tokenGenerator
     ): Response {
+        // Vérifier si l'utilisateur a le droit de réinitialiser les mots de passe
+        if (!$this->permissionService->hasPermission('manage_users')) {
+            return $this->createJsonResponse(false, 'Vous n\'avez pas les permissions nécessaires pour réinitialiser les mots de passe.');
+        }
+
         $data = json_decode($request->getContent(), true);
         $userEmail = trim(strip_tags($data['email'] ?? ''));
 
@@ -249,6 +269,11 @@ class SecurityController extends AbstractController
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
     ): Response {
+        // Vérifier si l'utilisateur a le droit de réinitialiser les mots de passe
+        if (!$this->permissionService->hasPermission('manage_users')) {
+            return $this->createJsonResponse(false, 'Vous n\'avez pas les permissions nécessaires pour réinitialiser les mots de passe.');
+        }
+
         $user = $entityManager->getRepository(User::class)->findOneBy([
             'resetToken' => $token
         ]);

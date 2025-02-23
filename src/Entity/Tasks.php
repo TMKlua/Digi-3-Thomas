@@ -8,6 +8,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Enum\TaskStatus;
+use App\Enum\TaskPriority;
+use App\Enum\TaskComplexity;
 
 #[ORM\Entity(repositoryClass: TasksRepository::class)]
 #[ORM\Table(name: 'tasks')]
@@ -55,17 +58,15 @@ class Tasks
     #[ORM\Column(name: 'task_description', type: 'text', nullable: true)]
     private ?string $taskDescription = null;
 
-    #[ORM\Column(name: 'task_status', type: 'string', enumType: 'string')]
-    #[Assert\Choice(choices: self::VALID_STATUS, message: 'Statut de tâche invalide.')]
-    private string $taskStatus = self::STATUS_TODO;
+    #[ORM\Column(type: 'string', enumType: TaskStatus::class)]
+    private TaskStatus $taskStatus = TaskStatus::NEW;
 
-    #[ORM\Column(name: 'task_priority', type: 'string', enumType: 'string', nullable: true)]
-    #[Assert\Choice(choices: self::VALID_PRIORITY, message: 'Priorité de tâche invalide.')]
-    private ?string $taskPriority = self::PRIORITY_MEDIUM;
+    #[ORM\Column(name: 'task_priority', type: 'string', enumType: TaskPriority::class)]
+    private TaskPriority $taskPriority = TaskPriority::MEDIUM;
 
-    #[ORM\Column(name: 'task_complexity', type: 'string', enumType: 'string', nullable: true)]
+    #[ORM\Column(name: 'task_complexity', type: 'string', enumType: TaskComplexity::class, nullable: true)]
     #[Assert\Choice(choices: self::VALID_COMPLEXITY, message: 'Complexité de tâche invalide.')]
-    private ?string $taskComplexity = null;
+    private ?TaskComplexity $taskComplexity = null;
 
     #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'tasks')]
     #[ORM\JoinColumn(name: 'task_project_id', referencedColumnName: 'id', nullable: false)]
@@ -125,16 +126,13 @@ class Tasks
         return $this;
     }
 
-    public function getTaskStatus(): ?string
+    public function getTaskStatus(): TaskStatus
     {
         return $this->taskStatus;
     }
 
-    public function setTaskStatus(?string $taskStatus): self
+    public function setTaskStatus(TaskStatus $taskStatus): static
     {
-        if (!in_array($taskStatus, self::VALID_STATUS, true)) {
-            throw new \InvalidArgumentException('Statut de tâche invalide.');
-        }
         $this->taskStatus = $taskStatus;
         return $this;
     }
@@ -250,30 +248,24 @@ class Tasks
         return $this->attachments;
     }
 
-    public function getTaskPriority(): ?string
+    public function getTaskPriority(): TaskPriority
     {
         return $this->taskPriority;
     }
 
-    public function setTaskPriority(?string $taskPriority): static
+    public function setTaskPriority(TaskPriority $taskPriority): static
     {
-        if ($taskPriority !== null && !in_array($taskPriority, self::VALID_PRIORITY, true)) {
-            throw new \InvalidArgumentException('Priorité de tâche invalide.');
-        }
         $this->taskPriority = $taskPriority;
         return $this;
     }
 
-    public function getTaskComplexity(): ?string
+    public function getTaskComplexity(): ?TaskComplexity
     {
         return $this->taskComplexity;
     }
 
-    public function setTaskComplexity(?string $taskComplexity): static
+    public function setTaskComplexity(?TaskComplexity $taskComplexity): static
     {
-        if ($taskComplexity !== null && !in_array($taskComplexity, self::VALID_COMPLEXITY, true)) {
-            throw new \InvalidArgumentException('Complexité de tâche invalide.');
-        }
         $this->taskComplexity = $taskComplexity;
         return $this;
     }

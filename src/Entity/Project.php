@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Enum\ProjectStatus;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ORM\Table(name: 'projects')]
@@ -37,9 +38,8 @@ class Project
     #[ORM\Column(name: 'project_description', type: 'text', nullable: true)]
     private ?string $projectDescription = null;
 
-    #[ORM\Column(name: 'project_status', type: 'string', enumType: 'string')]
-    #[Assert\Choice(choices: self::VALID_STATUS, message: 'Statut de projet invalide.')]
-    private string $projectStatus = self::STATUS_DRAFT;
+    #[ORM\Column(type: 'string', enumType: ProjectStatus::class)]
+    private ProjectStatus $projectStatus = ProjectStatus::NEW;
 
     #[ORM\ManyToOne(targetEntity: Customers::class)]
     #[ORM\JoinColumn(name: 'project_customer_id', referencedColumnName: 'id', nullable: false)]
@@ -107,16 +107,13 @@ class Project
         return $this;
     }
 
-    public function getProjectStatus(): string
+    public function getProjectStatus(): ProjectStatus
     {
         return $this->projectStatus;
     }
 
-    public function setProjectStatus(string $projectStatus): static
+    public function setProjectStatus(ProjectStatus $projectStatus): static
     {
-        if (!in_array($projectStatus, self::VALID_STATUS, true)) {
-            throw new \InvalidArgumentException('Statut de projet invalide.');
-        }
         $this->projectStatus = $projectStatus;
         return $this;
     }

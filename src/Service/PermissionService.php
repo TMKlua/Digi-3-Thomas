@@ -4,69 +4,12 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\Customers;
-use App\Service\RoleHierarchyService;
+use App\Entity\Project;
+use App\Entity\Tasks;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class PermissionService
 {
-    private const ROLE_HIERARCHY = [
-        User::ROLE_USER => [
-            'parent' => null,
-            'permissions' => ['view_general_pages']
-        ],
-        User::ROLE_DEVELOPER => [
-            'parent' => User::ROLE_USER,
-            'permissions' => ['view_projects', 'edit_own_tasks']
-        ],
-        User::ROLE_LEAD_DEVELOPER => [
-            'parent' => User::ROLE_DEVELOPER,
-            'permissions' => ['manage_team_tasks']
-        ],
-        User::ROLE_PROJECT_MANAGER => [
-            'parent' => User::ROLE_LEAD_DEVELOPER,
-            'permissions' => ['view_users', 'view_customers', 'manage_projects']
-        ],
-        User::ROLE_RESPONSABLE => [
-            'parent' => User::ROLE_PROJECT_MANAGER,
-            'permissions' => [
-                'edit_users', 
-                'delete_users', 
-                'manage_customers', 
-                'manage_all_projects'
-            ]
-        ],
-        User::ROLE_ADMIN => [
-            'parent' => User::ROLE_RESPONSABLE,
-            'permissions' => [
-                '*',
-                'manage_configuration'  // Permission spécifique pour la configuration
-            ]
-        ]
-    ];
-
-    private const PERMISSION_DOMAINS = [
-        'user' => [
-            'view' => 'view_users',
-            'edit' => 'edit_users',
-            'delete' => 'delete_users'
-        ],
-        'customer' => [
-            'view' => 'view_customers',
-            'edit' => 'manage_customers',
-            'delete' => 'manage_customers'
-        ],
-        'project' => [
-            'view' => 'view_projects',
-            'edit' => 'manage_projects',
-            'delete' => 'manage_all_projects'
-        ],
-        'configuration' => [
-            'view' => 'manage_configuration',
-            'edit' => 'manage_configuration',
-            'delete' => 'manage_configuration'
-        ]
-    ];
-
     public function __construct(
         private Security $security,
         private RoleHierarchyService $roleHierarchy
@@ -78,159 +21,151 @@ class PermissionService
         return $user instanceof User ? $user : null;
     }
 
-    private function getUserRole(?User $user): ?string
+    public function hasPermission(string $permission): bool
     {
-        if (!$user) return null;
-        return $user->getUserRole();
-    }
-
-    public function hasPermission(?User $user, string $permission): bool
-    {
+        $user = $this->getCurrentUser();
         if (!$user) return false;
+        
         return $this->roleHierarchy->hasPermission($user->getUserRole(), $permission);
     }
 
-    private function checkPermissionInHierarchy(string $role, string $permission): bool
+    // Gestion des projets
+    public function canCreateProject(): bool
     {
-        $config = self::ROLE_HIERARCHY[$role];
-        
-        if (in_array('*', $config['permissions']) || 
-            in_array($permission, $config['permissions'])) {
+        return $this->hasPermission('create_projects');
+    }
+
+    public function canEditProject(Project $project): bool
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
+
+        if ($this->hasPermission('edit_projects')) {
             return true;
         }
 
-        return $config['parent'] ? $this->checkPermissionInHierarchy($config['parent'], $permission) : false;
+        return $project->getProjectManager() === $user;
     }
 
-    private function hasHigherOrEqualRole(string $currentRole, string $targetRole): bool
+    public function canDeleteProject(): bool
     {
-        if ($currentRole === $targetRole) return true;
-        
-        $current = self::ROLE_HIERARCHY[$currentRole];
-        while ($current['parent']) {
-            if ($current['parent'] === $targetRole) return true;
-            $current = self::ROLE_HIERARCHY[$current['parent']];
-        }
-        return false;
+        return $this->hasPermission('delete_projects');
     }
 
-    private function canManageEntity(string $domain, string $action, $entity = null): bool
+    // Gestion des tâches
+    public function canCreateTask(Project $project): bool
     {
-        $currentUser = $this->getCurrentUser();
-        if (!$currentUser) return false;
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
 
-        if (!isset(self::PERMISSION_DOMAINS[$domain][$action])) {
-            return false;
-        }
-
-        $permission = self::PERMISSION_DOMAINS[$domain][$action];
-        $hasPermission = $this->hasPermission($currentUser, $permission);
-
-        if ($entity instanceof User) {
-            return $hasPermission && $this->checkUserManagementRules($currentUser, $entity);
-        }
-
-        return $hasPermission;
+        return $this->hasPermission('create_project_tasks') || 
+               $project->getProjectManager() === $user;
     }
 
-    private function checkUserManagementRules(User $currentUser, User $targetUser): bool
+    public function canEditTask(Tasks $task): bool
     {
-        $currentRole = $this->getUserRole($currentUser);
-        $targetRole = $this->getUserRole($targetUser);
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
 
-        // Un utilisateur ne peut pas se gérer lui-même
-        if ($currentUser->getId() === $targetUser->getId()) {
-            return false;
-        }
-
-        // Admin peut gérer tout le monde sauf lui-même
-        if ($currentRole === User::ROLE_ADMIN) {
+        if ($this->hasPermission('manage_team_tasks')) {
             return true;
         }
 
-        // Responsable peut gérer tous sauf admin et lui-même
-        if ($currentRole === User::ROLE_RESPONSABLE) {
-            return $targetRole !== User::ROLE_ADMIN;
-        }
-
-        // Project Manager ne peut voir que les rôles inférieurs
-        if ($currentRole === User::ROLE_PROJECT_MANAGER) {
-            return !$this->hasHigherOrEqualRole($targetRole, User::ROLE_PROJECT_MANAGER);
-        }
-
-        return false;
+        return $task->getTaskAssignedTo() === $user && 
+               $this->hasPermission('edit_own_tasks');
     }
 
-    // API publique pour la gestion des utilisateurs
-    public function canViewUserList(): bool
+    public function canAssignTask(): bool
     {
-        return $this->hasPermission($this->getCurrentUser(), 'view_users');
+        return $this->hasPermission('assign_tasks');
     }
 
-    public function canViewUser(User $user): bool
-    {
-        return $this->canManageEntity('user', 'view', $user);
-    }
-
-    public function canEditUser(): bool
-    {
-        return $this->hasPermission($this->getCurrentUser(), 'edit_users');
-    }
-
-    public function canManageUser(User $user): bool
-    {
-        return $this->canManageEntity('user', 'edit', $user);
-    }
-
-    public function canDeleteUser(User $user): bool
-    {
-        $currentUser = $this->getCurrentUser();
-        if (!$currentUser || $currentUser->getId() === $user->getId()) {
-            return false;
-        }
-        
-        return $this->hasPermission($currentUser, 'delete_users') &&
-               $this->roleHierarchy->hasRole($currentUser->getUserRole(), $user->getUserRole());
-    }
-
-    // API publique pour la gestion des clients
+    // Gestion des clients
     public function canViewCustomerList(): bool
     {
-        return $this->hasPermission($this->getCurrentUser(), 'view_customers');
-    }
-
-    public function canViewCustomerForProjectManager(Customers $customer): bool
-    {
-        return $this->canManageEntity('customer', 'view', $customer);
+        return $this->hasPermission('view_customers');
     }
 
     public function canEditCustomer(): bool
     {
-        return $this->hasPermission($this->getCurrentUser(), 'manage_customers');
-    }
-
-    public function canManageCustomer(Customers $customer): bool
-    {
-        return $this->canManageEntity('customer', 'edit', $customer);
+        return $this->hasPermission('manage_customers');
     }
 
     public function canDeleteCustomer(): bool
     {
-        return $this->hasPermission($this->getCurrentUser(), 'manage_customers');
+        return $this->hasPermission('manage_customers');
     }
 
-    public function canAccessConfiguration(): bool
+    // Gestion des utilisateurs
+    public function canViewUserList(): bool
     {
-        return $this->hasPermission($this->getCurrentUser(), 'manage_configuration');
+        return $this->hasPermission('manage_users');
     }
 
+    public function canEditUser(): bool
+    {
+        return $this->hasPermission('manage_users');
+    }
+
+    public function canManageUsers(): bool
+    {
+        return $this->hasPermission('manage_users');
+    }
+
+    public function canManageRoles(): bool
+    {
+        return $this->hasPermission('manage_roles');
+    }
+
+    // Configuration système
     public function canViewConfiguration(): bool
     {
-        return $this->canAccessConfiguration();
+        return $this->hasPermission('manage_configuration');
     }
 
     public function canEditConfiguration(): bool
     {
-        return $this->canAccessConfiguration();
+        return $this->hasPermission('manage_configuration');
+    }
+
+    public function canAccessConfiguration(): bool
+    {
+        return $this->hasPermission('manage_configuration');
+    }
+
+    // Statistiques
+    public function canViewStatistics(): bool
+    {
+        return $this->hasPermission('view_global_statistics') || 
+               $this->hasPermission('view_project_statistics');
+    }
+
+    public function canViewGlobalStatistics(): bool
+    {
+        return $this->hasPermission('view_global_statistics');
+    }
+
+    public function canViewProjectStatistics(): bool
+    {
+        return $this->hasPermission('view_project_statistics');
+    }
+
+    // Gestion des commentaires et pièces jointes
+    public function canAddComment(Tasks $task): bool
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
+
+        return $task->getTaskAssignedTo() === $user && 
+               $this->hasPermission('comment_on_assigned_tasks');
+    }
+
+    public function canAddAttachment(Tasks $task): bool
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
+
+        return $task->getTaskAssignedTo() === $user && 
+               $this->hasPermission('upload_task_attachments');
     }
 }
