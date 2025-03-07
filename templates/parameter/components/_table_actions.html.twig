@@ -2,17 +2,27 @@
 
 <td class="actions">
     {% if canEdit %}
-        <button type="button" class="btn-edit" 
+        <button 
+            type="button" 
+            class="btn-edit" 
+            aria-label="Modifier cet élément"
             {% for attr, value in edit_data %}
                 data-{{ attr }}="{{ value }}"
             {% endfor %}
         >
-            <img src="{{ asset('build/images/icons/edit.png') }}" alt="Modifier">
+            <img src="{{ asset('build/images/icons/edit.png') }}" alt="" aria-hidden="true">
+            <span class="sr-only">Modifier</span>
         </button>
     {% endif %}
     {% if canDelete %}
-        <button type="button" class="btn-delete" data-id="{{ id }}">
-            <img src="{{ asset('build/images/icons/delete.png') }}" alt="Supprimer">
+        <button 
+            type="button" 
+            class="btn-delete" 
+            data-id="{{ id }}"
+            aria-label="Supprimer cet élément"
+        >
+            <img src="{{ asset('build/images/icons/delete.png') }}" alt="" aria-hidden="true">
+            <span class="sr-only">Supprimer</span>
         </button>
     {% endif %}
 </td> 

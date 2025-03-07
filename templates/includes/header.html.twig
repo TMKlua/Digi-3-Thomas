@@ -1,42 +1,43 @@
-<header>
-    <nav class="flex">
+<header role="banner">
+    <nav class="flex" role="navigation" aria-label="Navigation principale">
         <div class="header-logo">
-            <a href="{{ path('home_index') }}" class="flex">
+            <a href="{{ path('home_index') }}" class="flex" aria-label="Accueil Digi-3">
                 <img src="{{ asset('build/images/header/home-logo.png') }}" alt="Logo Digi-3">
             </a> 
         </div>
-        <ul class="flex">
+        <ul class="flex" role="menubar">
             {% if permissionService.hasPermission('view_dashboard') %}
-                <li class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}">
-                    <a href="{{ path('app_dashboard') }}">Dashboard</a>
+                <li class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}" role="none">
+                    <a href="{{ path('app_dashboard') }}" role="menuitem" {% if app.request.attributes.get('_route') == 'app_dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
                 </li>
             {% endif %}
             
             {% if permissionService.hasPermission('view_projects') %}
-                <li class="{% if app.request.attributes.get('_route') == 'app_management_project' %}active{% endif %}">
-                    <a href="{{ path('app_management_project') }}">Gestion de projets</a>
+                <li class="{% if app.request.attributes.get('_route') == 'app_management_project' %}active{% endif %}" role="none">
+                    <a href="{{ path('app_management_project') }}" role="menuitem" {% if app.request.attributes.get('_route') == 'app_management_project' %}aria-current="page"{% endif %}>Gestion de projets</a>
                 </li>
             {% endif %}
             
             {% if permissionService.hasPermission('view_own_profile') %}
-                <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}active{% endif %}">
-                    <a href="{{ path('app_parameter_generaux') }}">Paramètres</a>
+                <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}active{% endif %}" role="none">
+                    <a href="{{ path('app_parameter_generaux') }}" role="menuitem" {% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}aria-current="page"{% endif %}>Paramètres</a>
                 </li>
             {% endif %}
         </ul>
         <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
-            <button type="submit" class="logout-btn flex">
-                <img src="{{ asset('build/images/header/deconnect.png') }}" alt="Icône déconnexion">
+            <button type="submit" class="logout-btn flex" aria-label="Se déconnecter">
+                <img src="{{ asset('build/images/header/deconnect.png') }}" alt="Icône déconnexion" aria-hidden="true">
+                <span class="sr-only">Se déconnecter</span>
             </button>
         </form>
     </nav>
 
     <!-- Modale de déconnexion améliorée -->
-    <div id="logout-dialog" class="logout-dialog">
+    <div id="logout-dialog" class="logout-dialog" role="dialog" aria-labelledby="logout-title" aria-modal="true" hidden>
         <div class="logout-dialog-content">
             <div class="logout-dialog-header">
-                <h3>Déconnexion</h3>
-                <span class="close" onclick="closeLogoutDialog()">&times;</span>
+                <h3 id="logout-title">Déconnexion</h3>
+                <button type="button" class="close" onclick="closeLogoutDialog()" aria-label="Fermer la boîte de dialogue">&times;</button>
             </div>
             <div class="logout-dialog-body">
                 <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
@@ -49,3 +50,62 @@
         </div>
     </div>
 </header>
+
+<style>
+    /* Style pour les lecteurs d'écran uniquement */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+</style>
+
+<script>
+    // Amélioration de l'accessibilité pour la modale
+    function showLogoutDialog(event) {
+        event.preventDefault();
+        const dialog = document.getElementById('logout-dialog');
+        dialog.removeAttribute('hidden');
+        
+        // Piéger le focus dans la modale
+        const focusableElements = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        
+        firstElement.focus();
+        
+        dialog.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLogoutDialog();
+            }
+            
+            if (e.key === 'Tab') {
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        });
+        
+        return false;
+    }
+    
+    function closeLogoutDialog() {
+        const dialog = document.getElementById('logout-dialog');
+        dialog.setAttribute('hidden', 'true');
+        document.querySelector('.logout-btn').focus();
+    }
+    
+    function confirmLogout() {
+        document.querySelector('.logout-form').submit();
+    }
+</script>

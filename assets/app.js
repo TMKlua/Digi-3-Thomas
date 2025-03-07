@@ -13,3 +13,4 @@ import './js/parameter/customer-management.js';
 import './js/parameter/config-management.js';
 import './js/parameter/user-management.js';
 import './js/header/logout.js';
+import './js/auth/auth.js';

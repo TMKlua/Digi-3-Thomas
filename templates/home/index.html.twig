@@ -1,36 +1,57 @@
 {# templates/home/index.html.twig #} {% extends 'base.html.twig' %} {% block
 title %}Digi-3 - Page d'accueil{% endblock %} {% block body %}
-<header class="home-header">
-  <nav class="flex">
+<header class="home-header" role="banner">
+  <nav class="flex" role="navigation" aria-label="Navigation principale">
     <div class="header-logo">
-      <a href="{{ path('home_index') }}" class="flex">
+      <a href="{{ path('home_index') }}" class="flex" aria-label="Accueil Digi-3">
         <img src="{{ asset('build/images/header/home-logo.png') }}" alt="Logo Digi-3" />
       </a>
     </div>
     {% if app.user %}
     <div class="header-buttons flex">
-      <a href="{{ path('app_dashboard') }}">Accéder au site</a>
+      <a href="{{ path('app_dashboard') }}" class="cta-button" role="button">Accéder au site</a>
     </div>
     {% else %}
     <div class="header-buttons flex">
-      <a href="{{ path('app_auth') }}">Se connecter ou s'inscrire</a>
+      <a href="{{ path('app_auth') }}" class="cta-button" role="button">Se connecter ou s'inscrire</a>
     </div>
     {% endif %}
   </nav>
 </header>
-<section class="flex-col">
-  <div class="home-section flex-col">
-    <div class="flex-col">
-      <h1>
-        Simplifiez le suivi des <br />
-        salariés et des missions
-      </h1>
-      <p>
-        Notre application enregistre et chiffre efficacement les activités
-        réalisées par vos salariés
-      </p>
+
+<main id="main-content" role="main">
+  <section class="flex-col" aria-labelledby="main-heading">
+    <div class="home-section flex-col">
+      <div class="flex-col">
+        <h1 id="main-heading">
+          Simplifiez le suivi des <br />
+          salariés et des missions
+        </h1>
+        <p>
+          Notre application enregistre et chiffre efficacement les activités
+          réalisées par vos salariés
+        </p>
+      </div>
+      <img 
+        src="{{ asset('build/images/gestion.png') }}" 
+        alt="Illustration représentant la gestion de projets avec des personnes travaillant sur des tableaux de bord" 
+        width="600" 
+        height="400" 
+      />
     </div>
-    <img src="{{ asset('build/images/gestion.png') }}" alt="Image gestion de projets" />
+  </section>
+</main>
+
+<footer role="contentinfo" class="site-footer">
+  <div class="footer-content">
+    <p>&copy; {{ "now"|date("Y") }} Digi-3. Tous droits réservés.</p>
+    <nav aria-label="Liens d'accessibilité">
+      <ul class="footer-links">
+        <li><a href="#" aria-label="Déclaration d'accessibilité">Accessibilité</a></li>
+        <li><a href="#" aria-label="Mentions légales">Mentions légales</a></li>
+        <li><a href="#" aria-label="Politique de confidentialité">Confidentialité</a></li>
+      </ul>
+    </nav>
   </div>
-</section>
+</footer>
 {% endblock %}

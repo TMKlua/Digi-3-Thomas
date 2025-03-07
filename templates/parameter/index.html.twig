@@ -2,163 +2,136 @@
 {% block title %}Digi-3 - Paramètres généraux{% endblock %}
 {% block body %}
 {% include 'includes/header.html.twig' with {'user': user} %}
-<section class="parameter_landing flex">
-  {% include 'parameter/_menu.html.twig' %}
-  <div class="parameter_content">
-    <div class="account-page">
-      <div class="account-header flex">
-        <h2>Mon compte</h2>
-        <div class="account-info flex">
-          <div class="title flex-col">
-            <p>{{ user.userFirstName }}</p>
-            <p>{{ user.userLastName }}</p>
-            <p>{{ user.userEmail }}</p>
-          </div>
-          <div class="profile-pic flex">
-            <label class="flex" for="file">
+<main id="main-content" role="main">
+  <section class="parameter_landing flex">
+    {% include 'parameter/_menu.html.twig' %}
+    <div class="parameter_content">
+      <div class="account-page">
+        <div class="account-header flex">
+          <h1>Mon compte</h1>
+          <div class="account-info flex" role="region" aria-label="Informations du compte">
+            <div class="title flex-col">
+              <p><strong>Prénom :</strong> {{ user.userFirstName }}</p>
+              <p><strong>Nom :</strong> {{ user.userLastName }}</p>
+              <p><strong>Email :</strong> {{ user.userEmail }}</p>
+            </div>
+            <div class="profile-pic flex">
+              <label class="flex" for="file" aria-label="Changer la photo de profil">
+                <img
+                  src="{{ asset('build/images/account/account-change.png') }}"
+                  alt=""
+                  aria-hidden="true"
+                />
+                <span class="sr-only">Changer la photo de profil</span>
+              </label>
+              <input id="file" type="file" name="profile_picture" accept="image/*" aria-label="Sélectionner une photo de profil" />
               <img
-                src="{{ asset('build/images/account/account-change.png') }}"
-                alt="Icone changement de photo de profil"
+                id="output"
+                src="{{ user.userAvatar }}"
+                alt="Photo de profil de {{ user.userFirstName }} {{ user.userLastName }}"
               />
-            </label>
-            <input id="file" type="file" name="profile_picture" accept="image/*" />
-            <img
-              id="output"
-              src="{{ user.userAvatar }}"
-              alt="Photo de profil de {{ user.userEmail }}"
-            />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="account-body flex">
-        <div class="account-email flex-col">
-          <h3>Modifier son adresse e-mail</h3>
-          {{ form_start(emailForm, { method: "POST" }) }}
-          {{ form_row(emailForm.email) }}
-          <div class="password-field">
-            {{ form_row(emailForm.password, {'id': 'email_form_password'}) }}
-            <span class="toggle-password" onclick="togglePasswordVisibility('email_form_password')">
-              <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe">
-            </span>
-          </div>
-          <button type="submit" class="btn-submit">Nouvelle adresse e-mail</button>
-          {% for message in app.flashes('error') %}
-            <div class="alert alert-danger">{{ message }}</div>
-          {% endfor %}
-          {% for message in app.flashes('success') %}
-            <div class="alert alert-success">{{ message }}</div>
-          {% endfor %}
-          {{ form_end(emailForm) }}
-        </div>
+        <div class="account-body flex">
+          <section class="account-email flex-col" aria-labelledby="email-section-title">
+            <h2 id="email-section-title">Modifier son adresse e-mail</h2>
+            {{ form_start(emailForm, { method: "POST", 'attr': {'aria-labelledby': 'email-section-title'} }) }}
+            {{ form_row(emailForm.email, {'attr': {'aria-describedby': 'email-help'}}) }}
+            <div id="email-help" class="form-text sr-only">Entrez votre nouvelle adresse email</div>
+            <div class="password-field">
+              {{ form_row(emailForm.password, {'id': 'email_form_password', 'attr': {'aria-describedby': 'password-help'}}) }}
+              <button type="button" class="toggle-password" aria-label="Afficher ou masquer le mot de passe" onclick="togglePasswordVisibility('email_form_password')">
+                <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true">
+              </button>
+              <div id="password-help" class="form-text sr-only">Entrez votre mot de passe actuel pour confirmer le changement</div>
+            </div>
+            <button type="submit" class="btn-submit">Nouvelle adresse e-mail</button>
+            {% for message in app.flashes('error') %}
+              <div class="alert alert-danger" role="alert" aria-live="assertive">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('success') %}
+              <div class="alert alert-success" role="alert" aria-live="polite">{{ message }}</div>
+            {% endfor %}
+            {{ form_end(emailForm) }}
+          </section>
 
-        <div class="account-password flex-col">
-          <h3>Modifier son mot de passe</h3>
-          {{ form_start(passwordForm, { method: "POST" }) }}
-          <div class="password-field">
-            {{ form_row(passwordForm.actual_password, {'id': 'password_form_actual'}) }}
-            <span class="toggle-password" onclick="togglePasswordVisibility('password_form_actual')">
-              <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe">
-            </span>
-          </div>
-          <div class="password-field">
-            {{ form_row(passwordForm.password, {'id': 'password_form_new'}) }}
-            <span class="toggle-password" onclick="togglePasswordVisibility('password_form_new')">
-              <img src="{{ asset('build/images/icons/eye.png') }}" alt="Afficher/Masquer le mot de passe">
-            </span>
-          </div>
-          <button type="submit" class="btn-submit">Nouveau mot de passe</button>
-          {% for message in app.flashes('error') %}
-            <div class="alert alert-danger">{{ message }}</div>
-          {% endfor %}
-          {{ form_end(passwordForm) }}
+          <section class="account-password flex-col" aria-labelledby="password-section-title">
+            <h2 id="password-section-title">Modifier son mot de passe</h2>
+            {{ form_start(passwordForm, { method: "POST", 'attr': {'aria-labelledby': 'password-section-title'} }) }}
+            <div class="password-field">
+              {{ form_row(passwordForm.oldPassword, {'id': 'password_form_old_password', 'attr': {'aria-describedby': 'old-password-help'}}) }}
+              <button type="button" class="toggle-password" aria-label="Afficher ou masquer l'ancien mot de passe" onclick="togglePasswordVisibility('password_form_old_password')">
+                <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true">
+              </button>
+              <div id="old-password-help" class="form-text sr-only">Entrez votre mot de passe actuel</div>
+            </div>
+            <div class="password-field">
+              {{ form_row(passwordForm.newPassword, {'id': 'password_form_new_password', 'attr': {'aria-describedby': 'new-password-help'}}) }}
+              <button type="button" class="toggle-password" aria-label="Afficher ou masquer le nouveau mot de passe" onclick="togglePasswordVisibility('password_form_new_password')">
+                <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true">
+              </button>
+              <div id="new-password-help" class="form-text sr-only">Entrez votre nouveau mot de passe</div>
+            </div>
+            <div class="password-field">
+              {{ form_row(passwordForm.confirmPassword, {'id': 'password_form_confirm_password', 'attr': {'aria-describedby': 'confirm-password-help'}}) }}
+              <button type="button" class="toggle-password" aria-label="Afficher ou masquer la confirmation du mot de passe" onclick="togglePasswordVisibility('password_form_confirm_password')">
+                <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true">
+              </button>
+              <div id="confirm-password-help" class="form-text sr-only">Confirmez votre nouveau mot de passe</div>
+            </div>
+            <button type="submit" class="btn-submit">Nouveau mot de passe</button>
+            {{ form_end(passwordForm) }}
+          </section>
         </div>
       </div>
     </div>
-  </div>
-</section>
-{% endblock %}
+  </section>
+</main>
 
-{% block javascripts %}
-{{ parent() }}
+<style>
+  /* Style pour les lecteurs d'écran uniquement */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>
+
 <script>
   function togglePasswordVisibility(inputId) {
-    const input = document.getElementById(inputId);
-    if (!input) {
-        console.error('Input not found:', inputId);
-        return;
-    }
+    const passwordInput = document.getElementById(inputId);
+    if (!passwordInput) return;
     
-    const container = input.closest('.password-field');
-    if (!container) {
-        console.error('Password field container not found');
-        return;
-    }
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
     
-    const icon = container.querySelector('.toggle-password img');
-    if (!icon) {
-        console.error('Toggle icon not found');
-        return;
-    }
+    // Annoncer le changement pour les lecteurs d'écran
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.classList.add('sr-only');
+    announcement.textContent = type === 'text' ? 'Mot de passe visible' : 'Mot de passe masqué';
+    document.body.appendChild(announcement);
     
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.src = "{{ asset('build/images/icons/eye-off.png') }}";
-    } else {
-        input.type = 'password';
-        icon.src = "{{ asset('build/images/icons/eye.png') }}";
-    }
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
   }
-
-  document.getElementById("file").addEventListener("change", function (event) {
-    const file = event.target.files[0];
-    if (file) {
-      console.log("Fichier sélectionné:", file.name);
-
-      const formData = new FormData();
-      formData.append("profile_picture", file);
-      formData.append("_token", "{{ csrf_token('upload_photo') }}");
-
-      fetch("/parameter/generaux", {
-        method: "POST",
-        body: formData,
-        headers: {
-          'X-CSRF-TOKEN': "{{ csrf_token('upload_photo') }}"
-        }
-      })
-      .then((response) => {
-        console.log("Réponse du serveur:", response);
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Données récupérées:", data);
-        if (data.success) {
-          document.getElementById("output").src = data.newProfilePictureUrl;
-          alert('Photo de profil mise à jour avec succès');
-        } else {
-          alert(data.error || 'Une erreur est survenue');
-        }
-      })
-      .catch((error) => {
-        console.error("Erreur lors de la requête:", error);
-        alert('Une erreur est survenue lors de l\'upload');
-      });
+  
+  // Prévisualisation de l'image de profil
+  document.getElementById('file').onchange = function(event) {
+    const output = document.getElementById('output');
+    output.src = URL.createObjectURL(event.target.files[0]);
+    output.onload = function() {
+      URL.revokeObjectURL(output.src) // Libérer la mémoire
     }
-  });
-
-  // Debug des formulaires
-  document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      console.log('Soumission du formulaire:', this.getAttribute('name'));
-      
-      const formData = new FormData(this);
-      for (let [key, value] of formData.entries()) {
-        console.log(key + ':', value);
-      }
-      
-      this.submit();
-    });
-  });
+  };
 </script>
 {% endblock %}

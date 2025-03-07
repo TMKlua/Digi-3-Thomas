@@ -6,65 +6,70 @@
 {% block body %}
 {% include 'includes/header.html.twig' with {'user': user} %}
 
-<section class="parameter_landing flex">
-    {% include 'parameter/_menu.html.twig' %}
-    
-    <div class="parameter_content">
-        <div class="crud-page {{ entity_name }}-page">
-            {# En-tête avec titre et bouton d'ajout #}
-            <div class="crud-header flex">
-                <h2>{{ page_title }}</h2>
-                {% if is_granted('create', null) %}
-                    <button 
-                        class="btn-add" 
-                        type="button" 
-                        data-dismiss="modal"
-                    >
-                        Ajouter {{ entity_label }}
-                    </button>
-                {% endif %}
-            </div>
+<main id="main-content" role="main">
+    <section class="parameter_landing flex">
+        {% include 'parameter/_menu.html.twig' %}
+        
+        <div class="parameter_content">
+            <div class="crud-page {{ entity_name }}-page">
+                {# En-tête avec titre et bouton d'ajout #}
+                <div class="crud-header flex">
+                    <h1>{{ page_title }}</h1>
+                    {% if is_granted('create', null) %}
+                        <button 
+                            class="btn-add" 
+                            type="button" 
+                            aria-label="Ajouter un nouveau {{ entity_label }}"
+                            data-dismiss="modal"
+                        >
+                            Ajouter {{ entity_label }}
+                        </button>
+                    {% endif %}
+                </div>
 
-            {# Messages flash #}
-            {% include 'parameter/components/_flash_messages.html.twig' %}
+                {# Messages flash #}
+                {% include 'parameter/components/_flash_messages.html.twig' %}
 
-            {# Table principale #}
-            <div class="crud-table">
-                <table>
-                    <thead>
-                        <tr>
-                            {% block table_headers %}{% endblock %}
-                            {% if canEdit or canDelete %}
-                                <th>Actions</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% block table_body %}{% endblock %}
-                    </tbody>
-                </table>
+                {# Table principale #}
+                <div class="crud-table" role="region" aria-label="Liste des {{ entity_label }}s">
+                    <table aria-describedby="table-description">
+                        <caption id="table-description" class="sr-only">Liste des {{ entity_label }}s avec leurs informations</caption>
+                        <thead>
+                            <tr>
+                                {% block table_headers %}{% endblock %}
+                                {% if canEdit or canDelete %}
+                                    <th scope="col">Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% block table_body %}{% endblock %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    {# Données de page pour les permissions #}
-    <div id="{{ entity_name }}-page-data" 
-        data-can-edit="{{ canEdit ? '1' : '0' }}"
-        data-can-delete="{{ canDelete ? '1' : '0' }}"
-        style="display:none;">
-    </div>
-</section>
+        {# Données de page pour les permissions #}
+        <div id="{{ entity_name }}-page-data" 
+            data-can-edit="{{ canEdit ? '1' : '0' }}"
+            data-can-delete="{{ canDelete ? '1' : '0' }}"
+            aria-hidden="true"
+            style="display:none;">
+        </div>
+    </section>
+</main>
 
 {# Modales #}
 {% block modals %}
     {# Modal de base #}
     {% if is_granted('create', null) or is_granted('edit', null) %}
-        <div class="modal" id="{{ entity_name }}Modal" tabindex="-1" role="dialog">
+        <div class="modal" id="{{ entity_name }}Modal" tabindex="-1" role="dialog" aria-labelledby="{{ entity_name }}ModalTitle" aria-modal="true" hidden>
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="{{ entity_name }}ModalTitle">Ajouter {{ entity_label }}</h5>
-                        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                        <h2 class="modal-title" id="{{ entity_name }}ModalTitle">Ajouter {{ entity_label }}</h2>
+                        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Fermer"></button>
                     </div>
                     <div class="modal-body">
                         {% block modal_form %}{% endblock %}
@@ -79,12 +84,12 @@
 
         {# Modal de confirmation de suppression #}
         {% if is_granted('delete', null) %}
-            <div class="modal" id="deleteConfirmModal" tabindex="-1" role="dialog">
+            <div class="modal" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalTitle" aria-modal="true" hidden>
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Confirmer la suppression</h5>
-                            <button type="button" class="btn-close" data-dismiss="modal"></button>
+                            <h2 class="modal-title" id="deleteConfirmModalTitle">Confirmer la suppression</h2>
+                            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Fermer"></button>
                         </div>
                         <div class="modal-body">
                             <p>Êtes-vous sûr de vouloir supprimer {{ entity_label }} <span id="{{ entity_name }}ToDeleteName"></span> ?</p>
@@ -105,4 +110,19 @@
 {% block javascripts %}
     {{ parent() }}
     {% block crud_scripts %}{% endblock %}
-{% endblock %} 
+{% endblock %}
+
+<style>
+    /* Style pour les lecteurs d'écran uniquement */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+</style> 
