@@ -14,7 +14,7 @@
             {# En-tête avec titre et bouton d'ajout #}
             <div class="crud-header flex">
                 <h2>{{ page_title }}</h2>
-                {% if canEdit %}
+                {% if is_granted('create', null) %}
                     <button 
                         class="btn-add" 
                         type="button" 
@@ -58,7 +58,7 @@
 {# Modales #}
 {% block modals %}
     {# Modal de base #}
-    {% if canEdit %}
+    {% if is_granted('create', null) or is_granted('edit', null) %}
         <div class="modal" id="{{ entity_name }}Modal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -78,7 +78,7 @@
         </div>
 
         {# Modal de confirmation de suppression #}
-        {% if canDelete %}
+        {% if is_granted('delete', null) %}
             <div class="modal" id="deleteConfirmModal" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">

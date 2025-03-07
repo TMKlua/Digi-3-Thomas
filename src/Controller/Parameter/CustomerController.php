@@ -53,17 +53,17 @@ class CustomerController extends AbstractCrudController
 
     protected function canView(): bool
     {
-        return $this->permissionService->canViewCustomerList();
+        return $this->isGranted('view', new Customers());
     }
 
     protected function canEdit(): bool
     {
-        return $this->permissionService->canEditCustomer();
+        return $this->isGranted('edit', new Customers());
     }
 
     protected function canDelete(): bool
     {
-        return $this->permissionService->canDeleteCustomer();
+        return $this->isGranted('delete', new Customers());
     }
 
     #[Route('/', name: 'app_parameter_customers')]
@@ -71,9 +71,7 @@ class CustomerController extends AbstractCrudController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         
-        if (!$this->permissionService->canViewCustomerList()) {
-            throw $this->createAccessDeniedException('Accès non autorisé');
-        }
+        $this->denyAccessUnlessGranted('view', new Customers(), 'Accès non autorisé');
 
         return $this->render('parameter/customer_list.html.twig', [
             'user' => $this->security->getUser(),
@@ -111,9 +109,10 @@ class CustomerController extends AbstractCrudController
 
     protected function createEntity(array $data): object
     {
+        $this->denyAccessUnlessGranted('create', null, 'Vous n\'avez pas les permissions nécessaires pour créer un client.');
+        
         $customer = new Customers();
         $this->updateEntity($customer, $data);
-        $customer->setCustomerDateFrom(new \DateTime());
         return $customer;
     }
 
@@ -122,6 +121,8 @@ class CustomerController extends AbstractCrudController
         if (!$entity instanceof Customers) {
             throw new \InvalidArgumentException('L\'entité doit être un client');
         }
+
+        $this->denyAccessUnlessGranted('edit', $entity, 'Vous n\'avez pas les permissions nécessaires pour modifier ce client.');
 
         $currentUser = $this->security->getUser();
         if (!$currentUser) {
@@ -135,7 +136,8 @@ class CustomerController extends AbstractCrudController
                ->setCustomerAddressCountry($data['country'])
                ->setCustomerVAT($data['vat'] ?? null)
                ->setCustomerSIREN($data['siren'] ?? null)
-               ->setCustomerUserMaj($currentUser->getUserIdentifier());
+               ->setCustomerUpdatedAt(new \DateTime())
+               ->setCustomerUpdatedBy($currentUser);
     }
 
     protected function getRequestData(Request $request): array

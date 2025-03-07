@@ -9,7 +9,7 @@
 <div class="project-management-container">
     <aside class="parameter_menu">
         <h3>Liste des projets</h3>
-        {% if permissionService.canCreateProject() %}
+        {% if is_granted('create', null) %}
             <button class="create-project-button" onclick="showCreateForm()">Créer un projet</button>
         {% endif %}
         <ul>
@@ -18,7 +18,7 @@
                 <a href="{{ path('app_management_project', { 'id': project.id }) }}">
                     {{ project.projectName }}
                 </a>
-                {% if permissionService.canDeleteProject() %}
+                {% if is_granted('delete', project) %}
                     <button type="button" class="delete-button" onclick="showDeletePopup({{ project.id }})">
                         <img src="/img/delete.png" alt="Supprimer" class="delete-icon">
                     </button>
@@ -50,22 +50,24 @@
             <span>
                 {{ app.user ? app.user.userFirstName() ~ ' ' ~ app.user.userLastName() : 'Non défini' }}
             </span>
-            <br>           
-            <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
-            {% if current_project %}
-            <div id="createTaskForm" style="display: none;">
-                {{ form_start(taskForm) }}
-                    {{ form_row(taskForm.taskName) }}
-                    {{ form_row(taskForm.taskDescription) }}
-                    {{ form_row(taskForm.taskType) }}
-                    {{ form_row(taskForm.taskStatus) }}
-                    {{ form_row(taskForm.taskCategory) }}
-                    {{ form_row(taskForm.taskAttachments) }}
-                    {{ form_row(taskForm.taskDateFrom) }}
-                    {{ form_row(taskForm.taskDateTo) }}
-                    <button type="submit">Ajouter la tâche</button>
-                {{ form_end(taskForm) }}
-            </div>
+            <br>
+            {% if is_granted('create', current_project) %}
+                <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
+                {% if current_project %}
+                <div id="createTaskForm" style="display: none;">
+                    {{ form_start(taskForm) }}
+                        {{ form_row(taskForm.taskName) }}
+                        {{ form_row(taskForm.taskDescription) }}
+                        {{ form_row(taskForm.taskType) }}
+                        {{ form_row(taskForm.taskStatus) }}
+                        {{ form_row(taskForm.taskCategory) }}
+                        {{ form_row(taskForm.taskAttachments) }}
+                        {{ form_row(taskForm.taskDateFrom) }}
+                        {{ form_row(taskForm.taskDateTo) }}
+                        <button type="submit">Ajouter la tâche</button>
+                    {{ form_end(taskForm) }}
+                </div>
+                {% endif %}
             {% endif %}
         </div>
 
@@ -75,17 +77,25 @@
             <h3>À faire</h3>
             <div class="kanban-tasks">
                 {% for task in current_project.tasks %}
-                    <div class="task-card" id="task-{{ task.id }}" draggable="true">
-                        <h4>{{ task.taskName }}</h4>
-                        <div class="task-info">
-                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                            <p><strong>Type :</strong> {{ task.taskType }}</p>
-                            <p><strong>Statut :</strong> {{ task.taskStatus }}</p>
-                            <p><strong>Catégorie :</strong> {{ task.taskCategory }}</p>
-                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                    {% if is_granted('view', task) %}
+                        <div class="task-card" id="task-{{ task.id }}" draggable="true">
+                            <h4>{{ task.taskName }}</h4>
+                            <div class="task-info">
+                                <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                                <p><strong>Type :</strong> {{ task.taskType }}</p>
+                                <p><strong>Statut :</strong> {{ task.taskStatus }}</p>
+                                <p><strong>Catégorie :</strong> {{ task.taskCategory }}</p>
+                                <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                                <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                                {% if is_granted('edit', task) %}
+                                    <a href="{{ path('app_details_tasks', {'id': task.id}) }}" class="edit-task-button">Modifier</a>
+                                {% endif %}
+                                {% if is_granted('change_status', task) %}
+                                    <button class="change-status-button" onclick="changeTaskStatus({{ task.id }}, 'en_cours')">Déplacer vers En cours</button>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
@@ -106,7 +116,7 @@
             </div>
         </div>
 
-        {% if permissionService.canEditProject(current_project) %}
+        {% if is_granted('edit', current_project) %}
             <div class="project-actions">
                 <button onclick="showEditForm()">Modifier le projet</button>
             </div>
@@ -117,7 +127,7 @@
         {% endif %}
 
         {# Formulaire de création de projet #}
-        {% if permissionService.canCreateProject() %}
+        {% if is_granted('create', null) %}
             <div id="createProjectForm" style="display: none;">
                 {{ form_start(form) }}
                     {{ form_row(form.projectName) }}
@@ -141,7 +151,7 @@
 </div>
 
 {# Popup de confirmation de suppression #}
-{% if permissionService.canDeleteProject() %}
+{% if is_granted('delete', null) %}
     <div id="deletePopup" class="popup" style="display: none;">
         <div class="popup-content">
             <p>Êtes-vous sûr de vouloir supprimer ce projet ?</p>

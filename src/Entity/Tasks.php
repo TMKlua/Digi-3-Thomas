@@ -58,15 +58,13 @@ class Tasks
     #[ORM\Column(name: 'task_description', type: 'text', nullable: true)]
     private ?string $taskDescription = null;
 
-    #[ORM\Column(length: 20, enumType: TaskStatus::class)]
+    #[ORM\Column(name: 'task_status', length: 20, enumType: TaskStatus::class)]
     private TaskStatus $taskStatus = TaskStatus::NEW;
 
-    #[ORM\Column(length: 20, enumType: TaskPriority::class)]
-    #[ORM\Column(name: 'task_priority', type: 'string', enumType: TaskPriority::class)]
+    #[ORM\Column(name: 'task_priority', length: 20, enumType: TaskPriority::class)]
     private TaskPriority $taskPriority = TaskPriority::MEDIUM;
 
-    #[ORM\Column(name: 'task_complexity', type: 'string', enumType: TaskComplexity::class, nullable: true)]
-    #[Assert\Choice(choices: self::VALID_COMPLEXITY, message: 'Complexité de tâche invalide.')]
+    #[ORM\Column(name: 'task_complexity', length: 20, enumType: TaskComplexity::class, nullable: true)]
     private ?TaskComplexity $taskComplexity = null;
 
     #[ORM\ManyToOne(targetEntity: Project::class, inversedBy: 'tasks')]

@@ -3,12 +3,21 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
+use App\Enum\UserRole;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+    // Constantes pour les références
+    public const ADMIN_USER_REFERENCE = 'admin-user';
+    public const RESPONSABLE_USER_REFERENCE = 'responsable-user';
+    public const PROJECT_MANAGER_USER_REFERENCE = 'project-manager-user';
+    public const LEAD_DEV_USER_REFERENCE = 'lead-dev-user';
+    public const DEV_USER_REFERENCE = 'dev-user';
+    public const STANDARD_USER_REFERENCE = 'standard-user';
+    
     private UserPasswordHasherInterface $passwordHasher;
 
     public function __construct(UserPasswordHasherInterface $passwordHasher)
@@ -24,9 +33,10 @@ class AppFixtures extends Fixture
             'Doe', 
             'admin@digiworks.fr', 
             'Admin123!',
-            User::ROLE_ADMIN
+            UserRole::ADMIN
         );
         $manager->persist($admin);
+        $this->addReference(self::ADMIN_USER_REFERENCE, $admin);
 
         // Responsable
         $responsable = $this->createUser(
@@ -34,9 +44,10 @@ class AppFixtures extends Fixture
             'Dupont', 
             'responsable@digiworks.fr', 
             'Responsable123!',
-            User::ROLE_RESPONSABLE
+            UserRole::PROJECT_MANAGER
         );
         $manager->persist($responsable);
+        $this->addReference(self::RESPONSABLE_USER_REFERENCE, $responsable);
 
         // Chef de Projet
         $projectManager = $this->createUser(
@@ -44,9 +55,10 @@ class AppFixtures extends Fixture
             'Martin', 
             'pm@digiworks.fr', 
             'ProjectManager123!',
-            User::ROLE_PROJECT_MANAGER
+            UserRole::PROJECT_MANAGER
         );
         $manager->persist($projectManager);
+        $this->addReference(self::PROJECT_MANAGER_USER_REFERENCE, $projectManager);
 
         // Lead Développeur
         $leadDeveloper = $this->createUser(
@@ -54,9 +66,10 @@ class AppFixtures extends Fixture
             'Leroy', 
             'lead@digiworks.fr', 
             'LeadDev123!',
-            User::ROLE_LEAD_DEVELOPER
+            UserRole::LEAD_DEVELOPER
         );
         $manager->persist($leadDeveloper);
+        $this->addReference(self::LEAD_DEV_USER_REFERENCE, $leadDeveloper);
 
         // Développeur
         $developer = $this->createUser(
@@ -64,9 +77,32 @@ class AppFixtures extends Fixture
             'Blanc', 
             'dev@digiworks.fr', 
             'Dev123!',
-            User::ROLE_DEVELOPER
+            UserRole::DEVELOPER
         );
         $manager->persist($developer);
+        $this->addReference(self::DEV_USER_REFERENCE, $developer);
+
+        // Développeur 2
+        $developer2 = $this->createUser(
+            'Julie', 
+            'Moreau', 
+            'julie@digiworks.fr', 
+            'Dev123!',
+            UserRole::DEVELOPER
+        );
+        $manager->persist($developer2);
+        $this->addReference('dev-user-2', $developer2);
+
+        // Développeur 3
+        $developer3 = $this->createUser(
+            'Thomas', 
+            'Dubois', 
+            'thomas@digiworks.fr', 
+            'Dev123!',
+            UserRole::DEVELOPER
+        );
+        $manager->persist($developer3);
+        $this->addReference('dev-user-3', $developer3);
 
         // Utilisateur standard
         $user = $this->createUser(
@@ -74,9 +110,10 @@ class AppFixtures extends Fixture
             'Durand', 
             'user@digiworks.fr', 
             'User123!',
-            User::ROLE_USER
+            UserRole::USER
         );
         $manager->persist($user);
+        $this->addReference(self::STANDARD_USER_REFERENCE, $user);
 
         $manager->flush();
     }
@@ -86,7 +123,7 @@ class AppFixtures extends Fixture
         string $lastName, 
         string $email, 
         string $plainPassword,
-        string $role
+        UserRole $role
     ): User {
         $user = new User();
         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
@@ -96,12 +133,7 @@ class AppFixtures extends Fixture
              ->setUserEmail($email)
              ->setPassword($hashedPassword)
              ->setUserRole($role)
-             ->setUserAvatar('/img/account/default-avatar.jpg')
-             ->setUserDateFrom(new \DateTime())
-             ->setResetToken(null)
-             ->setResetTokenExpiresAt(null)
-             ->setUserDateTo(null)
-             ->setUserUserMaj(null);
+             ->setUserAvatar('/img/account/default-avatar.jpg');
 
         return $user;
     }

@@ -30,9 +30,8 @@ class ProjectController extends AbstractController
         EntityManagerInterface $entityManager,
         ?int $id = null
     ): Response {
-        if (!$this->permissionService->canCreateProject()) {
-            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour gérer les projets.');
-        }
+        // Vérifier si l'utilisateur peut créer un projet en utilisant le Voter
+        $this->denyAccessUnlessGranted('create', null, 'Vous n\'avez pas les permissions nécessaires pour gérer les projets.');
 
         // Création d'un nouveau projet
         $project = new Project();
@@ -53,8 +52,17 @@ class ProjectController extends AbstractController
         $currentProject = null;
         if ($id) {
             $currentProject = $projectRepository->find($id);
-            if (!$currentProject || $currentProject->getProjectManager() !== $this->getUser()) {
-                $this->addFlash('error', 'Projet introuvable ou non autorisé.');
+            
+            // Vérifier si l'utilisateur peut voir ce projet en utilisant le Voter
+            if (!$currentProject) {
+                $this->addFlash('error', 'Projet introuvable.');
+                return $this->redirectToRoute('app_management_project');
+            }
+            
+            try {
+                $this->denyAccessUnlessGranted('view', $currentProject);
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Vous n\'êtes pas autorisé à accéder à ce projet.');
                 return $this->redirectToRoute('app_management_project');
             }
         }
@@ -78,6 +86,9 @@ class ProjectController extends AbstractController
             }
     
             if ($currentProject) {
+                // Vérifier si l'utilisateur peut créer une tâche dans ce projet en utilisant le Voter
+                $this->denyAccessUnlessGranted('create', $currentProject, 'Vous n\'avez pas les permissions nécessaires pour créer une tâche dans ce projet.');
+                
                 $task->setTaskProject($currentProject);
             } else {
                 $this->addFlash('error', 'Aucun projet sélectionné pour cette tâche.');
@@ -103,14 +114,8 @@ class ProjectController extends AbstractController
     #[Route('/management-project/delete/{id}', name: 'app_project_delete', methods: ['POST'])]
     public function deleteProject(Project $project, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->permissionService->canDeleteProject()) {
-            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour supprimer ce projet.');
-        }
-
-        // Vérifier si le projet appartient à l'utilisateur connecté
-        if ($project->getProjectManager() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à supprimer ce projet.');
-        }
+        // Vérifier si l'utilisateur peut supprimer ce projet en utilisant le Voter
+        $this->denyAccessUnlessGranted('delete', $project, 'Vous n\'avez pas les permissions nécessaires pour supprimer ce projet.');
 
         $entityManager->remove($project);
         $entityManager->flush();
@@ -135,8 +140,10 @@ class ProjectController extends AbstractController
             return $this->json(['error' => 'Tâche introuvable'], Response::HTTP_NOT_FOUND);
         }
 
-        // Vérifier les permissions
-        if (!$this->permissionService->canEditTask($task)) {
+        // Vérifier si l'utilisateur peut changer le statut de cette tâche en utilisant le Voter
+        try {
+            $this->denyAccessUnlessGranted('change_status', $task);
+        } catch (\Exception $e) {
             return $this->json(['error' => 'Vous n\'avez pas les permissions nécessaires'], Response::HTTP_FORBIDDEN);
         }
 

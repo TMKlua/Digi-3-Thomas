@@ -41,7 +41,7 @@ class Project
     #[ORM\Column(length: 20, enumType: ProjectStatus::class)]
     private ProjectStatus $projectStatus = ProjectStatus::NEW;
 
-    #[ORM\ManyToOne(targetEntity: Customers::class)]
+    #[ORM\ManyToOne(targetEntity: Customers::class, inversedBy: "projects")]
     #[ORM\JoinColumn(name: 'project_customer_id', referencedColumnName: 'id', nullable: false)]
     private ?Customers $projectCustomer = null;
 

@@ -56,21 +56,17 @@ class UserController extends AbstractCrudController
 
     protected function canView(): bool
     {
-        return $this->permissionService->canViewUserList();
+        return $this->isGranted('view', new User());
     }
 
     protected function canEdit(): bool
     {
-        return $this->permissionService->canEditUser();
+        return $this->isGranted('edit', new User());
     }
 
     protected function canDelete(): bool
     {
-        $currentUser = $this->security->getUser();
-        if (!$currentUser instanceof User) {
-            return false;
-        }
-        return in_array($currentUser->getUserRole(), [User::ROLE_ADMIN, User::ROLE_RESPONSABLE]);
+        return $this->isGranted('delete', new User());
     }
 
     #[Route('/', name: 'app_parameter_users')]
@@ -78,9 +74,7 @@ class UserController extends AbstractCrudController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         
-        if (!$this->permissionService->canViewUserList()) {
-            throw $this->createAccessDeniedException('Accès non autorisé');
-        }
+        $this->denyAccessUnlessGranted('view', new User(), 'Accès non autorisé');
 
         return $this->render('parameter/user_list.html.twig', [
             'user' => $this->security->getUser(),
@@ -110,11 +104,12 @@ class UserController extends AbstractCrudController
 
     protected function createEntity(array $data): object
     {
+        $this->denyAccessUnlessGranted('create', null, 'Vous n\'avez pas les permissions nécessaires pour créer un utilisateur.');
+        
         $user = new User();
         $this->updateEntity($user, $data);
         $tempPassword = $this->generateTemporaryPassword($user);
         
-        // Stocker le mot de passe temporaire pour le retourner dans la réponse
         $this->logger->info('Mot de passe temporaire généré', [
             'email' => $user->getUserEmail(),
             'tempPassword' => $tempPassword
@@ -127,6 +122,12 @@ class UserController extends AbstractCrudController
     {
         if (!$entity instanceof User) {
             throw new \InvalidArgumentException('L\'entité doit être un utilisateur');
+        }
+
+        $this->denyAccessUnlessGranted('edit', $entity, 'Vous n\'avez pas les permissions nécessaires pour modifier cet utilisateur.');
+
+        if ($entity->getId() && $entity->getUserRole() !== $data['role']) {
+            $this->denyAccessUnlessGranted('change_role', $entity, 'Vous n\'avez pas les permissions nécessaires pour changer le rôle de cet utilisateur.');
         }
 
         $entity->setUserFirstName($data['firstName'])
