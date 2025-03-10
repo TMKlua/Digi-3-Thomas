@@ -41,6 +41,7 @@ security:
     # Contrôle d'accès global
     access_control:
         # Routes publiques (non authentifiées)
+        - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/auth, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }
         

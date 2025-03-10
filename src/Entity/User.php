@@ -33,6 +33,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         self::ROLE_USER
     ];
 
+    /**
+     * Convertit un UserRole en chaîne de caractères pour la compatibilité avec le système de sécurité Symfony
+     */
+    public static function getRoleValue(UserRole $role): string
+    {
+        return $role->value;
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -207,7 +215,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return [$this->userRole->value];
+        return [self::getRoleValue($this->userRole)];
     }
 
     public function eraseCredentials(): void

@@ -10,12 +10,15 @@ use App\Service\RoleHierarchyService;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Bundle\SecurityBundle\Security;
+use App\Enum\UserRole;
 
 class PermissionServiceTest extends TestCase
 {
     private PermissionService $permissionService;
-    private Security|MockObject $security;
-    private RoleHierarchyService|MockObject $roleHierarchy;
+    /** @var Security&MockObject */
+    private $security;
+    /** @var RoleHierarchyService&MockObject */
+    private $roleHierarchy;
     private User $user;
 
     protected function setUp(): void
@@ -27,18 +30,22 @@ class PermissionServiceTest extends TestCase
             $this->roleHierarchy
         );
         $this->user = new User();
+        $this->user->setUserEmail('test@example.com');
+        $this->user->setUserFirstName('Test');
+        $this->user->setUserLastName('User');
+        $this->user->setUserRole(UserRole::ADMIN);
     }
 
     /**
      * @dataProvider providePermissionTests
      */
-    public function testHasPermission(array $userRoles, string $permission, bool $expectedResult): void
+    public function testHasPermission(UserRole $userRole, string $permission, bool $expectedResult): void
     {
         // Create mock user with roles
         $user = $this->createMock(User::class);
         $user->expects($this->once())
             ->method('getUserRole')
-            ->willReturn($userRoles[0]);
+            ->willReturn($userRole);
 
         // Set up security mock
         $this->security->expects($this->once())
@@ -48,7 +55,7 @@ class PermissionServiceTest extends TestCase
         // Set up role hierarchy mock
         $this->roleHierarchy->expects($this->once())
             ->method('hasPermission')
-            ->with($userRoles[0], $permission)
+            ->with($userRole, $permission)
             ->willReturn($expectedResult);
 
         // Test permission
@@ -60,32 +67,32 @@ class PermissionServiceTest extends TestCase
     {
         return [
             'admin_has_all_permissions' => [
-                ['ROLE_ADMIN'],
+                UserRole::ADMIN,
                 'any_permission',
                 true
             ],
             'project_manager_can_manage_projects' => [
-                ['ROLE_PROJECT_MANAGER'],
+                UserRole::PROJECT_MANAGER,
                 'manage_projects',
                 true
             ],
             'project_manager_cannot_manage_users' => [
-                ['ROLE_PROJECT_MANAGER'],
+                UserRole::PROJECT_MANAGER,
                 'manage_users',
                 false
             ],
             'developer_can_view_projects' => [
-                ['ROLE_DEVELOPER'],
+                UserRole::DEVELOPER,
                 'view_projects',
                 true
             ],
             'user_can_view_own_profile' => [
-                ['ROLE_USER'],
+                UserRole::USER,
                 'view_own_profile',
                 true
             ],
             'user_cannot_manage_system' => [
-                ['ROLE_USER'],
+                UserRole::USER,
                 'manage_system',
                 false
             ]
@@ -156,7 +163,7 @@ class PermissionServiceTest extends TestCase
         // Arrange
         $project = new Project();
         $projectManager = new User();
-        $projectManager->setUserRole(User::ROLE_PROJECT_MANAGER);
+        $projectManager->setUserRole(UserRole::PROJECT_MANAGER);
         $project->setProjectManager($projectManager);
 
         // Test 1: Project Manager can edit their own project
@@ -166,7 +173,7 @@ class PermissionServiceTest extends TestCase
 
         $this->roleHierarchy->expects($this->once())
             ->method('hasPermission')
-            ->with(User::ROLE_PROJECT_MANAGER, 'edit_projects')
+            ->with(UserRole::PROJECT_MANAGER, 'edit_projects')
             ->willReturn(true);
 
         $result = $this->permissionService->canEditProject($project);
@@ -178,7 +185,7 @@ class PermissionServiceTest extends TestCase
         // Arrange
         $task = new Tasks();
         $assignedUser = new User();
-        $assignedUser->setUserRole(User::ROLE_DEVELOPER);
+        $assignedUser->setUserRole(UserRole::DEVELOPER);
         $task->setTaskAssignedTo($assignedUser);
 
         // Test 1: Assigned user can edit their own task
@@ -188,10 +195,35 @@ class PermissionServiceTest extends TestCase
 
         $this->roleHierarchy->expects($this->once())
             ->method('hasPermission')
-            ->with(User::ROLE_DEVELOPER, 'edit_own_tasks')
+            ->with(UserRole::DEVELOPER, 'edit_own_tasks')
             ->willReturn(true);
 
         $result = $this->permissionService->canEditTask($task);
         $this->assertTrue($result);
+    }
+
+    public function testHasPermissionWithLoggedInUser(): void
+    {
+        // Configure the security mock to return our test user
+        $this->security->method('getUser')
+            ->willReturn($this->user);
+        
+        // Configure the role hierarchy mock to return true for the permission
+        $this->roleHierarchy->method('hasPermission')
+            ->with(UserRole::ADMIN, 'test_permission')
+            ->willReturn(true);
+        
+        // Test that hasPermission returns true
+        $this->assertTrue($this->permissionService->hasPermission('test_permission'));
+    }
+
+    public function testHasPermissionWithNoLoggedInUser(): void
+    {
+        // Configure the security mock to return null (no logged in user)
+        $this->security->method('getUser')
+            ->willReturn(null);
+        
+        // Test that hasPermission returns false when no user is logged in
+        $this->assertFalse($this->permissionService->hasPermission('test_permission'));
     }
 } 

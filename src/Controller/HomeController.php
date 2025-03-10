@@ -21,17 +21,23 @@ class HomeController extends AbstractController
     public function index(): Response
     {
         $user = $this->security->getUser();
+        $canViewDashboard = false;
+        $canViewProjects = false;
+        $canViewTasks = false;
 
-        if (!$user instanceof User) {
-            return $this->redirectToRoute('app_auth');
+        // Si l'utilisateur est connecté, récupérer ses permissions
+        if ($user instanceof User) {
+            $canViewDashboard = $this->permissionService->hasPermission('view_dashboard');
+            $canViewProjects = $this->permissionService->hasPermission('view_projects');
+            $canViewTasks = $this->permissionService->hasPermission('view_team_tasks');
         }
 
         return $this->render('home/index.html.twig', [
             'controller_name' => 'HomeController',
             'user' => $user,
-            'canViewDashboard' => $this->permissionService->hasPermission('view_dashboard'),
-            'canViewProjects' => $this->permissionService->hasPermission('view_projects'),
-            'canViewTasks' => $this->permissionService->hasPermission('view_team_tasks'),
+            'canViewDashboard' => $canViewDashboard,
+            'canViewProjects' => $canViewProjects,
+            'canViewTasks' => $canViewTasks,
         ]);
     }
 }

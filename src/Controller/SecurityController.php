@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Enum\UserRole;
 use App\Service\PermissionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -105,7 +106,8 @@ class SecurityController extends AbstractController
         Security $security
     ): Response {
         // Vérifier si l'utilisateur a le droit de créer des utilisateurs
-        if (!$this->permissionService->canManageUsers()) {
+        $currentUser = $this->getUser();
+        if ($currentUser && !$this->permissionService->canManageUsers()) {
             return $this->createJsonResponse(false, 'Vous n\'avez pas les permissions nécessaires pour créer des utilisateurs.');
         }
 
@@ -119,7 +121,7 @@ class SecurityController extends AbstractController
             $lastName = trim(strip_tags($request->request->get('last_name', '')));
             $email = trim(strip_tags($request->request->get('email', '')));
             $plainPassword = $request->request->get('password');
-            $role = $request->request->get('role', User::ROLE_USER);
+            $roleString = $request->request->get('role', User::ROLE_USER);
 
             // Validation des champs requis
             $requiredFields = [
@@ -136,9 +138,19 @@ class SecurityController extends AbstractController
             }
 
             // Validation du rôle
-            if (!in_array($role, User::VALID_ROLES, true)) {
+            if (!in_array($roleString, User::VALID_ROLES, true)) {
                 return $this->createJsonResponse(false, 'Rôle invalide');
             }
+
+            // Convertir la chaîne de rôle en objet UserRole
+            $role = match($roleString) {
+                User::ROLE_ADMIN => UserRole::ADMIN,
+                User::ROLE_RESPONSABLE => UserRole::RESPONSABLE,
+                User::ROLE_PROJECT_MANAGER => UserRole::PROJECT_MANAGER,
+                User::ROLE_LEAD_DEVELOPER => UserRole::LEAD_DEVELOPER,
+                User::ROLE_DEVELOPER => UserRole::DEVELOPER,
+                default => UserRole::USER
+            };
 
             // Vérifier si l'utilisateur a le droit d'attribuer ce rôle
             if (!$this->permissionService->canManageRoles()) {
@@ -211,7 +223,8 @@ class SecurityController extends AbstractController
         TokenGeneratorInterface $tokenGenerator
     ): Response {
         // Vérifier si l'utilisateur a le droit de réinitialiser les mots de passe
-        if (!$this->permissionService->hasPermission('manage_users')) {
+        $currentUser = $this->getUser();
+        if ($currentUser && !$this->permissionService->hasPermission('manage_users')) {
             return $this->createJsonResponse(false, 'Vous n\'avez pas les permissions nécessaires pour réinitialiser les mots de passe.');
         }
 
