@@ -37,6 +37,8 @@ security:
                 secret: '%kernel.secret%'
                 lifetime: 604800
                 path: /
+            # Protection CSRF réactivée
+            # csrf_protection: false
 
     # Contrôle d'accès global
     access_control:

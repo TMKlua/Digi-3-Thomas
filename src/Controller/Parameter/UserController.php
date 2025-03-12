@@ -9,16 +9,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Log\LoggerInterface;
 
 #[Route('/parameter/users')]
 class UserController extends AbstractCrudController
 {
-    private UserPasswordHasherInterface $passwordHasher;
     private UserRepository $userRepository;
+    private UserPasswordHasherInterface $passwordHasher;
 
     public function __construct(
         EntityManagerInterface $entityManager,
@@ -26,12 +26,12 @@ class UserController extends AbstractCrudController
         LoggerInterface $logger,
         PermissionService $permissionService,
         Security $security,
-        UserPasswordHasherInterface $passwordHasher,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        UserPasswordHasherInterface $passwordHasher
     ) {
         parent::__construct($entityManager, $validator, $logger, $permissionService, $security);
-        $this->passwordHasher = $passwordHasher;
         $this->userRepository = $userRepository;
+        $this->passwordHasher = $passwordHasher;
     }
 
     protected function getEntityClass(): string
@@ -46,44 +46,49 @@ class UserController extends AbstractCrudController
 
     protected function getEntityName(): string
     {
-        return 'user';
+        return 'Utilisateur';
     }
 
     protected function getTemplatePrefix(): string
     {
-        return 'parameter';
+        return 'parameter/user';
     }
 
     protected function canView(): bool
     {
-        return $this->isGranted('view', new User());
+        return $this->permissionService->hasPermission('view_users');
     }
 
     protected function canEdit(): bool
     {
-        return $this->isGranted('edit', new User());
+        return $this->permissionService->hasPermission('edit_users');
     }
 
     protected function canDelete(): bool
     {
-        return $this->isGranted('delete', new User());
+        return $this->permissionService->hasPermission('delete_users');
     }
 
     #[Route('/', name: 'app_parameter_users')]
     public function index(): Response
     {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        
-        $this->denyAccessUnlessGranted('view', new User(), 'Accès non autorisé');
+        // Vérifier si l'utilisateur est authentifié
+        $currentUser = $this->security->getUser();
+        if (!$currentUser) {
+            throw $this->createAccessDeniedException('Utilisateur non authentifié');
+        }
 
-        return $this->render('parameter/user_list.html.twig', [
+        // Vérifier si l'utilisateur peut voir la liste des utilisateurs
+        if (!$this->canView()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour voir la liste des utilisateurs');
+        }
+
+        return $this->render('parameter/user/index.html.twig', [
+            'users' => $this->userRepository->findAll(),
             'user' => $this->security->getUser(),
-            'entities' => $this->userRepository->findAll(),
             'canEdit' => $this->canEdit(),
             'canDelete' => $this->canDelete(),
-            'entity_name' => $this->getEntityName(),
-            'page_title' => 'Gestion des utilisateurs',
-            'entity_label' => 'utilisateur'
+            'canManageRoles' => $this->permissionService->hasPermission('manage_roles')
         ]);
     }
 

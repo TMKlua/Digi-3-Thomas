@@ -35,6 +35,7 @@ class GeneralController extends AbstractController
             return $this->redirectToRoute('app_auth');
         }
 
+        // Vérification de permission réactivée
         if (!$this->permissionService->hasPermission('view_own_profile')) {
             throw $this->createAccessDeniedException('Accès non autorisé à cette page.');
         }

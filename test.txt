@@ -1,0 +1,140 @@
+Conventions de nommage
+Afin d'assurer une cohérence et une lisibilité optimales du code, nous adopterons les conventions de nommage suivantes :
+Classes : Notation PascalCase (exemple : App\Controller\UserController).
+Fichiers: Notation snake_case (exemple : add_user.html.twig).
+Méthodes : Notation camelCase (exemple : public function getUser()).
+Variables : Notation camelCase (exemple : $userRepository).
+Constantes : Notation SNAKE_CASE (exemple : const USER_AVATAR).
+Tables de base de données : Notation snake_case (exemple : user_avatar).
+Remarque importante : Tous les noms doivent être écrits en anglais
+Au-delà de ces conventions de nommage qui permettent de simplifier la lecture du code, l’écriture d'un code « propre » et efficace permet de limiter la consommation de ressources (côté client et serveur) et facilite la maintenance.
+ Tests fonctionnels et techniques
+Fonctionnalités couvertes
+Gestion des utilisateurs (création, modification, suppression, rôles et permissions)
+Gestion des projets et tâches (création, suivi, modification, suppression)
+Collaboration et communication (commentaires, pièces jointes, notifications)
+Gestion des temps et ressources
+Authentification et sécurité
+Interface utilisateur et expérience utilisateur (UX)
+Compatibilité navigateurs et responsive design
+
+Types de tests
+Tests Fonctionnels : Vérifient que chaque fonctionnalité de l'application fonctionne comme prévu.
+Tests d’Interface Utilisateur (UX/UI) : Vérifient que l'interface est intuitive et agréable à utiliser.
+Tests de Performance : Vérifient que l'application répond rapidement et peut gérer une charge élevée.
+Tests de Compatibilité (navigateurs, mobiles) : Vérifient que l'application fonctionne correctement sur différents navigateurs et appareils mobiles.
+Tests de Sécurité : Vérifient que l'application est sécurisée contre les attaques courantes (authentification, autorisations, injections SQL/XSS).
+
+Scénarios de Test
+
+Gestion des Utilisateurs
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+U1
+Création d’un utilisateur
+1. Se connecter en tant qu’administrateur 2. Accéder à la gestion des utilisateurs 3. Ajouter un nouvel utilisateur avec rôle défini 4. Valider la création
+L’utilisateur est ajouté et visible dans la liste
+U2
+Modification d’un utilisateur
+1. Se connecter en tant qu’administrateur 2. Modifier les informations d’un utilisateur 3. Enregistrer les modifications
+Les modifications sont bien prises en compte
+U3
+Suppression d’un utilisateur
+1. Se connecter en tant qu’administrateur 2. Supprimer un utilisateur 3. Vérifier qu’il ne figure plus dans la liste
+L’utilisateur est supprimé
+U4
+Vérification des droits administrateur
+1. Se connecter en tant qu’administrateur 2. Accéder à toutes les fonctionnalités
+L’administrateur a bien accès à toutes les options
+U5
+Vérification des droits développeur full-web
+1. Se connecter en tant que développeur full-web 2. Tenter d’accéder aux options d’administration
+L’accès est refusé et un message d’erreur est affiché
+
+
+Authentification et Sécurité
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+A1
+Connexion avec identifiants valides
+1. Saisir un email et mot de passe corrects 2. Valider
+Accès à l’espace utilisateur
+A2
+Connexion avec identifiants invalides
+1. Saisir un email/mot de passe erroné 2. Valider
+Message d’erreur affiché
+A3
+Déconnexion
+1. Cliquer sur "Déconnexion" 2. Vérifier retour à la page d’authentification
+L’utilisateur est déconnecté
+A4
+Mot de passe oublié
+1. Cliquer sur "Mot de passe oublié" 2. Saisir son email 3. Vérifier réception du mail de réinitialisation
+Email reçu et lien fonctionnel
+
+
+Gestion des Projets et Tâches
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+P1
+Création d’un projet
+1. Se connecter en tant que Chef de projet 2. Accéder à l’espace de gestion des projets 3. Ajouter un projet avec titre et description 4. Valider
+Le projet est ajouté et visible
+P2
+Ajout de tâches dans un projet
+1. Accéder à un projet existant 2. Ajouter une nouvelle tâche avec priorité et échéance 3. Valider
+La tâche est ajoutée au projet
+P3
+Assignation d’une tâche à un utilisateur
+1. Sélectionner une tâche 2. Assigner un utilisateur 3. Valider
+L’utilisateur est notifié de la tâche
+
+
+Collaboration et Communication
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+C1
+Ajout d’un commentaire sur une tâche
+1. Accéder à une tâche 2. Ajouter un commentaire 3. Valider
+Le commentaire est visible
+C2
+Ajout d’une pièce jointe
+1. Accéder à une tâche 2. Ajouter une pièce jointe 3. Valider
+La pièce jointe est attachée
+
+
+Tests de Performance et Compatibilité
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+T1
+Chargement du tableau de bord
+1. Accéder au tableau de bord 2. Mesurer le temps de chargement
+Inférieur à 3 secondes
+T2
+Compatibilité mobile
+1. Tester l’interface sur différents appareils
+Affichage et navigation corrects
+T3
+Test multi-navigateurs
+1. Ouvrir l’application sur Chrome, Firefox, Edge, Safari
+Aucune erreur d’affichage
+
+
+Outils de Test
+Selenium :  Pour les tests d'interface utilisateur (UI) et les tests fonctionnels. Selenium permet d'automatiser les tests de navigation et d'interaction avec l'application web, en simulant les actions des utilisateurs.
+PhpUnit :  Pour les tests unitaires et d'intégration. PHPUnit est un framework de test pour PHP qui permet de vérifier que chaque composant de l'application fonctionne correctement en isolation et en interaction avec d'autres composants

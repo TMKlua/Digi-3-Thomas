@@ -35,6 +35,10 @@ export class AuthManager {
         if (this.loginSection) {
             this.loginSection.style.display = "flex";
         }
+        
+        if (this.registerSection) {
+            this.registerSection.style.display = "none";
+        }
 
         // Gérer le changement entre connexion et inscription
         if (this.switchToLoginLink) {
@@ -71,6 +75,12 @@ export class AuthManager {
         // Gérer la soumission du formulaire d'inscription
         if (this.registerForm) {
             this.registerForm.addEventListener('submit', this.handleRegisterFormSubmit.bind(this));
+        }
+        
+        // Gérer la soumission du formulaire de connexion
+        const loginForm = document.getElementById('login_form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', this.handleLoginFormSubmit.bind(this));
         }
         
         // Initialiser la fonction globale pour la visibilité du mot de passe
@@ -194,12 +204,27 @@ export class AuthManager {
      */
     handleResetFormSubmit(e) {
         e.preventDefault();
+        
+        // Vérifier que le token CSRF est présent
+        const csrfToken = document.getElementById('reset_csrf_token');
+        if (!csrfToken || !csrfToken.value) {
+            console.error('Token CSRF manquant pour la réinitialisation');
+            alert('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
+            return;
+        }
+        
+        // Définir le cookie CSRF avant la soumission
+        document.cookie = `CSRF-RESET=${csrfToken.value}; path=/; SameSite=Lax`;
+        
         const email = document.getElementById("reset_email").value;
         
-        // Ici, vous pouvez ajouter le code pour envoyer la demande de réinitialisation
-        alert("Un lien de réinitialisation a été envoyé à " + email);
+        if (!email) {
+            alert('Veuillez saisir votre adresse email.');
+            return;
+        }
         
-        this.closeResetModal();
+        // Soumettre le formulaire
+        this.resetPasswordForm.submit();
     }
     
     /**
@@ -246,77 +271,70 @@ export class AuthManager {
         // Mettre à jour la couleur de l'indicateur
         if (strength < 30) {
             this.strengthIndicator.style.backgroundColor = '#ff4d4d'; // Rouge
-            this.strengthText.textContent = 'Mot de passe faible';
+            this.strengthText.textContent = 'Faible';
         } else if (strength < 60) {
             this.strengthIndicator.style.backgroundColor = '#ffa64d'; // Orange
-            this.strengthText.textContent = 'Mot de passe moyen';
+            this.strengthText.textContent = 'Moyen';
         } else if (strength < 80) {
             this.strengthIndicator.style.backgroundColor = '#ffff4d'; // Jaune
-            this.strengthText.textContent = 'Mot de passe bon';
+            this.strengthText.textContent = 'Bon';
         } else {
             this.strengthIndicator.style.backgroundColor = '#4dff4d'; // Vert
-            this.strengthText.textContent = 'Mot de passe fort';
+            this.strengthText.textContent = 'Fort';
         }
     }
     
     /**
-     * Calcule la force du mot de passe (0-100)
+     * Calcule la force du mot de passe
      * @param {string} password - Le mot de passe à évaluer
      * @returns {number} - La force du mot de passe (0-100)
      */
     calculatePasswordStrength(password) {
         if (!password) return 0;
         
-        let score = 0;
+        let strength = 0;
         
-        // Longueur (jusqu'à 30 points)
-        score += Math.min(30, password.length * 3);
+        // Longueur du mot de passe (jusqu'à 40 points)
+        const lengthScore = Math.min(password.length * 2, 40);
+        strength += lengthScore;
         
-        // Caractères spéciaux (20 points)
-        if (/[^a-zA-Z\d]/.test(password)) {
-            score += 20;
-        }
+        // Variété de caractères (jusqu'à 60 points)
+        const hasLowercase = /[a-z]/.test(password);
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasNumbers = /[0-9]/.test(password);
+        const hasSpecialChars = /[^a-zA-Z0-9]/.test(password);
         
-        // Chiffres (20 points)
-        if (/\d/.test(password)) {
-            score += 20;
-        }
+        if (hasLowercase) strength += 10;
+        if (hasUppercase) strength += 15;
+        if (hasNumbers) strength += 15;
+        if (hasSpecialChars) strength += 20;
         
-        // Majuscules (20 points)
-        if (/[A-Z]/.test(password)) {
-            score += 20;
-        }
-        
-        // Minuscules (10 points)
-        if (/[a-z]/.test(password)) {
-            score += 10;
-        }
-        
-        return Math.min(100, score);
+        // Limiter à 100
+        return Math.min(strength, 100);
     }
     
     /**
-     * Valide un mot de passe selon les contraintes définies
+     * Valide le mot de passe selon les critères définis
      * @param {string} password - Le mot de passe à valider
-     * @returns {string[]} - Un tableau des erreurs trouvées
+     * @returns {string[]} - Les erreurs de validation
      */
     validatePassword(password) {
         const errors = [];
         
         if (password.length < this.passwordConstraints.minLength) {
-            errors.push(`Le mot de passe doit contenir au moins ${this.passwordConstraints.minLength} caractères`);
-        }
-        
-        if (this.passwordConstraints.requireSpecialChar && !/[^a-zA-Z\d]/.test(password)) {
-            errors.push('Le mot de passe doit contenir au moins un caractère spécial');
-        }
-        
-        if (this.passwordConstraints.requireNumber && !/\d/.test(password)) {
-            errors.push('Le mot de passe doit contenir au moins un chiffre');
+            errors.push(`Le mot de passe doit contenir au moins ${this.passwordConstraints.minLength} caractères.`);
         }
         
         if (this.passwordConstraints.requireUppercase && !/[A-Z]/.test(password)) {
-            errors.push('Le mot de passe doit contenir au moins une majuscule');
+            errors.push('Le mot de passe doit contenir au moins une lettre majuscule.');
+        }
+        
+        if (this.passwordConstraints.requireNumber && !/[0-9]/.test(password)) {
+            errors.push('Le mot de passe doit contenir au moins un chiffre.');
+        }
+        
+        if (this.passwordConstraints.requireSpecialChar && !/[^a-zA-Z0-9]/.test(password)) {
+            errors.push('Le mot de passe doit contenir au moins un caractère spécial.');
         }
         
         return errors;
@@ -329,61 +347,70 @@ export class AuthManager {
     handleRegisterFormSubmit(e) {
         e.preventDefault();
         
-        const password = this.registerPasswordInput.value;
-        const passwordErrors = this.validatePassword(password);
-        
-        // Supprimer les erreurs existantes
-        const existingErrors = this.registerForm.querySelectorAll('.error');
-        existingErrors.forEach(error => error.remove());
-        
-        // Vérifier si le mot de passe est valide
-        if (passwordErrors.length > 0) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.setAttribute('role', 'alert');
-            errorDiv.style.color = 'red';
-            errorDiv.textContent = passwordErrors.join(', ');
-            this.registerForm.insertBefore(errorDiv, this.registerForm.firstChild);
+        // Vérifier que le token CSRF est présent
+        const csrfToken = document.getElementById('register_csrf_token');
+        if (!csrfToken || !csrfToken.value) {
+            console.error('Token CSRF manquant');
+            alert('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
             return;
         }
         
-        // Désactiver le bouton de soumission pendant le traitement
-        const submitButton = this.registerForm.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.innerHTML = 'Inscription en cours...';
+        // Définir le cookie CSRF avant la soumission
+        document.cookie = `CSRF-REGISTER=${csrfToken.value}; path=/; SameSite=Lax`;
+        
+        // Valider le mot de passe
+        const password = this.registerPasswordInput.value;
+        const errors = this.validatePassword(password);
+        
+        if (errors.length > 0) {
+            alert(errors.join('\n'));
+            return;
+        }
         
         // Soumettre le formulaire
         this.registerForm.submit();
     }
     
     /**
-     * Fonction pour afficher/masquer le mot de passe
-     * @param {string} inputId - L'ID de l'élément input du mot de passe
+     * Gère la soumission du formulaire de connexion
+     * @param {Event} e - L'événement de soumission
+     */
+    handleLoginFormSubmit(e) {
+        e.preventDefault();
+        
+        // Vérifier que le token CSRF est présent
+        const csrfToken = document.getElementById('login_csrf_token');
+        if (!csrfToken || !csrfToken.value) {
+            console.error('Token CSRF manquant');
+            alert('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
+            return;
+        }
+        
+        // Soumettre le formulaire
+        document.getElementById('login_form').submit();
+    }
+    
+    /**
+     * Bascule la visibilité du mot de passe
+     * @param {string} inputId - L'ID de l'input de mot de passe
      */
     static togglePasswordVisibility(inputId) {
-        const passwordInput = document.getElementById(inputId);
-        if (!passwordInput) return;
-        
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        
-        // Annoncer le changement pour les lecteurs d'écran
-        const announcement = document.createElement('div');
-        announcement.setAttribute('aria-live', 'polite');
-        announcement.classList.add('sr-only');
-        announcement.textContent = type === 'text' ? 'Mot de passe visible' : 'Mot de passe masqué';
-        document.body.appendChild(announcement);
-        
-        setTimeout(() => {
-            document.body.removeChild(announcement);
-        }, 1000);
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.type = input.type === 'password' ? 'text' : 'password';
+            const icon = input.nextElementSibling.querySelector('img');
+            if (icon) {
+                icon.src = input.type === 'password' ? '/build/images/icons/eye.png' : '/build/images/icons/eye-slash.png';
+            }
+        }
     }
 }
 
-// Initialisation au chargement du DOM
+// Initialiser l'AuthManager quand le DOM est chargé
 document.addEventListener('DOMContentLoaded', () => {
-    // Vérifier si nous sommes sur la page d'authentification
-    if (document.getElementById('loginSection') || document.getElementById('registerSection')) {
-        new AuthManager();
-    }
-}); 
+    const authManager = new AuthManager();
+    authManager.init();
+});
+
+// Exposer la fonction togglePasswordVisibility globalement pour les attributs onclick
+window.togglePasswordVisibility = AuthManager.togglePasswordVisibility; 

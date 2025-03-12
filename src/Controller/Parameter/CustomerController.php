@@ -43,44 +43,48 @@ class CustomerController extends AbstractCrudController
 
     protected function getEntityName(): string
     {
-        return 'customer';
+        return 'Client';
     }
 
     protected function getTemplatePrefix(): string
     {
-        return 'parameter';
+        return 'parameter/customer';
     }
 
     protected function canView(): bool
     {
-        return $this->isGranted('view', new Customers());
+        return $this->permissionService->canViewCustomerList();
     }
 
     protected function canEdit(): bool
     {
-        return $this->isGranted('edit', new Customers());
+        return $this->permissionService->hasPermission('edit_customers');
     }
 
     protected function canDelete(): bool
     {
-        return $this->isGranted('delete', new Customers());
+        return $this->permissionService->hasPermission('delete_customers');
     }
 
     #[Route('/', name: 'app_parameter_customers')]
     public function index(): Response
     {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        
-        $this->denyAccessUnlessGranted('view', new Customers(), 'Accès non autorisé');
+        // Vérifier si l'utilisateur est authentifié
+        $currentUser = $this->security->getUser();
+        if (!$currentUser) {
+            throw $this->createAccessDeniedException('Utilisateur non authentifié');
+        }
 
-        return $this->render('parameter/customer_list.html.twig', [
+        // Vérifier si l'utilisateur peut voir la liste des clients
+        if (!$this->canView()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour voir la liste des clients');
+        }
+
+        return $this->render('parameter/customer/index.html.twig', [
+            'customers' => $this->customersRepository->findAll(),
             'user' => $this->security->getUser(),
-            'entities' => $this->customersRepository->findAll(),
             'canEdit' => $this->canEdit(),
-            'canDelete' => $this->canDelete(),
-            'entity_name' => $this->getEntityName(),
-            'page_title' => 'Gestion des clients',
-            'entity_label' => 'client'
+            'canDelete' => $this->canDelete()
         ]);
     }
 

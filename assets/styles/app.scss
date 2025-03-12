@@ -1,10 +1,18 @@
-// Import des fichiers partiels
+/*
+ * DIGI-3 - Styles principaux
+ * Un fichier unique contenant tous les styles de l'application
+ * Organisé en sections pour faciliter la maintenance
+ */
+
+// Import des fichiers de base
 @use 'variables' as *;
 @use 'base';
 @use 'header';
 @use 'auth';
 
-// Styles spécifiques à la page d'accueil
+/* ==========================================================================
+   SECTION 1: STYLES DE LA PAGE D'ACCUEIL
+   ========================================================================== */
 .home-section {
     width: 100vw;
     background-image: url('../images/bg.png');
@@ -38,15 +46,15 @@
     }
 }
 
-// Styles pour la section des paramètres
+/* ==========================================================================
+   SECTION 2: STYLES DES PARAMÈTRES
+   ========================================================================== */
 .parameter_landing {
     height: 75%;
     padding: 1rem 3rem;
     align-items: flex-start;
     gap: 1rem;
 }
-
-// Menu des paramètres
 .parameter_menu {
     padding: 2rem 1rem;
     height: 100%;
@@ -94,6 +102,10 @@
         color: var(--w);
     }
 }
+
+/* ==========================================================================
+   SECTION 3: STYLES DE LA PAGE DE COMPTE UTILISATEUR
+   ========================================================================== */
 
 // Page de compte utilisateur
 .account-page {
@@ -227,6 +239,10 @@
     }
 }
 
+/* ==========================================================================
+   SECTION 4: COMPOSANTS RÉUTILISABLES
+   ========================================================================== */
+
 // Bouton de soumission
 .btn-submit {
     font-size: 1rem;
@@ -282,6 +298,10 @@
         color: var(--g);
     }
 }
+
+/* ==========================================================================
+   SECTION 5: STYLES POUR LA GESTION DES UTILISATEURS
+   ========================================================================== */
 
 // Styles pour les utilisateurs
 .users-page {
@@ -349,6 +369,10 @@
         padding: 20px;
     }
 }
+
+/* ==========================================================================
+   SECTION 6: STYLES COMMUNS POUR LES PAGES CRUD
+   ========================================================================== */
 
 // Styles communs pour les pages CRUD
 .crud-page {
@@ -446,6 +470,10 @@
         opacity: 0.9;
     }
 }
+
+/* ==========================================================================
+   SECTION 7: STYLES POUR LES MODALES
+   ========================================================================== */
 
 // Styles pour les modales
 .modal {
@@ -578,25 +606,9 @@
     }
 }
 
-// Styles pour les alertes
-.alert {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 5px;
-    margin-bottom: 1rem;
-
-    &.alert-danger {
-        background-color: rgba(223, 102, 102, 0.2);
-        border: 1px solid #df6666;
-        color: #df6666;
-    }
-
-    &.alert-success {
-        background-color: rgba(0, 252, 168, 0.2);
-        border: 1px solid var(--g);
-        color: var(--g);
-    }
-}
+/* ==========================================================================
+   SECTION 8: STYLES POUR LA PAGE DE CONFIGURATION
+   ========================================================================== */
 
 // Styles pour la page de configuration
 .config {

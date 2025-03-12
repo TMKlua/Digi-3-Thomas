@@ -6,15 +6,16 @@
 <main id="main-content" role="main">
   <div class="auth-container">
     <!-- Section de connexion -->
-    <div class="auth-section flex" id="loginSection" style="display: none" aria-labelledby="login-heading">
+    <div class="auth-section flex" id="loginSection" aria-labelledby="login-heading">
       <form id="login_form" method="POST" action="{{ path('app_auth') }}" aria-labelledby="login-form-heading">
         <h2 id="login-form-heading" class="sr-only">Formulaire de connexion</h2>
         <input
           type="hidden"
           name="_csrf_token"
-          value="{{ csrf_token('authenticate') }}"
+          value="{{ csrf_token is defined ? csrf_token : csrf_token('authenticate') }}"
+          id="login_csrf_token"
         />
-        <input type="hidden" name="action" value="login" />
+        <input type="hidden" name="action" value="login" id="login_action" />
 
         <div class="form-group">
           <label for="login_email">Email</label>
@@ -54,7 +55,7 @@
       </div>
     </div>
     <!-- Section d'inscription -->
-    <div class="auth-section flex" id="registerSection" aria-labelledby="register-heading">
+    <div class="auth-section flex" id="registerSection" style="display: none" aria-labelledby="register-heading">
       <div class="auth-decorate flex-col" aria-labelledby="register-heading">
         <h3 id="register-heading">Content de te revoir !</h3>
         <p>
@@ -67,10 +68,11 @@
         <h2 id="register-form-heading" class="sr-only">Formulaire d'inscription</h2>
         <input
           type="hidden"
-          name="csrf_token"
-          value="{{ csrf_token('authenticate') }}"
+          name="_csrf_token"
+          value="{{ csrf_token('register') }}"
+          id="register_csrf_token"
         />
-        <input type="hidden" name="action" value="register" />
+        <input type="hidden" name="action" value="register" id="register_action" />
 
         <div class="form-group">
           <label for="first_name">Prénom :</label>
@@ -110,59 +112,17 @@
     <div class="modal-content">
       <button type="button" class="close" aria-label="Fermer la boîte de dialogue">&times;</button>
       <h2 id="reset-password-heading">Réinitialisation du mot de passe</h2>
-      <form id="resetPasswordForm" aria-labelledby="reset-password-heading">
+      <form id="resetPasswordForm" method="POST" action="{{ path('app_reset_password') }}" aria-labelledby="reset-password-heading">
         <div class="form-group">
           <label for="reset_email">Email</label>
           <input type="email" id="reset_email" name="email" required aria-required="true" autocomplete="email">
         </div>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('reset_password') }}" id="reset_csrf_token">
         <button type="submit" class="auth-submit">Envoyer le lien</button>
       </form>
     </div>
   </div>
 </main>
-
-<style>
-  /* Style pour les lecteurs d'écran uniquement */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-  
-  .remember-me {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .checkbox-container {
-    display: flex;
-    align-items: center;
-  }
-  
-  .checkbox-container input[type="checkbox"] {
-    margin-right: 0.5rem;
-  }
-  
-  .checkbox-container label {
-    margin-bottom: 0;
-  }
-</style>
 {% endblock %}
 
 {% block javascripts %}

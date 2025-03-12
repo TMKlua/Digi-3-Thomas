@@ -18,7 +18,6 @@ title %}Digi-3 - Page d'accueil{% endblock %} {% block body %}
     {% endif %}
   </nav>
 </header>
-
 <main id="main-content" role="main">
   <section class="flex-col" aria-labelledby="main-heading">
     <div class="home-section flex-col">
@@ -35,23 +34,8 @@ title %}Digi-3 - Page d'accueil{% endblock %} {% block body %}
       <img 
         src="{{ asset('build/images/gestion.png') }}" 
         alt="Illustration représentant la gestion de projets avec des personnes travaillant sur des tableaux de bord" 
-        width="600" 
-        height="400" 
       />
     </div>
   </section>
 </main>
-
-<footer role="contentinfo" class="site-footer">
-  <div class="footer-content">
-    <p>&copy; {{ "now"|date("Y") }} Digi-3. Tous droits réservés.</p>
-    <nav aria-label="Liens d'accessibilité">
-      <ul class="footer-links">
-        <li><a href="#" aria-label="Déclaration d'accessibilité">Accessibilité</a></li>
-        <li><a href="#" aria-label="Mentions légales">Mentions légales</a></li>
-        <li><a href="#" aria-label="Politique de confidentialité">Confidentialité</a></li>
-      </ul>
-    </nav>
-  </div>
-</footer>
 {% endblock %}

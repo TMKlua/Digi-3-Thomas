@@ -34,59 +34,12 @@
     {% block stylesheets %}
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
-    
-    <style>
-        .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: #000;
-            color: white;
-            padding: 8px;
-            z-index: 100;
-            transition: top 0.3s;
-        }
-        
-        .skip-link:focus {
-            top: 0;
-        }
-    </style>
 </head>
 <body>
-    <!-- Lien d'évitement pour l'accessibilité -->
-    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
-    
     {% block body %}{% endblock %}
     
     {% block javascripts %}
         {{ encore_entry_script_tags('app') }}
     {% endblock %}
-    
-    <script>
-        // Script pour améliorer l'accessibilité
-        document.addEventListener('DOMContentLoaded', function() {
-            // Ajouter des attributs ARIA aux éléments interactifs sans label
-            const interactiveElements = document.querySelectorAll('button:not([aria-label]):not([aria-labelledby]), a:not([aria-label]):not([aria-labelledby])');
-            interactiveElements.forEach(function(element) {
-                if (!element.textContent.trim() && !element.getAttribute('aria-label')) {
-                    console.warn('Élément interactif sans texte ni attribut aria-label détecté:', element);
-                }
-            });
-            
-            // Assurer que tous les champs de formulaire ont des labels associés
-            const formFields = document.querySelectorAll('input, select, textarea');
-            formFields.forEach(function(field) {
-                const id = field.getAttribute('id');
-                if (id) {
-                    const label = document.querySelector(`label[for="${id}"]`);
-                    if (!label && !field.getAttribute('aria-label') && !field.getAttribute('aria-labelledby')) {
-                        console.warn('Champ de formulaire sans label associé détecté:', field);
-                    }
-                } else if (!field.getAttribute('aria-label') && !field.getAttribute('aria-labelledby')) {
-                    console.warn('Champ de formulaire sans ID ni attribut aria-label détecté:', field);
-                }
-            });
-        });
-    </script>
 </body>
 </html>

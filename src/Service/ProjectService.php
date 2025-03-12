@@ -8,6 +8,9 @@ use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
+/**
+ * Service centralisé pour la gestion des projets
+ */
 class ProjectService
 {
     public function __construct(
@@ -15,98 +18,157 @@ class ProjectService
         private ProjectRepository $projectRepository,
         private PermissionService $permissionService,
         private Security $security
-    ) {}
+    ) {
+    }
 
-    public function createProject(array $data): Project
+    /**
+     * Récupère un projet par son ID
+     */
+    public function getProjectById(int $id): ?Project
     {
-        if (!$this->permissionService->hasPermission('create_projects')) {
-            throw new \RuntimeException('Permission denied to create project');
+        return $this->projectRepository->find($id);
+    }
+
+    /**
+     * Sauvegarde un projet
+     */
+    public function saveProject(Project $project): Project
+    {
+        // Si le projet n'a pas de date de début, définir la date actuelle
+        if (!$project->getProjectStartDate()) {
+            $project->setProjectStartDate(new \DateTime());
         }
-
-        $project = new Project();
-        $project->setProjectName($data['name']);
-        $project->setProjectDescription($data['description'] ?? '');
-        $project->setProjectStartDate($data['startDate'] ?? new \DateTime());
-        $project->setProjectTargetDate($data['endDate'] ?? new \DateTime('+1 month'));
-        $project->setProjectStatus('new');
-
-        /** @var User $user */
-        $user = $this->security->getUser();
-        $project->setProjectManager($user);
-
+        
+        // Si le projet n'a pas de chef de projet, définir l'utilisateur courant
+        if (!$project->getProjectManager()) {
+            $project->setProjectManager($this->security->getUser());
+        }
+        
         $this->entityManager->persist($project);
         $this->entityManager->flush();
-
+        
         return $project;
     }
 
-    public function updateProject(int $id, array $data): Project
+    /**
+     * Supprime un projet
+     */
+    public function deleteProject(Project $project): void
     {
-        $project = $this->projectRepository->find($id);
-        if (!$project) {
-            throw new \RuntimeException('Project not found');
-        }
-
-        if (!$this->permissionService->hasPermission('edit_projects')) {
-            throw new \RuntimeException('Permission denied to edit project');
-        }
-
-        if (isset($data['name'])) {
-            $project->setProjectName($data['name']);
-        }
-        if (isset($data['description'])) {
-            $project->setProjectDescription($data['description']);
-        }
-        if (isset($data['status'])) {
-            $project->setProjectStatus($data['status']);
-        }
-        if (isset($data['startDate'])) {
-            $project->setProjectStartDate($data['startDate']);
-        }
-        if (isset($data['endDate'])) {
-            $project->setProjectTargetDate($data['endDate']);
-        }
-
-        $project->setProjectUpdatedAt(new \DateTime());
-        $project->setProjectUpdatedBy($this->security->getUser());
-
-        $this->entityManager->flush();
-
-        return $project;
-    }
-
-    public function deleteProject(int $id): void
-    {
-        $project = $this->projectRepository->find($id);
-        if (!$project) {
-            throw new \RuntimeException('Project not found');
-        }
-
-        if (!$this->permissionService->hasPermission('delete_project')) {
-            throw new \RuntimeException('Permission denied to delete project');
-        }
-
         $this->entityManager->remove($project);
         $this->entityManager->flush();
     }
 
-    public function getProjectsByUser(User $user): array
+    /**
+     * Récupère tous les projets pour l'utilisateur courant
+     */
+    public function getProjectsForCurrentUser(): array
     {
-        return $this->projectRepository->findByManager($user);
+        $user = $this->security->getUser();
+        
+        // Si l'utilisateur peut voir tous les projets, retourner tous les projets
+        if ($this->permissionService->hasPermission('view_all_projects')) {
+            return $this->projectRepository->findAll();
+        }
+        
+        // Sinon, retourner les projets dont l'utilisateur est chef de projet
+        return $this->projectRepository->findBy(['projectManager' => $user]);
     }
 
-    public function getActiveProjects(): array
+    /**
+     * Récupère les projets par chef de projet
+     */
+    public function getProjectsByManager(User $manager): array
     {
-        return $this->projectRepository->findByStatus('active');
+        return $this->projectRepository->findBy(['projectManager' => $manager]);
     }
 
-    public function getProjectWithFullData(int $id): ?Project
+    /**
+     * Récupère les projets par statut
+     */
+    public function getProjectsByStatus(string $status): array
     {
-        return $this->projectRepository->findProjectWithFullData($id);
+        return $this->projectRepository->findBy(['projectStatus' => $status]);
     }
 
-    public function searchProjects(array $filters): array
+    /**
+     * Récupère les projets par client
+     */
+    public function getProjectsByCustomer(int $customerId): array
     {
-        return $this->projectRepository->searchProjects($filters);
+        return $this->projectRepository->findBy(['projectCustomer' => $customerId]);
+    }
+
+    /**
+     * Récupère les statistiques des projets
+     */
+    public function getProjectStatistics(): array
+    {
+        $stats = [
+            'total' => $this->projectRepository->count([]),
+            'by_status' => [],
+            'recent' => $this->projectRepository->findBy([], ['projectStartDate' => 'DESC'], 5),
+            'ending_soon' => $this->projectRepository->findEndingSoon(30),
+        ];
+        
+        // Statistiques par statut
+        $statusStats = $this->projectRepository->countByStatus();
+        foreach ($statusStats as $statusStat) {
+            $stats['by_status'][$statusStat['status']] = $statusStat['count'];
+        }
+        
+        return $stats;
+    }
+
+    /**
+     * Recherche des projets
+     */
+    public function searchProjects(string $term): array
+    {
+        return $this->projectRepository->search($term);
+    }
+
+    /**
+     * Vérifie si un utilisateur est membre d'un projet
+     */
+    public function isUserProjectMember(User $user, Project $project): bool
+    {
+        // L'utilisateur est membre s'il est chef de projet
+        if ($project->getProjectManager() === $user) {
+            return true;
+        }
+        
+        // L'utilisateur est membre s'il est assigné à une tâche du projet
+        foreach ($project->getTasks() as $task) {
+            if ($task->getTaskAssignedTo() === $user) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Récupère les membres d'un projet
+     */
+    public function getProjectMembers(Project $project): array
+    {
+        $members = [];
+        
+        // Ajouter le chef de projet
+        $manager = $project->getProjectManager();
+        if ($manager) {
+            $members[$manager->getId()] = $manager;
+        }
+        
+        // Ajouter les utilisateurs assignés aux tâches
+        foreach ($project->getTasks() as $task) {
+            $assignee = $task->getTaskAssignedTo();
+            if ($assignee) {
+                $members[$assignee->getId()] = $assignee;
+            }
+        }
+        
+        return array_values($members);
     }
 } 

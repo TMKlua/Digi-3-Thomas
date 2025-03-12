@@ -36,8 +36,6 @@ abstract class AbstractCrudController extends AbstractController
 
     protected function index(): Response
     {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-
         $currentUser = $this->security->getUser();
         if (!$currentUser) {
             throw $this->createAccessDeniedException('Utilisateur non authentifié');

@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Entity\Customers;
 use App\Entity\Project;
 use App\Entity\Tasks;
+use App\Enum\UserRole;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
@@ -43,7 +44,8 @@ class PermissionService
         $user = $this->getCurrentUser();
         if (!$user) return false;
         
-        return $this->roleHierarchy->hasPermission($user->getUserRole(), $permission);
+        $userRole = $user->getUserRole()->value;
+        return $this->roleHierarchy->hasPermission($userRole, $permission);
     }
 
     // Gestion des projets
@@ -86,7 +88,63 @@ class PermissionService
         return $this->hasPermission('delete_projects');
     }
 
+    /**
+     * Vérifie si l'utilisateur peut voir un projet
+     * 
+     * @param Project $project Le projet à consulter
+     * @return bool True si l'utilisateur peut voir le projet, false sinon
+     */
+    public function canViewProject(Project $project): bool
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
+
+        if ($this->hasPermission('view_all_projects')) {
+            return true;
+        }
+
+        if ($project->getProjectManager() === $user) {
+            return true;
+        }
+
+        // Vérifier si l'utilisateur est assigné à une tâche du projet
+        foreach ($project->getTasks() as $task) {
+            if ($task->getTaskAssignedTo() === $user) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Gestion des tâches
+    
+    /**
+     * Vérifie si l'utilisateur peut voir une tâche
+     * 
+     * @param Tasks $task La tâche à consulter
+     * @return bool True si l'utilisateur peut voir la tâche, false sinon
+     */
+    public function canViewTask(Tasks $task): bool
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
+
+        if ($this->hasPermission('view_all_tasks')) {
+            return true;
+        }
+
+        if ($task->getTaskAssignedTo() === $user) {
+            return true;
+        }
+
+        $project = $task->getTaskProject();
+        if ($project && $project->getProjectManager() === $user) {
+            return true;
+        }
+
+        return false;
+    }
     
     /**
      * Vérifie si l'utilisateur peut créer une tâche dans un projet
