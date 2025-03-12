@@ -1,6 +1,6 @@
 # Digi-3 - Système de Gestion de Projets
 
-Digi-3 est une application web de gestion de projets développée avec Symfony 7.2 et PHP 8.2. Elle permet de gérer des projets, des tâches, des clients et des utilisateurs avec un système de permissions avancé.
+Digi-3 est une application web de gestion de projets développée avec Symfony 7.2 et PHP 8.2. Elle permet de gérer des projets, des tâches, des clients et des utilisateurs avec un système de permissions avancé et une interface optimisée pour la productivité.
 
 ## Fonctionnalités
 
@@ -19,7 +19,7 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
 - Node.js et npm (pour les assets)
 - Symfony CLI (recommandé pour le développement)
 
-## Installation
+## Installation de l'application en local
 
 1. Cloner le dépôt :
    ```bash
@@ -32,10 +32,10 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
    composer install
    ```
 
-3. Installer les dépendances JavaScript :
+3. Installer les dépendances JavaScript et build les assets :
    ```bash
    npm install
-   npm run build
+   npx encore dev
    ```
 
 4. Configurer la base de données dans le fichier `.env.local` :
@@ -47,9 +47,10 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
    ```bash
    php bin/console doctrine:database:create
    php bin/console doctrine:migrations:migrate
+   php bin/console cache:clear
    ```
 
-6. Charger les fixtures (données de test) :
+6. Charger les fixtures si besoin (données de test) :
    ```bash
    php bin/console doctrine:fixtures:load
    ```
@@ -67,7 +68,7 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
 - `src/Service/` : Services métier
 - `src/Form/` : Formulaires
 - `src/Security/` : Classes liées à la sécurité
-- `src/Enum/` : Énumérations PHP 8.1+
+- `src/Enum/` : Énumérations PHP 8.2+
 - `templates/` : Templates Twig
 - `public/` : Fichiers publics (CSS, JS, images)
 - `config/` : Fichiers de configuration
@@ -79,61 +80,44 @@ Digi-3 utilise un système de sécurité avancé basé sur les Voters de Symfony
 
 ### Voters
 
-Les Voters sont des classes qui déterminent si un utilisateur a le droit d'effectuer une action spécifique sur une ressource donnée. L'application utilise les Voters suivants :
+Les Voters sont des classes qui déterminent si un utilisateur a le droit d'effectuer une action spécifique sur une ressource donnée.
 
-- **ProjectVoter** : Gère les permissions sur les projets
-  - `view` : Voir un projet
-  - `edit` : Modifier un projet
-  - `delete` : Supprimer un projet
-  - `create` : Créer un projet
-  - `manage_tasks` : Gérer les tâches d'un projet
+#### **ProjectVoter** (Permissions sur les projets)
+- `view` : Voir un projet
+- `edit` : Modifier un projet
+- `delete` : Supprimer un projet
+- `create` : Créer un projet
+- `manage_tasks` : Gérer les tâches d'un projet
 
-- **TaskVoter** : Gère les permissions sur les tâches
-  - `view` : Voir une tâche
-  - `edit` : Modifier une tâche
-  - `delete` : Supprimer une tâche
-  - `create` : Créer une tâche
-  - `change_status` : Changer le statut d'une tâche
-  - `assign` : Assigner une tâche à un utilisateur
+#### **TaskVoter** (Permissions sur les tâches)
+- `view` : Voir une tâche
+- `edit` : Modifier une tâche
+- `delete` : Supprimer une tâche
+- `create` : Créer une tâche
+- `change_status` : Changer le statut d'une tâche
+- `assign` : Assigner une tâche à un utilisateur
 
-- **CustomerVoter** : Gère les permissions sur les clients
-  - `view` : Voir un client
-  - `edit` : Modifier un client
-  - `delete` : Supprimer un client
-  - `create` : Créer un client
+#### **CustomerVoter** (Permissions sur les clients)
+- `view` : Voir un client
+- `edit` : Modifier un client
+- `delete` : Supprimer un client
+- `create` : Créer un client
 
-- **UserVoter** : Gère les permissions sur les utilisateurs
-  - `view` : Voir un utilisateur
-  - `edit` : Modifier un utilisateur
-  - `delete` : Supprimer un utilisateur
-  - `create` : Créer un utilisateur
-  - `change_role` : Changer le rôle d'un utilisateur
+#### **UserVoter** (Permissions sur les utilisateurs)
+- `view` : Voir un utilisateur
+- `edit` : Modifier un utilisateur
+- `delete` : Supprimer un utilisateur
+- `create` : Créer un utilisateur
+- `change_role` : Changer le rôle d'un utilisateur
 
-### Utilisation dans les contrôleurs
-
-Dans les contrôleurs, les permissions sont vérifiées avec la méthode `denyAccessUnlessGranted()` :
+### Vérification des permissions dans les contrôleurs
 
 ```php
-// Vérifier si l'utilisateur peut voir un projet
 $this->denyAccessUnlessGranted('view', $project);
-
-// Vérifier si l'utilisateur peut créer un projet
 $this->denyAccessUnlessGranted('create', null);
 ```
 
-### Utilisation dans les templates Twig
-
-Dans les templates Twig, les permissions sont vérifiées avec la fonction `is_granted()` :
-
-```twig
-{% if is_granted('edit', project) %}
-    <button class="edit-button">Modifier</button>
-{% endif %}
-```
-
 ## Utilisateurs par défaut
-
-Les fixtures créent plusieurs utilisateurs par défaut :
 
 | Email | Mot de passe | Rôle |
 |-------|-------------|------|
@@ -144,41 +128,23 @@ Les fixtures créent plusieurs utilisateurs par défaut :
 | dev@digiworks.fr | Dev123! | Développeur |
 | user@digiworks.fr | User123! | Utilisateur standard |
 
-## Développement
+## Conventions de code
 
-### Commandes utiles
-
-- Créer une entité :
-  ```bash
-  php bin/console make:entity
-  ```
-
-- Créer un contrôleur :
-  ```bash
-  php bin/console make:controller
-  ```
-
-- Créer une migration :
-  ```bash
-  php bin/console make:migration
-  ```
-
-- Appliquer les migrations :
-  ```bash
-  php bin/console doctrine:migrations:migrate
-  ```
-
-- Vider le cache :
-  ```bash
-  php bin/console cache:clear
-  ```
-
-### Conventions de code
-
-- PSR-1, PSR-2 et PSR-4
-- Utilisation des attributs PHP 8 pour les annotations
-- Utilisation des énumérations PHP 8.1+ pour les types énumérés
-- Injection de dépendances via le constructeur
+- **PSR-1, PSR-2 et PSR-4**
+- **Utilisation des attributs PHP 8** pour les annotations
+- **Utilisation des énumérations PHP 8.2+** pour les types énumérés
+- **Injection de dépendances via le constructeur**
+- **Nommage standardisé** :
+  - `PascalCase` : Pour les classes (`ProjectController`)
+  - `camelCase` : Pour les méthodes et variables (`getProjectById()`, `$taskStatus`)
+  - `SCREAMING_SNAKE_CASE` : Pour les constantes (`MAX_TASKS_PER_PROJECT`)
+- **Séparation des responsabilités** :
+  - `src/Controller/` : Contrôleurs
+  - `src/Service/` : Services métier
+  - `src/Repository/` : Repositories
+- **Gestion des erreurs** :
+  - Exceptions spécifiques (`ProjectNotFoundException`)
+  - Gestion des erreurs avec `try/catch`
 
 ## Tests
 
@@ -190,7 +156,7 @@ php bin/phpunit
 
 ## Déploiement
 
-1. Configurer les variables d'environnement pour la production dans `.env.local`
+1. Configurer les variables d'environnement pour la production dans `.env`
 2. Optimiser l'autoloader :
    ```bash
    composer dump-autoload --optimize --no-dev --classmap-authoritative
@@ -210,4 +176,5 @@ Ce projet est sous licence propriétaire. Tous droits réservés.
 
 ## Contact
 
-Pour toute question ou suggestion, veuillez contacter l'équipe de développement à l'adresse suivante : dev@digiworks.fr
+Pour toute question ou suggestion, contactez l'équipe de développement :
+**dev@digiworks.fr**
