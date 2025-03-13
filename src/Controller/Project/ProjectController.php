@@ -90,10 +90,11 @@ class ProjectController extends AbstractController
         // Récupérer les tâches du projet si un projet est sélectionné
         $tasks = $currentProject ? $this->taskService->getTasksByProject($currentProject) : [];
         
-        return $this->render('project/management.html.twig', [
+        return $this->render('project/management_project.html.twig', [
             'form' => $form->createView(),
             'taskForm' => $taskForm->createView(),
-            'project' => $currentProject,
+            'projects' => $currentProject,
+            'current_project' => $currentProject,
             'tasks' => $tasks,
             'canCreateTask' => $currentProject && $this->permissionService->canCreateTask($currentProject),
             'canEditProject' => $currentProject && $this->permissionService->canEditProject($currentProject),

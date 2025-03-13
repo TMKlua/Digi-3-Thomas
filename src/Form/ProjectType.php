@@ -14,18 +14,18 @@ class ProjectType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
+            ->add('projectName', TextType::class, [
                 'label' => 'Nom du projet',
             ])
-            ->add('description', TextType::class, [
+            ->add('projectDescription', TextType::class, [
                 'label' => 'Description',
             ])
-            ->add('startDateForecast', DateType::class, [
+            ->add('project_start_date', DateType::class, [
                 'label' => 'Date de début prévue',
                 'widget' => 'single_text', // Utilise un champ de type HTML5 date
                 'required' => false,
             ])
-            ->add('endDateForecast', DateType::class, [
+            ->add('project_end_date', DateType::class, [
                 'label' => 'Date de fin prévue',
                 'widget' => 'single_text',
                 'required' => false,
