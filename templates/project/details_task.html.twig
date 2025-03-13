@@ -68,42 +68,6 @@
             color: #fff;
         }
 
-        .action-buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .edit-button, .change-status-button, .assign-button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .edit-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-        }
-
-        .change-status-button {
-            background-color: #2196F3;
-            color: white;
-            border: none;
-        }
-
-        .assign-button {
-            background-color: #FFC107;
-            color: #3C3C3C;
-            border: none;
-        }
-
-        .edit-button:hover, .change-status-button:hover, .assign-button:hover {
-            opacity: 0.8;
-        }
-
         /* Responsiveness */
         @media (max-width: 768px) {
             .task-card {
@@ -122,10 +86,6 @@
             .back-to-project {
                 padding: 10px 20px;
             }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
         }
     </style>
 
@@ -133,45 +93,12 @@
         <h1>{{ task.taskName }}</h1>
         <div class="task-info">
             <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-            <p><strong>Statut :</strong> {{ task.taskStatus.value }}</p>
-            <p><strong>Priorité :</strong> {{ task.taskPriority.value }}</p>
-            {% if task.taskComplexity %}
-            <p><strong>Complexité :</strong> {{ task.taskComplexity.value }}</p>
-            {% endif %}
-            <p><strong>Assigné à :</strong> {% if task.taskAssignedTo %}{{ task.taskAssignedTo.userFirstName }} {{ task.taskAssignedTo.userLastName }}{% else %}Non assigné{% endif %}</p>
-            <p><strong>Date de début :</strong> <span>{{ task.taskStartDate ? task.taskStartDate|date('d-m-Y') : 'Non définie' }}</span></p>
-            <p><strong>Date cible :</strong> <span>{{ task.taskTargetDate ? task.taskTargetDate|date('d-m-Y') : 'Non définie' }}</span></p>
-            <p><strong>Date de fin :</strong> <span>{{ task.taskEndDate ? task.taskEndDate|date('d-m-Y') : 'Non définie' }}</span></p>
+            <p><strong>Type :</strong> {{ task.taskType }}</p>
+            <p><strong>Statut :</strong> {{ task.taskStatus }}</p>
+            <p><strong>Catégorie :</strong> {{ task.taskCategory }}</p>
+            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
         </div>
-        
-        <div class="action-buttons">
-            {% if is_granted('edit', task) %}
-                <button class="edit-button" onclick="showEditForm()">Modifier la tâche</button>
-            {% endif %}
-            
-            {% if is_granted('change_status', task) %}
-                <button class="change-status-button" onclick="showStatusChangeForm()">Changer le statut</button>
-            {% endif %}
-            
-            {% if is_granted('assign', task) %}
-                <button class="assign-button" onclick="showAssignForm()">Assigner la tâche</button>
-            {% endif %}
-        </div>
-        
-        <a class="back-to-project" href="{{ path('app_management_project', { 'id': task.taskProject.id }) }}">Retour au projet</a>
+        <a class="back-to-project" href="{{ path('app_management_project', { 'id': task.project.id }) }}">Retour au projet</a>
     </div>
-    
-    <script>
-        function showEditForm() {
-            alert('Fonctionnalité de modification à implémenter');
-        }
-        
-        function showStatusChangeForm() {
-            alert('Fonctionnalité de changement de statut à implémenter');
-        }
-        
-        function showAssignForm() {
-            alert('Fonctionnalité d\'assignation à implémenter');
-        }
-    </script>
 {% endblock %}

@@ -3,18 +3,15 @@
 namespace App\Form;
 
 use App\Entity\Tasks;
-use App\Entity\User;
-use App\Enum\TaskStatus;
-use App\Enum\TaskPriority;
-use App\Enum\TaskComplexity;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\PercentType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 class TaskType extends AbstractType
 {
@@ -23,53 +20,47 @@ class TaskType extends AbstractType
         $builder
             ->add('taskName', TextType::class, [
                 'label' => 'Nom de la tâche',
-                'attr' => ['class' => 'form-control'],
             ])
-            ->add('taskDescription', TextareaType::class, [
+            ->add('taskDescription', TextType::class, [
                 'label' => 'Description de la tâche',
-                'attr' => ['class' => 'form-control', 'rows' => 4],
-                'required' => false,
             ])
-            ->add('taskStatus', EnumType::class, [
-                'class' => TaskStatus::class,
-                'label' => 'Statut',
-                'attr' => ['class' => 'form-select'],
+            ->add('taskType', ChoiceType::class, [
+                'choices' => array_flip([
+                    'Bug' => Tasks::TASK_TYPE_BUG,
+                    'Feature' => Tasks::TASK_TYPE_FEATURE,
+                    'Hightest' => Tasks::TASK_TYPE_HIGHTEST,
+                ]),
+                'placeholder' => 'Sélectionnez un type',
+                'required' => true,
             ])
-            ->add('taskPriority', EnumType::class, [
-                'class' => TaskPriority::class,
-                'label' => 'Priorité',
-                'attr' => ['class' => 'form-select'],
-            ])
-            ->add('taskComplexity', EnumType::class, [
-                'class' => TaskComplexity::class,
-                'label' => 'Complexité',
-                'attr' => ['class' => 'form-select'],
-                'required' => false,
-            ])
-            ->add('taskAssignedTo', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => function (User $user) {
-                    return $user->getUserFirstName() . ' ' . $user->getUserLastName();
-                },
-                'label' => 'Assigné à',
-                'attr' => ['class' => 'form-select'],
-                'required' => false,
-            ])
-            ->add('taskStartDate', DateType::class, [
+            ->add('taskDateFrom', DateType::class, [
                 'widget' => 'single_text',
                 'label' => 'Date de début',
-                'attr' => ['class' => 'form-control'],
-                'required' => false,
             ])
-            ->add('taskTargetDate', DateType::class, [
-                'widget' => 'single_text',
-                'label' => 'Date cible',
-                'attr' => ['class' => 'form-control'],
-            ])
-            ->add('taskEndDate', DateType::class, [
+            ->add('taskDateTo', DateType::class, [
                 'widget' => 'single_text',
                 'label' => 'Date de fin',
-                'attr' => ['class' => 'form-control'],
+            ])
+            ->add('taskStatus', ChoiceType::class, [
+                'choices' => [
+                    'En cours' => 'InProgress',
+                    'Terminé' => 'Completed',
+                    'Annulé' => 'Cancelled',
+                ],
+                'placeholder' => 'Sélectionnez un statut',
+            ])
+            ->add('taskCategory', ChoiceType::class, [
+                'choices' => [
+                    'Développement' => 'Development',
+                    'Testing' => 'Testing',
+                    'Documentation' => 'Documentation',
+                ],
+                'placeholder' => 'Sélectionnez une catégorie',
+            ])
+            ->add('taskAttachments', FileType::class, [
+                'label' => 'Ajouter des fichiers',
+                'multiple' => true,
+                'mapped' => false,
                 'required' => false,
             ]);
     }

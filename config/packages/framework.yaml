@@ -1,37 +1,15 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
-    
+    csrf_protection: true
+
     # Note that the session will be started ONLY if you read or write from it.
     session:
         cookie_secure: true
         cookie_samesite: lax
-        handler_id: session.handler.native_file
-        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
-        gc_maxlifetime: 3600  # Durée de vie de la session en secondes (1 heure)
-        
-    http_method_override: false
-    handle_all_throwables: true
 
     #esi: true
     #fragments: true
-
-    cache:
-        app: cache.adapter.apcu
-        system: cache.adapter.system
-        default_psr6_provider: cache.adapter.apcu
-        default_redis_provider: '%env(REDIS_URL)%'
-        pools:
-            doctrine.result_cache_pool:
-                adapter: cache.app
-            doctrine.system_cache_pool:
-                adapter: cache.system
-
-    form:
-        enabled: true
-        csrf_protection:
-            enabled: true
-            field_name: '_csrf_token'
 
 when@test:
     framework:

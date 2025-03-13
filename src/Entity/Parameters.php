@@ -5,10 +5,8 @@ namespace App\Entity;
 use App\Repository\ParametersRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ParametersRepository::class)]
-#[ORM\Table(name: 'parameters')]
 class Parameters
 {
     #[ORM\Id]
@@ -16,37 +14,20 @@ class Parameters
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'param_key', length: 50, unique: true)]
-    #[Assert\NotBlank(message: "La clé du paramètre ne peut pas être vide")]
-    #[Assert\Length(
-        min: 3, 
-        max: 50, 
-        minMessage: "La clé doit faire au moins {{ limit }} caractères",
-        maxMessage: "La clé ne peut pas dépasser {{ limit }} caractères"
-    )]
+    #[ORM\Column(length: 35)]
     private ?string $paramKey = null;
 
-    #[ORM\Column(name: 'param_value', type: 'text')]
-    #[Assert\NotBlank(message: "La valeur du paramètre ne peut pas être vide")]
+    #[ORM\Column(length: 35)]
     private ?string $paramValue = null;
 
-    #[ORM\Column(name: 'param_description', type: 'text', nullable: true)]
-    private ?string $paramDescription = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $paramDateFrom = null;
 
-    #[ORM\Column(name: 'param_created_at', type: Types::DATETIME_MUTABLE)]
-    private \DateTimeInterface $paramCreatedAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $paramDateTo = null;
 
-    #[ORM\Column(name: 'param_updated_at', type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $paramUpdatedAt = null;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'param_updated_by', referencedColumnName: 'id', nullable: true)]
-    private ?User $paramUpdatedBy = null;
-
-    public function __construct()
-    {
-        $this->paramCreatedAt = new \DateTime();
-    }
+    #[ORM\Column(nullable: true)]
+    private ?int $paramUserMaj = null;
 
     public function getId(): ?int
     {
@@ -61,6 +42,7 @@ class Parameters
     public function setParamKey(string $paramKey): static
     {
         $this->paramKey = $paramKey;
+
         return $this;
     }
 
@@ -72,53 +54,43 @@ class Parameters
     public function setParamValue(string $paramValue): static
     {
         $this->paramValue = $paramValue;
+
         return $this;
     }
 
-    public function getParamDescription(): ?string
+    public function getParamDateFrom(): ?\DateTimeInterface
     {
-        return $this->paramDescription;
+        return $this->paramDateFrom;
     }
 
-    public function setParamDescription(?string $paramDescription): static
+    public function setParamDateFrom(?\DateTimeInterface $paramDateFrom): static
     {
-        $this->paramDescription = $paramDescription;
+        $this->paramDateFrom = $paramDateFrom;
+
         return $this;
     }
 
-    public function getParamCreatedAt(): \DateTimeInterface
+    public function getParamDateTo(): ?\DateTimeInterface
     {
-        return $this->paramCreatedAt;
+        return $this->paramDateTo;
     }
 
-    public function getParamUpdatedAt(): ?\DateTimeInterface
+    public function setParamDateTo(?\DateTimeInterface $paramDateTo): static
     {
-        return $this->paramUpdatedAt;
-    }
+        $this->paramDateTo = $paramDateTo;
 
-    public function setParamUpdatedAt(?\DateTimeInterface $paramUpdatedAt): static
-    {
-        $this->paramUpdatedAt = $paramUpdatedAt;
         return $this;
     }
 
-    public function getParamUpdatedBy(): ?User
+    public function getParamUserMaj(): ?int
     {
-        return $this->paramUpdatedBy;
+        return $this->paramUserMaj;
     }
 
-    public function setParamUpdatedBy(?User $paramUpdatedBy): static
+    public function setParamUserMaj(?int $paramUserMaj): static
     {
-        $this->paramUpdatedBy = $paramUpdatedBy;
+        $this->paramUserMaj = $paramUserMaj;
+
         return $this;
-    }
-
-    public function extractCategory(): ?string
-    {
-        if (!$this->paramKey) {
-            return null;
-        }
-        $parts = explode('_', $this->paramKey);
-        return count($parts) > 1 ? $parts[0] : null;
     }
 }

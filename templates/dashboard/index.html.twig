@@ -8,88 +8,320 @@
 
     <div class="dashboard-container">
         <div class="parameter_menu">
-            {% if permissionService.hasPermission('view_own_profile') %}
-                <div class="user-info card">
-                    <div class="user-avatar">
-                        <img src="{{ user.userAvatar }}" alt="User Avatar">
-                    </div>
-                   <div class="user-details">
-                        <h3>{{ user.userFirstName }}</h3>
-                        <h3>{{ user.userLastName }}</h3>
-                        <p>{{ user.userEmail }}</p>
-                        <p>{{ user.userRole.value|replace({'ROLE_': ''}) }}</p>
-                    </div>
+            <div class="user-info card">
+                <div class="user-avatar">
+                    <img src="{{ user.userAvatar }}" alt="User Avatar">
                 </div>
-            {% endif %}
+                <div class="user-details">
+                    <h3>{{ user.userFirstName }}</h3>
+                    <h3>{{ user.userLastName }}</h3>
+                    <p>{{ user.userEmail }}</p>
+                    <p>Salarié</p>
+                </div>
+            </div>
 
-            {% if permissionService.hasPermission('view_team_tasks') %}
-                <div class="user-stats card">
-                    <div class="tasks">
-                        <p>Tâches</p>
-                        <h3>85% <span class="up-arrow">↑</span></h3>
-                    </div>
-                    {% if permissionService.hasPermission('view_projects') %}
-                        <div class="projects">
-                            <p>Projets</p>
-                            <h3>13 <span class="down-arrow">↓</span></h3>
-                        </div>
-                    {% endif %}
+            <div class="user-stats card">
+                <div class="tasks">
+                    <p>Tâches</p>
+                    <h3>85% <span class="up-arrow">↑</span></h3>
                 </div>
-            {% endif %}
+                <div class="projects">
+                    <p>Projets</p>
+                    <h3>13 <span class="down-arrow">↓</span></h3>
+                </div>
+            </div>
 
             <nav class="sidebar-nav card">
                 <ul>
-                    <a href="{{ path('home_index') }}" class="btn-link">Page d'accueil <i class="fas fa-home"></i></a>
-                    {% if permissionService.hasPermission('view_team_tasks') %}
-                        <a href="#" class="btn-link">Calendrier</a>
-                        <a href="#" class="btn-link">Efficacité des tâches</a>
-                    {% endif %}
-                    {% if permissionService.hasPermission('view_project_statistics') %}
-                        <a href="#" class="btn-link">Productivité individuelle</a>
-                    {% endif %}
+                    <a href="#" class="btn-link">Page d'accueil <i class="fas fa-home"></i></a>
+                    <a href="#" class="btn-link">Calendrier</a>
+                    <a href="#" class="btn-link">Efficacité des tâches</a>
+                    <a href="#" class="btn-link">Productivité individuelle</a>
                 </ul>
             </nav>
         </div>
         <div class="main-content">
-            {% if permissionService.hasPermission('view_team_tasks') %}
-                <div class="calendar card">
-                    <h4>Calendrier</h4>
-                    <iframe src="https://calendar.google.com/calendar/embed?src=your_calendar_id&ctz=Europe%2FParis" 
-                            style="border: 0" 
-                            width="100%" 
-                            height="400px" 
-                            frameborder="0" 
-                            scrolling="no"></iframe>
-                </div>
-            {% endif %}
+            <div class="calendar card">
+                <h4>Calendrier</h4>
+                <iframe src="https://calendar.google.com/calendar/embed?src=your_calendar_id&ctz=Europe%2FParis" 
+                        style="border: 0" 
+                        width="100%" 
+                        height="400px" 
+                        frameborder="0" 
+                        scrolling="no"></iframe>
+            </div>
 
-            {% if permissionService.hasPermission('view_projects') %}
-                <div class="project-info card">
-                    <h4>12 Projets Actifs</h4>
-                    <div class="project-progress">
-                        <div class="progress-bar">
-                            <span class="progress" style="width: 66%;"></span>
-                        </div>
-                        <p>8 en cours</p>
+            <div class="project-info card">
+                <h4>12 Projets Actifs</h4>
+                <div class="project-progress">
+                    <div class="progress-bar">
+                        <span class="progress" style="width: 66%;"></span>
                     </div>
-                    <a href="{{ path('app_management_project') }}" class="more-info">En savoir plus</a>
+                    <p>8 en cours</p>
                 </div>
-            {% endif %}
+                <a href="#" class="more-info">En savoir plus</a>
+            </div>
 
-            {% if permissionService.hasPermission('view_team_tasks') %}
-                <div class="efficiency-box card">
-                    <h4>Efficacité des tâches</h4>
-                </div>
-            {% endif %}
+            <div class="efficiency-box card">
+                <h4>Efficacité des tâches</h4>
+            </div>
 
-            {% if permissionService.hasPermission('view_project_statistics') %}
-                <div class="productivity-box card">
-                    <h4>Productivité individuelle</h4>
-                    <p>Liste de tâches + un total</p>
-                    <p>Comparaison entre effort prévisionnel et réel</p>
-                </div>
-            {% endif %}
+            <div class="productivity-box card">
+                <h4>Productivité individuelle</h4>
+                <p>Liste de tâches + un total</p>
+                <p>Comparaison entre effort prévisionnel et réel</p>
+            </div>
         </div>
     </div>
 
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    body {
+        color: #000; /* Texte global en noir */
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    .dashboard-container {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        flex-wrap: wrap;
+    }
+
+    .parameter_menu {
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .main-content {
+        flex: 2;
+        min-width: 300px;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .user-info img {
+        border-radius: 50%;
+        height: 80px;
+        width: 80px;
+        object-fit: cover;
+    }
+
+    .user-details h3, .user-details p {
+        margin: 5px 0;
+        color: #000; /* Texte des détails utilisateur en noir */
+    }
+
+    .user-stats {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .tasks, .projects {
+        text-align: center;
+    }
+
+    .tasks p, .tasks h3,
+    .projects p, .projects h3 {
+        color: #000; /* Texte et flèches des statistiques en noir */
+    }
+
+    .up-arrow {
+        color: green;
+    }
+
+    .down-arrow {
+        color: red;
+    }
+
+    .sidebar-nav ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar-nav li {
+        margin: 10px 0;
+    }
+
+    .sidebar-nav a {
+        display: inline-block;
+        text-decoration: none;
+        color: #fff;
+        font-weight: bold;
+        background-color: rgb(0, 0, 0);
+        border: 1px solid rgb(0, 0, 0);
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-align: center;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .sidebar-nav a:hover {
+        background-color: #1cdaff;
+        color: #fff;
+    }
+
+    .calendar iframe {
+        width: 100%;
+        border-radius: 8px;
+    }
+
+    .progress-bar {
+        background: #eaeaea;
+        border-radius: 8px;
+        position: relative;
+        height: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
+
+    .progress {
+        display: block;
+        height: 100%;
+        background: #4caf50;
+    }
+
+    .project-info h4, 
+    .project-info p,
+    .efficiency-box h4, 
+    .productivity-box h4, 
+    .productivity-box p {
+        color: #000; /* Texte des sections en noir */
+    }
+
+    .more-info {
+        display: inline-block;
+        margin-top: 10px;
+        color: #000; /* Lien en noir */
+        text-decoration: none;
+    }
+
+    .more-info:hover {
+        text-decoration: underline;
+    }
+
+    /* Media Queries pour rendre le design responsive */
+
+    @media screen and (max-width: 1024px) {
+        .dashboard-container {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .parameter_menu {
+            max-width: 100%;
+        }
+
+        .main-content {
+            min-width: 100%;
+        }
+
+        .sidebar-nav a {
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        .calendar iframe {
+            height: 350px;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .user-info img {
+            height: 60px;
+            width: 60px;
+        }
+
+        .user-details h3 {
+            font-size: 1.2rem;
+        }
+
+        .user-stats {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tasks, .projects {
+            margin-bottom: 10px;
+        }
+
+        .calendar iframe {
+            height: 300px;
+        }
+
+        .sidebar-nav a {
+            font-size: 12px;
+            padding: 8px 10px;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        .dashboard-container {
+            padding: 10px;
+        }
+
+        .parameter_menu {
+            max-width: 100%;
+        }
+
+        .main-content {
+            min-width: 100%;
+        }
+
+        .card {
+            padding: 15px;
+        }
+
+        .user-info img {
+            height: 50px;
+            width: 50px;
+        }
+
+        .user-details h3 {
+            font-size: 1rem;
+        }
+
+        .user-stats {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .tasks, .projects {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .calendar iframe {
+            height: 250px;
+        }
+
+        .sidebar-nav a {
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
+        .project-info h4, 
+        .efficiency-box h4, 
+        .productivity-box h4 {
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+        }
+
+        .progress {
+            background: #4caf50;
+        }
+    }
+</style>
 {% endblock %}

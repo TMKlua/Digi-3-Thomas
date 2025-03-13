@@ -1,80 +1,107 @@
 {% extends 'base.html.twig' %} 
-{% block title %}Digi-3 - A propos{% endblock %}
+{% block title %}Digi-3 - À propos{% endblock %}
 {% block body %} 
 {% include 'includes/header.html.twig' with {'user': user} %}
 <section class="parameter_landing flex">
   {% include 'parameter/_menu.html.twig' %}
   <div class="parameter_content need-scrollbar">
     <div class="about-page flex-col">
-      <div class="legal-mentions flex-col">
+      <div class="card">
         <h3>Mentions légales</h3>
         <p>
-          <strong>Nom de l'entreprise :</strong> Digi-3<br />
-          <strong>Adresse :</strong> 210 avenue de lodève, 34000 Montpellier,
-          France<br />
-          <strong>Numéro de SIRET :</strong> 123 456 789 00010<br />
-          <strong>Directeur de publication :</strong> Louis Bousquet<br />
-          <strong>Contact :</strong> contact@digi-3.com<br />
-          <strong>Hébergeur :</strong> OVH, 2 Rue Kellermann, 59100 Roubaix,
-          France
+          <strong>Nom de l'entreprise :</strong> <span>Digi-3</span><br />
+          <strong>Adresse :</strong> <span>210 avenue de lodève, 34000 Montpellier, France</span><br />
+          <strong>Numéro de SIRET :</strong> <span>123 456 789 00010</span><br />
+          <strong>Directeur de publication :</strong> <span>Louis Bousquet</span><br />
+          <strong>Contact :</strong> <span>contact@digi-3.com</span><br />
+          <strong>Hébergeur :</strong> <span>OVH, 2 Rue Kellermann, 59100 Roubaix, France</span>
         </p>
       </div>
-      <div class="terms-of-service flex-col">
+      <div class="card">
         <h3>Conditions Générales d'Utilisation (CGU)</h3>
         <p>
-          Les conditions générales d'utilisation régissent
-          l'utilisation de l'application Digi-3. En utilisant l'application,
-          vous acceptez les conditions. Nous nous réservons le droit
-          de modifier ces conditions à tout moment, et les modifications
-          prendront effet dès leur publication sur cette page.
+          Les conditions générales d'utilisation régissent l'utilisation de l'application Digi-3. En utilisant l'application,
+          vous acceptez les conditions. Nous nous réservons le droit de modifier ces conditions à tout moment.
         </p>
         <h4>1. Accès à l'application</h4>
         <p>
-          L'accès à l'application Digi-3 est gratuit pour tous les utilisateurs
-          disposant d'un compte. Certaines fonctionnalités peuvent être
-          réservées aux administrateurs et aux utilisateurs autorisés.
+          L'accès à l'application Digi-3 est gratuit pour tous les utilisateurs disposant d'un compte.
         </p>
         <h4>2. Propriété intellectuelle</h4>
         <p>
-          L'ensemble des contenus disponibles sur l'application, y compris les
-          textes, images, logos, et vidéos, sont protégés par le droit d'auteur.
-          Toute reproduction ou utilisation sans autorisation est interdite.
+          L'ensemble des contenus disponibles sur l'application sont protégés par le droit d'auteur.
         </p>
         <h4>3. Responsabilité</h4>
         <p>
-          Digi-3 décline toute responsabilité en cas de dommage résultant de
-          l'utilisation de l'application, notamment en cas d'interruption ou
-          d'inaccessibilité du service.
+          Digi-3 décline toute responsabilité en cas de dommage résultant de l'utilisation de l'application.
         </p>
       </div>
-      <div class="privacy-policy flex-col">
+      <div class="card">
         <h3>Politique de confidentialité</h3>
         <p>
-          Digi-3 s'engage à protéger la vie privée de ses utilisateurs et à
-          respecter la réglementation en vigueur, notamment le RGPD.
+          Digi-3 s'engage à protéger la vie privée de ses utilisateurs et à respecter la réglementation en vigueur, notamment le RGPD.
         </p>
         <h4>1. Données collectées</h4>
         <p>
-          Nous collectons des données personnelles telles que votre nom, adresse
-          e-mail, et préférences d'utilisation dans le cadre de la gestion de
-          votre compte et de l'utilisation des services Digi-3.
+          Nous collectons des données personnelles telles que votre nom, adresse e-mail, et préférences d'utilisation.
         </p>
         <h4>2. Utilisation des données</h4>
         <p>
-          Les données collectées sont utilisées pour améliorer l'expérience
-          utilisateur, assurer la sécurité des comptes, et vous fournir un
-          service personnalisé. Nous ne partageons pas vos données avec des
-          tiers sans votre consentement.
+          Les données collectées sont utilisées pour améliorer l'expérience utilisateur et assurer la sécurité des comptes.
         </p>
         <h4>3. Droits des utilisateurs</h4>
         <p>
-          Conformément au RGPD, vous disposez d'un droit d'accès, de
-          modification, de suppression et de portabilité de vos données
-          personnelles. Vous pouvez exercer ces droits en nous contactant à
-          l'adresse suivante : <strong>privacy@digi-3.com</strong>.
+          Conformément au RGPD, vous disposez d'un droit d'accès, de modification et de suppression de vos données personnelles.
         </p>
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  .card {
+    width: 95%;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 30px;
+    background: #f8f8f8;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+  }
+  .card h3 {
+    margin-bottom: 20px;
+    color: #111;
+    font-size: 1.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  .card h4 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #222;
+    font-size: 1.4em;
+    font-weight: bold;
+  }
+  .card p {
+    color: #333;
+    font-size: 1.2em;
+    line-height: 1.8;
+    font-weight: 500;
+  }
+  .card p strong {
+    font-weight: 700;
+  }
+  .about-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+  }
+</style>
 {% endblock %}

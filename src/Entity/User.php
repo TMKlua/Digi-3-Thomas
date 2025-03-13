@@ -8,39 +8,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use App\Enum\UserRole;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: 'users')]
-#[UniqueEntity(fields: ['userEmail'], message: 'Cet email est déjà utilisé')]
+#[ORM\Table(name: '`user`')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    public const ROLE_ADMIN = 'ROLE_ADMIN';
-    public const ROLE_RESPONSABLE = 'ROLE_RESPONSABLE';
-    public const ROLE_PROJECT_MANAGER = 'ROLE_PROJECT_MANAGER';
-    public const ROLE_LEAD_DEVELOPER = 'ROLE_LEAD_DEVELOPER';
-    public const ROLE_DEVELOPER = 'ROLE_DEVELOPER';
-    public const ROLE_USER = 'ROLE_USER';
-
-    public const VALID_ROLES = [
-        self::ROLE_ADMIN,
-        self::ROLE_RESPONSABLE,
-        self::ROLE_PROJECT_MANAGER,
-        self::ROLE_LEAD_DEVELOPER,
-        self::ROLE_DEVELOPER,
-        self::ROLE_USER
-    ];
-
-    /**
-     * Convertit un UserRole en chaîne de caractères pour la compatibilité avec le système de sécurité Symfony
-     */
-    public static function getRoleValue(UserRole $role): string
-    {
-        return $role->value;
-    }
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -66,45 +38,48 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private ?string $userLastName = null;
 
-    #[ORM\Column(length: 100, unique: true)]
+    #[ORM\Column(length: 35, unique: true)]
     #[Assert\NotBlank(message: 'L\'email ne peut pas être vide.')]
-    #[Assert\Email(
-        message: 'L\'email {{ value }} n\'est pas valide.',
-        mode: 'strict'
-    )]
+    #[Assert\Email(message: 'L\'email n\'est pas valide.')]
     private ?string $userEmail = null;
 
     #[ORM\Column(length: 255)]
     private string $userAvatar = '/img/account/default-avatar.jpg';
 
+    #[ORM\Column(length: 35)]
+    private string $userRole = 'ROLE_USER';
+
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le mot de passe ne peut pas être vide.')]
+    #[Assert\Length(
+        min: 8,
+        minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caractères.'
+    )]
+    #[Assert\Regex(
+        pattern: '/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&].{8,}$/',
+        message: 'Le mot de passe doit contenir au moins une lettre, un chiffre et un caractère spécial.'
+    )]
     private ?string $userPassword = null;
 
-    #[ORM\Column(length: 20, enumType: UserRole::class)]
-    private UserRole $userRole = UserRole::USER;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private \DateTimeInterface $userCreatedAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $userDateFrom = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $userUpdatedAt = null;
+    private ?\DateTimeInterface $userDateTo = null;
 
-    #[ORM\ManyToOne(targetEntity: self::class)]
-    #[ORM\JoinColumn(name: 'user_updated_by', referencedColumnName: 'id', nullable: true)]
-    private ?self $userUpdatedBy = null;
+    #[ORM\Column(nullable: true)]
+    private ?int $userUserMaj = null;
 
     #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private ?string $resetToken = null;
 
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $resetTokenExpiresAt = null;
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $resetTokenExpiresAt = null;
 
-    public function __construct()
+    public function getEmail(): ?string
     {
-        $this->userCreatedAt = new \DateTime();
+        return $this->userEmail;
     }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -143,7 +118,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getUserAvatar(): string
+    public function getUserAvatar(): ?string
     {
         return $this->userAvatar;
     }
@@ -154,54 +129,47 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getUserPassword(): ?string
+    public function getUserRole(): ?string
     {
-        return $this->userPassword;
+        return $this->userRole;
     }
 
-    /**
-     * @param string $userPassword
-     * @return $this
-     */
-    public function setUserPassword(string $userPassword): static
+    public function setUserRole(string $userRole): static
     {
-        $this->userPassword = $userPassword;
+        $this->userRole = $userRole;
         return $this;
     }
 
-    public function getUserCreatedAt(): \DateTimeInterface
+    public function getUserDateFrom(): ?\DateTimeInterface
     {
-        return $this->userCreatedAt;
+        return $this->userDateFrom;
     }
 
-    public function setUserCreatedAt(\DateTimeInterface $userCreatedAt): static
+    public function setUserDateFrom(?\DateTimeInterface $userDateFrom): static
     {
-        $this->userCreatedAt = $userCreatedAt;
+        $this->userDateFrom = $userDateFrom;
         return $this;
     }
 
-    public function getUserUpdatedAt(): ?\DateTimeInterface
+    public function getUserDateTo(): ?\DateTimeInterface
     {
-        return $this->userUpdatedAt;
+        return $this->userDateTo;
     }
 
-    public function setUserUpdatedAt(?\DateTimeInterface $userUpdatedAt): static
+    public function setUserDateTo(?\DateTimeInterface $userDateTo): static
     {
-        $this->userUpdatedAt = $userUpdatedAt;
+        $this->userDateTo = $userDateTo;
         return $this;
     }
 
-    public function getUserUpdatedBy(): ?self
+    public function getUserUserMaj(): ?int
     {
-        return $this->userUpdatedBy;
+        return $this->userUserMaj;
     }
 
-    public function setUserUpdatedBy(?self $userUpdatedBy): static
+    public function setUserUserMaj(?int $userUserMaj): static
     {
-        $this->userUpdatedBy = $userUpdatedBy;
+        $this->userUserMaj = $userUserMaj;
         return $this;
     }
 
@@ -210,94 +178,90 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->resetToken;
     }
 
-    public function setResetToken(?string $resetToken): self
+    public function setResetToken(?string $resetToken): static
     {
         $this->resetToken = $resetToken;
         return $this;
     }
 
-    public function getResetTokenExpiresAt(): ?\DateTimeImmutable
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
     {
         return $this->resetTokenExpiresAt;
     }
 
-    public function setResetTokenExpiresAt(?\DateTimeImmutable $resetTokenExpiresAt): self
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
     {
         $this->resetTokenExpiresAt = $resetTokenExpiresAt;
         return $this;
     }
 
     /**
-     * Méthode requise par l'interface UserInterface
+     * @see UserInterface
      */
     public function getUserIdentifier(): string
     {
-        return $this->userEmail;
+        return (string) $this->userEmail;
     }
 
     /**
-     * Méthode requise par l'interface PasswordAuthenticatedUserInterface
+     * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->userPassword;
     }
 
     /**
-     * Méthode requise par l'interface UserInterface
+     * @see UserInterface
      */
     public function getRoles(): array
     {
-        return [self::getRoleValue($this->userRole)];
+        $roles = ['ROLE_USER'];
+        if ($this->userRole) {
+            $roles[] = $this->userRole;
+        }
+        return array_unique($roles);
     }
 
     /**
-     * Méthode requise par l'interface UserInterface
+     * @deprecated since Symfony 5.3, use getUserIdentifier() instead
      */
+    public function getUsername(): string
+    {
+        return $this->getUserIdentifier();
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->userPassword = $password;
+        return $this;
+    }
+
     public function eraseCredentials(): void
     {
-        // Si vous stockez des données temporaires sensibles
+        // Si vous stockez des données sensibles temporaires
     }
 
-    /**
-     * Alias pour setUserPassword pour compatibilité avec PasswordAuthenticatedUserInterface
-     */
-    public function setPassword(string $hashedPassword): self
-    {
-        $this->userPassword = $hashedPassword;
-        return $this;
-    }
-
-    public function getUserRole(): UserRole
-    {
-        return $this->userRole;
-    }
-
-    public function setUserRole(UserRole $userRole): self
-    {
-        $this->userRole = $userRole;
-        return $this;
-    }
-
-    /**
-     * Méthode de fabrique pour créer un nouvel utilisateur
-     */
     public static function create(
-        UserPasswordHasherInterface $passwordHasher,
         string $firstName,
         string $lastName,
         string $email,
-        string $plainPassword,
-        UserRole $role = UserRole::USER
+        string $hashedPassword
     ): self {
         $user = new self();
-        $user->setUserFirstName($firstName);
-        $user->setUserLastName($lastName);
-        $user->setUserEmail($email);
-        $user->setUserPassword($passwordHasher->hashPassword($user, $plainPassword));
-        $user->setUserRole($role);
-        $user->setUserCreatedAt(new \DateTime());
-        $user->setUserUpdatedAt(new \DateTime());
+        $user
+            ->setUserFirstName($firstName)
+            ->setUserLastName($lastName)
+            ->setUserEmail($email)
+            ->setPassword($hashedPassword)
+            ->setUserDateFrom(new \DateTime())
+            ->setUserAvatar('/img/account/default-avatar.jpg')
+            ->setUserRole('ROLE_USER')
+            ->setResetToken(null)
+            ->setResetTokenExpiresAt(null)
+            ->setUserDateTo(null)
+            ->setUserUserMaj(null);
+
         return $user;
     }
 }

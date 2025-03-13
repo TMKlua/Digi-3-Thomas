@@ -14,16 +14,12 @@ class PasswordUpdateType extends AbstractType
     {
         $builder
             ->add('actual_password', PasswordType::class, [
-                'mapped' => false,
                 'label' => 'Mot de passe actuel',
-                'attr' => ['class' => 'form-control']
+                'mapped' => false
             ])
             ->add('password', PasswordType::class, [
-                'mapped' => false,
-                'label' => 'Nouveau mot de passe',
-                'attr' => ['class' => 'form-control']
-            ])
-        ;
+                'label' => 'Nouveau mot de passe'
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

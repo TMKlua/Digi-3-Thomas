@@ -1,27 +1,17 @@
 security:
-    # Configuration du hachage des mots de passe
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
         App\Entity\User:
             algorithm: auto
-            cost: 15  # Coût plus élevé pour une meilleure sécurité
-
-    # Configuration des providers utilisateurs
+            cost: 12
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
+        # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
                 class: App\Entity\User
                 property: userEmail
-
-    # Hiérarchie des rôles
-    role_hierarchy:
-        ROLE_DEVELOPER: ROLE_USER
-        ROLE_LEAD_DEVELOPER: ROLE_DEVELOPER
-        ROLE_PROJECT_MANAGER: ROLE_LEAD_DEVELOPER
-        ROLE_RESPONSABLE: ROLE_PROJECT_MANAGER
-        ROLE_ADMIN: [ROLE_RESPONSABLE, ROLE_ALLOWED_TO_SWITCH]
-
-    # Configuration des pare-feu
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -33,46 +23,23 @@ security:
             logout:
                 path: app_logout
                 target: app_auth
-                # Invalidation de la session lors de la déconnexion
-                invalidate_session: true
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800  # 1 semaine
+                lifetime: 604800
                 path: /
-                secure: true  # Cookies sécurisés en HTTPS
-                httponly: true  # Protection XSS
-          
-    # Contrôle d'accès global
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#the-firewall
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
     access_control:
-        # Routes publiques (non authentifiées)
-        - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/auth, roles: PUBLIC_ACCESS }
-        - { path: ^/logout, roles: PUBLIC_ACCESS }
-        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
-        
-        # Routes accessibles à tous les utilisateurs authentifiés
-        - { path: ^/dashboard, roles: IS_AUTHENTICATED_REMEMBERED }
-        - { path: ^/parameter, roles: IS_AUTHENTICATED_REMEMBERED }
-        
-        # Routes pour les chefs de projet (ROLE_PROJECT_MANAGER)
-        # Accès en lecture seule aux utilisateurs et clients
-        - { path: ^/parameter/users$, roles: ROLE_PROJECT_MANAGER }
-        - { path: ^/parameter/customers$, roles: ROLE_PROJECT_MANAGER }
-        # Accès CRUD aux projets
-        - { path: ^/parameter/projects, roles: ROLE_PROJECT_MANAGER }
-        
-        # Routes pour les responsables et administrateurs
-        # Accès CRUD complet aux utilisateurs et clients
-        - { path: ^/parameter/users/, roles: [ROLE_RESPONSABLE, ROLE_ADMIN] }
-        - { path: ^/parameter/customers/, roles: [ROLE_RESPONSABLE, ROLE_ADMIN] }
-        
-        # Routes pour les administrateurs uniquement
-        - { path: ^/parameter/app_configuration, roles: ROLE_ADMIN }
+        - { path: ^/dashboard, roles: ROLE_USER }
+        - { path: ^/, roles: PUBLIC_ACCESS }
 
-        # Routes administratives
-        - { path: ^/admin, roles: ROLE_ADMIN }
-
-# Configuration spécifique pour les tests
 when@test:
     security:
         password_hashers:

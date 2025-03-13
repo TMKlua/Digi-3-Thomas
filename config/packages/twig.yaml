@@ -1,7 +1,5 @@
 twig:
     file_name_pattern: '*.twig'
-    globals:
-        permissionService: '@App\Service\PermissionService'
 
 when@test:
     twig:

@@ -3,14 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\CustomersRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CustomersRepository::class)]
-#[ORM\Table(name: 'customers')]
 class Customers
 {
     #[ORM\Id]
@@ -18,53 +14,38 @@ class Customers
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(name: 'customer_name', length: 255)]
-    #[Assert\NotBlank(message: 'Le nom du client ne peut pas être vide.')]
+    #[ORM\Column(length: 255)]
     private ?string $customerName = null;
 
-    #[ORM\Column(name: 'customer_address_street', length: 255)]
-    #[Assert\NotBlank(message: 'L\'adresse du client ne peut pas être vide.')]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $customerAddressStreet = null;
 
-    #[ORM\Column(name: 'customer_address_zipcode', length: 35)]
-    #[Assert\NotBlank(message: 'Le code postal ne peut pas être vide.')]
+    #[ORM\Column(length: 35, nullable: true)]
     private ?string $customerAddressZipcode = null;
 
-    #[ORM\Column(name: 'customer_address_city', length: 255)]
-    #[Assert\NotBlank(message: 'La ville ne peut pas être vide.')]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $customerAddressCity = null;
 
-    #[ORM\Column(name: 'customer_address_country', length: 35)]
-    #[Assert\NotBlank(message: 'Le pays ne peut pas être vide.')]
+    #[ORM\Column(length: 35, nullable: true)]
     private ?string $customerAddressCountry = null;
 
-    #[ORM\Column(name: 'customer_vat', length: 35, nullable: true)]
-    private ?string $customerVat = null;
+    #[ORM\Column(length: 35, nullable: true)]
+    private ?string $customerVAT = null;
 
-    #[ORM\Column(name: 'customer_siren', length: 35, nullable: true)]
-    private ?string $customerSiren = null;
+    #[ORM\Column(length: 35, nullable: true)]
+    private ?string $customerSIREN = null;
 
-    #[ORM\Column(name: 'customer_reference', length: 255, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $customerReference = null;
 
-    #[ORM\Column(name: 'customer_created_at', type: Types::DATETIME_MUTABLE)]
-    private \DateTimeInterface $customerCreatedAt;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $customerDateFrom = null;
 
-    #[ORM\Column(name: 'customer_updated_at', type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $customerUpdatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $customerDateTo = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'customer_updated_by', referencedColumnName: 'id', nullable: true)]
-    private ?User $customerUpdatedBy = null;
-
-    #[ORM\OneToMany(mappedBy: 'projectCustomer', targetEntity: Project::class)]
-    private Collection $projects;
-
-    public function __construct()
-    {
-        $this->customerCreatedAt = new \DateTime();
-        $this->projects = new ArrayCollection();
-    }
+    #[ORM\Column]
+    private ?int $customerUserMaj = null;
 
     public function getId(): ?int
     {
@@ -79,6 +60,7 @@ class Customers
     public function setCustomerName(string $customerName): static
     {
         $this->customerName = $customerName;
+
         return $this;
     }
 
@@ -90,6 +72,7 @@ class Customers
     public function setCustomerAddressStreet(string $customerAddressStreet): static
     {
         $this->customerAddressStreet = $customerAddressStreet;
+
         return $this;
     }
 
@@ -101,6 +84,7 @@ class Customers
     public function setCustomerAddressZipcode(string $customerAddressZipcode): static
     {
         $this->customerAddressZipcode = $customerAddressZipcode;
+
         return $this;
     }
 
@@ -109,9 +93,10 @@ class Customers
         return $this->customerAddressCity;
     }
 
-    public function setCustomerAddressCity(string $customerAddressCity): static
+    public function setCustomerAddressCity(?string $customerAddressCity): static
     {
         $this->customerAddressCity = $customerAddressCity;
+
         return $this;
     }
 
@@ -120,31 +105,34 @@ class Customers
         return $this->customerAddressCountry;
     }
 
-    public function setCustomerAddressCountry(string $customerAddressCountry): static
+    public function setCustomerAddressCountry(?string $customerAddressCountry): static
     {
         $this->customerAddressCountry = $customerAddressCountry;
+
         return $this;
     }
 
-    public function getCustomerVat(): ?string
+    public function getCustomerVAT(): ?string
     {
-        return $this->customerVat;
+        return $this->customerVAT;
     }
 
-    public function setCustomerVat(?string $customerVat): static
+    public function setCustomerVAT(?string $customerVAT): static
     {
-        $this->customerVat = $customerVat;
+        $this->customerVAT = $customerVAT;
+
         return $this;
     }
 
-    public function getCustomerSiren(): ?string
+    public function getCustomerSIREN(): ?string
     {
-        return $this->customerSiren;
+        return $this->customerSIREN;
     }
 
-    public function setCustomerSiren(?string $customerSiren): static
+    public function setCustomerSIREN(?string $customerSIREN): static
     {
-        $this->customerSiren = $customerSiren;
+        $this->customerSIREN = $customerSIREN;
+
         return $this;
     }
 
@@ -156,60 +144,43 @@ class Customers
     public function setCustomerReference(?string $customerReference): static
     {
         $this->customerReference = $customerReference;
+
         return $this;
     }
 
-    public function getCustomerCreatedAt(): \DateTimeInterface
+    public function getCustomerDateFrom(): ?\DateTimeInterface
     {
-        return $this->customerCreatedAt;
+        return $this->customerDateFrom;
     }
 
-    public function getCustomerUpdatedAt(): ?\DateTimeInterface
+    public function setCustomerDateFrom(?\DateTimeInterface $customerDateFrom): static
     {
-        return $this->customerUpdatedAt;
-    }
+        $this->customerDateFrom = $customerDateFrom;
 
-    public function setCustomerUpdatedAt(?\DateTimeInterface $customerUpdatedAt): static
-    {
-        $this->customerUpdatedAt = $customerUpdatedAt;
         return $this;
     }
 
-    public function getCustomerUpdatedBy(): ?User
+    public function getCustomerDateTo(): ?\DateTimeInterface
     {
-        return $this->customerUpdatedBy;
+        return $this->customerDateTo;
     }
 
-    public function setCustomerUpdatedBy(?User $customerUpdatedBy): static
+    public function setCustomerDateTo(?\DateTimeInterface $customerDateTo): static
     {
-        $this->customerUpdatedBy = $customerUpdatedBy;
+        $this->customerDateTo = $customerDateTo;
+
         return $this;
     }
 
-    /**
-     * @return Collection<int, Project>
-     */
-    public function getProjects(): Collection
+    public function getCustomerUserMaj(): ?int
     {
-        return $this->projects;
+        return $this->customerUserMaj;
     }
 
-    public function addProject(Project $project): static
+    public function setCustomerUserMaj(int $customerUserMaj): static
     {
-        if (!$this->projects->contains($project)) {
-            $this->projects->add($project);
-            $project->setProjectCustomer($this);
-        }
-        return $this;
-    }
+        $this->customerUserMaj = $customerUserMaj;
 
-    public function removeProject(Project $project): static
-    {
-        if ($this->projects->removeElement($project)) {
-            if ($project->getProjectCustomer() === $this) {
-                $project->setProjectCustomer(null);
-            }
-        }
         return $this;
     }
 }

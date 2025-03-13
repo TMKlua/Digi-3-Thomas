@@ -1,0 +1,191 @@
+/* auth.scss */
+
+/* Styles de base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+  }
+  
+  .auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  /* Section de connexion et d'inscription */
+  .auth-section {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Formulaire */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  label {
+    font-weight: bold;
+  }
+  
+  input[type="email"], 
+  input[type="password"],
+  input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .password-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .toggle-password {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+  }
+  
+  .auth-submit {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .auth-submit:disabled {
+    background-color: #ccc;
+  }
+  
+  .error {
+    color: red;
+    font-size: 14px;
+  }
+  
+  .forgot-password-link {
+    text-align: center;
+    color: #007bff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .forgot-password-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* Section décorative */
+  .auth-decorate {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .auth-decorate h3 {
+    font-size: 18px;
+    color: #333;
+  }
+  
+  .auth-decorate p {
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .auth-decorate a {
+    font-size: 14px;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .auth-decorate a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Responsivité */
+  @media screen and (max-width: 768px) {
+    .auth-container {
+      padding: 10px;
+    }
+  
+    .auth-section {
+      width: 100%;
+      max-width: 100%;
+      padding: 15px;
+    }
+  
+    .auth-decorate h3 {
+      font-size: 16px;
+    }
+  
+    .auth-decorate p {
+      font-size: 12px;
+    }
+  
+    input[type="email"], 
+    input[type="password"],
+    input[type="text"] {
+      font-size: 14px;
+      padding: 8px;
+    }
+  
+    .auth-submit {
+      font-size: 14px;
+      padding: 8px;
+    }
+  
+    .forgot-password-link {
+      font-size: 12px;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    .auth-section {
+      max-width: 100%;
+      padding: 10px;
+    }
+  
+    .auth-decorate h3 {
+      font-size: 14px;
+    }
+  
+    .auth-decorate p {
+      font-size: 10px;
+    }
+  
+    input[type="email"], 
+    input[type="password"],
+    input[type="text"] {
+      font-size: 12px;
+      padding: 6px;
+    }
+  
+    .auth-submit {
+      font-size: 12px;
+      padding: 6px;
+    }
+  
+    .forgot-password-link {
+      font-size: 10px;
+    }
+}
