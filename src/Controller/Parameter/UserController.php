@@ -3,14 +3,15 @@
 namespace App\Controller\Parameter;
 
 use App\Entity\User;
+use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use App\Service\PermissionService;
+use App\Service\SecurityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Log\LoggerInterface;
 
@@ -25,11 +26,11 @@ class UserController extends AbstractCrudController
         ValidatorInterface $validator,
         LoggerInterface $logger,
         PermissionService $permissionService,
-        Security $security,
+        SecurityService $securityService,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher
     ) {
-        parent::__construct($entityManager, $validator, $logger, $permissionService, $security);
+        parent::__construct($entityManager, $validator, $logger, $permissionService, $securityService);
         $this->userRepository = $userRepository;
         $this->passwordHasher = $passwordHasher;
     }
@@ -56,69 +57,70 @@ class UserController extends AbstractCrudController
 
     protected function canView(): bool
     {
-        return $this->permissionService->hasPermission('view_users');
+        return $this->permissionService->canViewUserList();
     }
 
     protected function canEdit(): bool
     {
-        return $this->permissionService->hasPermission('edit_users');
+        return $this->permissionService->canEditUser();
     }
 
     protected function canDelete(): bool
     {
-        return $this->permissionService->hasPermission('delete_users');
+        return $this->permissionService->canManageUsers();
     }
 
     #[Route('/', name: 'app_parameter_users')]
     public function index(): Response
     {
-        // Vérifier si l'utilisateur est authentifié
-        $currentUser = $this->security->getUser();
+        $currentUser = $this->securityService->getCurrentUser();
         if (!$currentUser) {
-            throw $this->createAccessDeniedException('Utilisateur non authentifié');
+            return $this->redirectToRoute('app_auth');
         }
 
-        // Vérifier si l'utilisateur peut voir la liste des utilisateurs
         if (!$this->canView()) {
-            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour voir la liste des utilisateurs');
+            throw $this->createAccessDeniedException('Accès non autorisé');
         }
+
+        $users = $this->userRepository->findAll();
+        $roles = UserRole::cases();
 
         return $this->render('parameter/user/index.html.twig', [
-            'users' => $this->userRepository->findAll(),
-            'user' => $this->security->getUser(),
+            'users' => $users,
+            'roles' => $roles,
             'canEdit' => $this->canEdit(),
             'canDelete' => $this->canDelete(),
-            'canManageRoles' => $this->permissionService->hasPermission('manage_roles')
         ]);
     }
 
     protected function validateData(array $data): void
     {
-        $requiredFields = ['firstName', 'lastName', 'email', 'role'];
-        
-        foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
-                throw new \InvalidArgumentException("Le champ $field est obligatoire");
-            }
+        if (empty($data['first_name'])) {
+            throw new \InvalidArgumentException('Le prénom est requis');
         }
-
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException('Format d\'email invalide');
+        
+        if (empty($data['last_name'])) {
+            throw new \InvalidArgumentException('Le nom est requis');
+        }
+        
+        if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Email invalide');
         }
     }
 
     protected function createEntity(array $data): object
     {
-        $this->denyAccessUnlessGranted('create', null, 'Vous n\'avez pas les permissions nécessaires pour créer un utilisateur.');
-        
         $user = new User();
-        $this->updateEntity($user, $data);
-        $tempPassword = $this->generateTemporaryPassword($user);
+        $user->setUserFirstName($data['first_name']);
+        $user->setUserLastName($data['last_name']);
+        $user->setUserEmail($data['email']);
         
-        $this->logger->info('Mot de passe temporaire généré', [
-            'email' => $user->getUserEmail(),
-            'tempPassword' => $tempPassword
-        ]);
+        // Générer un mot de passe temporaire
+        $temporaryPassword = $this->generateTemporaryPassword($user);
+        $user->setPassword($this->passwordHasher->hashPassword($user, $temporaryPassword));
+        
+        // Définir le rôle
+        $user->setUserRole(UserRole::from($data['role'] ?? UserRole::USER->value));
         
         return $user;
     }
@@ -128,34 +130,42 @@ class UserController extends AbstractCrudController
         if (!$entity instanceof User) {
             throw new \InvalidArgumentException('L\'entité doit être un utilisateur');
         }
-
-        $this->denyAccessUnlessGranted('edit', $entity, 'Vous n\'avez pas les permissions nécessaires pour modifier cet utilisateur.');
-
-        if ($entity->getId() && $entity->getUserRole() !== $data['role']) {
-            $this->denyAccessUnlessGranted('change_role', $entity, 'Vous n\'avez pas les permissions nécessaires pour changer le rôle de cet utilisateur.');
+        
+        if (isset($data['first_name'])) {
+            $entity->setUserFirstName($data['first_name']);
         }
-
-        $entity->setUserFirstName($data['firstName'])
-               ->setUserLastName($data['lastName'])
-               ->setUserEmail($data['email'])
-               ->setUserRole($data['role']);
+        
+        if (isset($data['last_name'])) {
+            $entity->setUserLastName($data['last_name']);
+        }
+        
+        if (isset($data['email'])) {
+            $entity->setUserEmail($data['email']);
+        }
+        
+        if (isset($data['role'])) {
+            $entity->setUserRole(UserRole::from($data['role']));
+        }
     }
 
     private function generateTemporaryPassword(User $user): string
     {
-        $tempPassword = bin2hex(random_bytes(8));
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $tempPassword);
-        $user->setPassword($hashedPassword);
-        return $tempPassword;
+        $prefix = substr($user->getUserFirstName(), 0, 1) . substr($user->getUserLastName(), 0, 1);
+        $randomPart = bin2hex(random_bytes(4));
+        
+        return strtoupper($prefix) . '@' . $randomPart;
     }
 
     protected function getRequestData(Request $request): array
     {
+        $data = parent::getRequestData($request);
+        
+        // Convertir les données du formulaire en tableau associatif
         return [
-            'firstName' => $request->request->get('firstName'),
-            'lastName' => $request->request->get('lastName'),
-            'email' => $request->request->get('email'),
-            'role' => $request->request->get('role')
+            'first_name' => $data['first_name'] ?? '',
+            'last_name' => $data['last_name'] ?? '',
+            'email' => $data['email'] ?? '',
+            'role' => $data['role'] ?? UserRole::USER->value,
         ];
     }
 }

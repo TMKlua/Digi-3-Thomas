@@ -6,9 +6,9 @@ use App\Entity\User;
 use App\Form\EmailUpdateType;
 use App\Form\PasswordUpdateType;
 use App\Service\PermissionService;
+use App\Service\SecurityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +20,7 @@ class GeneralController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private Security $security,
+        private SecurityService $securityService,
         private PermissionService $permissionService,
         private UserPasswordHasherInterface $passwordHasher
     ) {}
@@ -28,15 +28,15 @@ class GeneralController extends AbstractController
     #[Route('/generaux', name: 'app_parameter_generaux')]
     public function index(Request $request): Response
     {
-        $user = $this->security->getUser();
+        $user = $this->securityService->getCurrentUser();
 
-        if (!$user instanceof User) {
+        if (!$user) {
             $this->addFlash('error', 'Vous devez être connecté pour accéder à cette page.');
             return $this->redirectToRoute('app_auth');
         }
 
-        // Vérification de permission réactivée
-        if (!$this->permissionService->hasPermission('view_own_profile')) {
+        // Utiliser la méthode spécifique pour vérifier la permission
+        if (!$this->permissionService->canViewOwnProfile()) {
             throw $this->createAccessDeniedException('Accès non autorisé à cette page.');
         }
 

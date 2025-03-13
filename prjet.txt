@@ -1,0 +1,234 @@
+Méthodologie de développement
+
+Ce chapitre décrit les principaux choix technologiques et méthodologiques adoptés pour le développement de l’application.
+Gestion de projet
+Nous allons utiliser GitHub et GitProject comme plateforme de gestion de projet car elle offre un environnement collaboratif et sécurisé pour le développement de notre application. GitHub nous permettra de centraliser le code source, suivre l'évolution du projet de manière transparente grâce à un historique détaillé des modifications et favoriser la communication au sein de l'équipe.
+Conception 
+L’étape de maquettage sur Figma permettant un prototypage interactif pour tester l'UX auprès des futurs utilisateurs.
+L’idée est de construire les maquettes des écrans, de mettre en place les principaux liens entre les pages permettant de simuler une exécution réelle et de partager le tout avec des utilisateurs. Même si l’application n’est pas finalisée, cette étape permet de valider les grands principes de la navigation et de l’expérience utilisateur. 
+C’est donc un gain de temps pour la gestion du projet en général.
+Développement
+Stack technique 
+PHP 8.2 avec Symfony 7.2, HTML5, SCSS, TypeScript, Webpack.
+Symfony est un des framework PHP les plus mature et robuste. Il offre une structure à la fois solide et modulaire, une communauté active et une multitude de composants réutilisables. 
+HTML5, CSS et Javascript sont les langages standards utilisés en développement web. Dans un souci d'apprentissage nous avons décidé de développer ce projet sans utiliser de framework CSS ou Javascript.
+Dans le contexte de l’utilisation du framework Symfony, WebPack permet de gérer efficacement les ressources JavaScript, CSS et autres afin d’optimiser le chargement et l’exécution des pages.
+Nous allons privilégier le plus possible l’utilisation d'AJAX afin d’améliorer la réactivité de l'application sur les transactions qui ne nécessitent pas de changer de page.
+
+Base de données
+Nous allons utiliser la base de données relationnelle MySQL car elle est à la fois robuste et fiable, adaptée à des projets simples et surtout open-source et gratuite.
+Hébergement
+Nous ferons le choix d’un hébergement éco-responsable : Choix d'un hébergeur privilégiant les énergies renouvelables
+Conventions de nommage
+Afin d'assurer une cohérence et une lisibilité optimales du code, nous adopterons les conventions de nommage suivantes :
+Classes : Notation PascalCase (exemple : App\Controller\UserController).
+Fichiers: Notation snake_case (exemple : add_user.html.twig).
+Méthodes : Notation camelCase (exemple : public function getUser()).
+Variables : Notation camelCase (exemple : $userRepository).
+Constantes : Notation SNAKE_CASE (exemple : const USER_AVATAR).
+Tables de base de données : Notation snake_case (exemple : user_avatar).
+Remarque importante : Tous les noms doivent être écrits en anglais
+Au-delà de ces conventions de nommage qui permettent de simplifier la lecture du code, l’écriture d'un code « propre » et efficace permet de limiter la consommation de ressources (côté client et serveur) et facilite la maintenance.
+ Tests fonctionnels et techniques
+Fonctionnalités couvertes
+Gestion des utilisateurs (création, modification, suppression, rôles et permissions)
+Gestion des projets et tâches (création, suivi, modification, suppression)
+Collaboration et communication (commentaires, pièces jointes, notifications)
+Gestion des temps et ressources
+Authentification et sécurité
+Interface utilisateur et expérience utilisateur (UX)
+Compatibilité navigateurs et responsive design
+
+Types de tests
+Tests Fonctionnels : Vérifient que chaque fonctionnalité de l'application fonctionne comme prévu.
+Tests d’Interface Utilisateur (UX/UI) : Vérifient que l'interface est intuitive et agréable à utiliser.
+Tests de Performance : Vérifient que l'application répond rapidement et peut gérer une charge élevée.
+Tests de Compatibilité (navigateurs, mobiles) : Vérifient que l'application fonctionne correctement sur différents navigateurs et appareils mobiles.
+Tests de Sécurité : Vérifient que l'application est sécurisée contre les attaques courantes (authentification, autorisations, injections SQL/XSS).
+
+Scénarios de Test
+
+Gestion des Utilisateurs
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+U1
+Création d’un utilisateur
+1. Se connecter en tant qu’administrateur 2. Accéder à la gestion des utilisateurs 3. Ajouter un nouvel utilisateur avec rôle défini 4. Valider la création
+L’utilisateur est ajouté et visible dans la liste
+U2
+Modification d’un utilisateur
+1. Se connecter en tant qu’administrateur 2. Modifier les informations d’un utilisateur 3. Enregistrer les modifications
+Les modifications sont bien prises en compte
+U3
+Suppression d’un utilisateur
+1. Se connecter en tant qu’administrateur 2. Supprimer un utilisateur 3. Vérifier qu’il ne figure plus dans la liste
+L’utilisateur est supprimé
+U4
+Vérification des droits administrateur
+1. Se connecter en tant qu’administrateur 2. Accéder à toutes les fonctionnalités
+L’administrateur a bien accès à toutes les options
+U5
+Vérification des droits développeur full-web
+1. Se connecter en tant que développeur full-web 2. Tenter d’accéder aux options d’administration
+L’accès est refusé et un message d’erreur est affiché
+
+
+Authentification et Sécurité
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+A1
+Connexion avec identifiants valides
+1. Saisir un email et mot de passe corrects 2. Valider
+Accès à l’espace utilisateur
+A2
+Connexion avec identifiants invalides
+1. Saisir un email/mot de passe erroné 2. Valider
+Message d’erreur affiché
+A3
+Déconnexion
+1. Cliquer sur "Déconnexion" 2. Vérifier retour à la page d’authentification
+L’utilisateur est déconnecté
+A4
+Mot de passe oublié
+1. Cliquer sur "Mot de passe oublié" 2. Saisir son email 3. Vérifier réception du mail de réinitialisation
+Email reçu et lien fonctionnel
+
+
+Gestion des Projets et Tâches
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+P1
+Création d’un projet
+1. Se connecter en tant que Chef de projet 2. Accéder à l’espace de gestion des projets 3. Ajouter un projet avec titre et description 4. Valider
+Le projet est ajouté et visible
+P2
+Ajout de tâches dans un projet
+1. Accéder à un projet existant 2. Ajouter une nouvelle tâche avec priorité et échéance 3. Valider
+La tâche est ajoutée au projet
+P3
+Assignation d’une tâche à un utilisateur
+1. Sélectionner une tâche 2. Assigner un utilisateur 3. Valider
+L’utilisateur est notifié de la tâche
+
+
+Collaboration et Communication
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+C1
+Ajout d’un commentaire sur une tâche
+1. Accéder à une tâche 2. Ajouter un commentaire 3. Valider
+Le commentaire est visible
+C2
+Ajout d’une pièce jointe
+1. Accéder à une tâche 2. Ajouter une pièce jointe 3. Valider
+La pièce jointe est attachée
+
+
+Tests de Performance et Compatibilité
+
+ID
+Scénario
+Étapes
+Résultat Attendu
+T1
+Chargement du tableau de bord
+1. Accéder au tableau de bord 2. Mesurer le temps de chargement
+Inférieur à 3 secondes
+T2
+Compatibilité mobile
+1. Tester l’interface sur différents appareils
+Affichage et navigation corrects
+T3
+Test multi-navigateurs
+1. Ouvrir l’application sur Chrome, Firefox, Edge, Safari
+Aucune erreur d’affichage
+
+
+Outils de Test
+Selenium :  Pour les tests d'interface utilisateur (UI) et les tests fonctionnels. Selenium permet d'automatiser les tests de navigation et d'interaction avec l'application web, en simulant les actions des utilisateurs.
+PhpUnit :  Pour les tests unitaires et d'intégration. PHPUnit est un framework de test pour PHP qui permet de vérifier que chaque composant de l'application fonctionne correctement en isolation et en interaction avec d'autres composants
+
+Conformité
+Normes et bonnes pratiques
+
+Le développement de l'application se doit d’être conforme au référentiel 3WA DEV WEB, garantissant ainsi la qualité, la sécurité et la pérennité du projet. Nous avons particulièrement porté attention aux aspects suivants : tests unitaires, sécurité (protection contre les injections SQL et XSS, gestion sécurisée des mots de passe), optimisation pour les moteurs de recherche et conformité aux normes WCAG pour une accessibilité optimale.
+Dans ce cadre, nous avons choisi d’utiliser l’outil CS Fixer qui permet d’analyser le code PHP et de le comparer à des règles de style préconfigurées. Il permet de standardiser le code ce qui facilite la lecture et la maintenance de ce dernier surtout lorsqu'une équipe de développeurs travaille ensemble sur le même projet.
+Législation : Respect du RGPD.
+
+Le respect du RGPD en développement implique de concevoir et de mettre en œuvre des applications qui permettent aux utilisateurs de contrôler leurs données personnelles. Cela signifie concrètement qu'un utilisateur doit pouvoir accéder à ses données à tout moment et en demander une copie, corriger des erreurs dans ses données personnelles, demander la suppression de l'ensemble de ses données (droit à l'oubli) et s'opposer à certains traitements de ses données.
+L'application traite principalement des données personnelles contenues dans les tables Customer et User.
+Table User: Les utilisateurs disposent d'un espace personnel leur permettant de consulter, modifier et supprimer leurs données personnelles (nom, prénom, mot de passe). Cette fonctionnalité est conforme au droit à l'accès, de rectification et d'effacement garanti par le RGPD.
+Table Customer: Cette table contient des informations nécessaires à l'établissement de devis. Bien que ces données puissent être considérées comme personnelles, leur traitement est justifié par la relation commerciale établie. Néanmoins, les clients doivent pouvoir exercer leurs droits RGPD (accès, rectification, effacement) sur demande. Bien que la version V1 de l’application ne propose pas encore d'interface utilisateur pour supprimer l'intégralité des données d'un client, cette fonctionnalité doit être implémentée dans les prochaines versions. Cela implique de mettre en place un processus sécurisé permettant de supprimer toutes les données liées à un client, y compris les historiques, les logs et les fichiers associés.
+Accessibilité : Conformité aux normes RGAA et WCAG.
+L'application devra être développée en conformité avec les normes RGAA et WCAG afin de garantir son accessibilité à tous les utilisateurs, y compris les personnes en situation de handicap. Cela implique notamment :
+Une conception inclusive : L'interface utilisateur devra être claire, simple et intuitive, avec des contrastes visuels suffisants et des tailles de texte lisibles.
+Des fonctionnalités d’assistance : L'application devra supporter les technologies d'assistance telles que les lecteurs d'écran et les navigateurs avec des options d'accessibilité.
+Une structure de code sémantique : Le code HTML devra être structuré de manière logique et utiliser des attributs sémantiques pour faciliter l'interprétation par les outils d'assistance. 
+Compatibilité des navigateurs
+La compatibilité des navigateurs pour une application web fait référence à la capacité de cette application à fonctionner correctement sur différents navigateurs web tels que Chrome, Safari et Mozilla Firefox. Chaque navigateur peut interpréter le code HTML, CSS et JavaScript de manière légèrement différente, ce qui peut entraîner des variations dans l’affichage et les fonctionnalités de l’application. Pour garantir une expérience utilisateur cohérente et optimale.
+Veille technologique
+Les langages, Framework, librairies et autres étant en constante évolution, il est essentiel de faire une veille régulière afin de se tenir informé des changements qui peuvent impacter notre application.
+Les outils permettant de réaliser une veille technique efficace sont nombreux.
+Hackernews pour la sécurité
+PHP pour les évolutions du langage
+Symfony pour suivre les nouvelles versions du framework
+MDN (Mozilla Developer Network) est une ressource en ligne gratuite et collaborative qui fournit une documentation exhaustive sur les technologies web et notamment sur HTML5 et Javascript
+Grafikart: plateforme spécifique dédiée à la formation et aux tutoriels en développement web
+
+
+Sécurité
+
+La sécurité dans le cadre du développement d’une application web regroupe de nombreux aspects : 
+Authentification et gestion des droits d’accès
+Sécurité, sauvegarde et protection des données incluant la conformité aux réglementations visant à protéger les utilisateurs (RGPD)
+La sécurité côté serveur pour éviter les attaques DDoS
+Et enfin sécurité du code en lui-même pour éviter les injections SQL ou XSS
+
+Authentification et autorisation
+Les utilisateurs doivent s’identifier pour utiliser l’application à l’aide d’un login et mot de passe. Étant donné la complexité et l’importance de cette partie, nous allons utiliser le module SecurityBundle de Symfony.
+
+Le fichier security.yaml est le cœur de la configuration de la sécurité. Il permet de définir les firewalls, les encodeurs de mot de passe, etc. Ce module permet également la création des contrôleurs et des formulaires liés à l'authentification (connexion, déconnexion, mot de passe oublié, etc.).
+
+Authentification à Deux Facteurs
+Bien que cela soit possible techniquement, nous ne mettrons pas en place d’authentification à deux facteurs pour cette application en V1. Cependant, il est fortement recommandé d'envisager cette fonctionnalité pour les versions futures afin de renforcer la sécurité de l'application.
+
+Gestion des Rôles et Permissions
+Les rôles et les permissions ont été décrits au chapitre 1.2 de ce document. Ils permettent un accès différencié aux fonctionnalités en fonction des rôles utilisateurs. Une fois le user identifié, une table de la base de données permet de définir ses autorisations sur chaque écran. Une classe appelée PermissionService permet de définir la hiérarchie entre les rôles et les autorisations (CRUD) ainsi que des fonctions qui peuvent être utilisées dans tous les contrôleurs.
+
+Protection contre les Attaques par Force Brute
+Concernant la protection contre les attaques par force brute, le SecurityBundle de Symfony vérifie, lorsqu’un utilisateur tente de se connecter, si le nombre de tentatives autorisées a été dépassé. Si c'est le cas, l'accès est refusé et le compte peut être bloqué temporairement ou définitivement. Ceci est géré dans le contrôleur SecurityController avec le composant RateLimiter.
+
+
+Sécurité, sauvegarde et protection des données
+Chiffrement des données sensibles
+Il n’y a pas réellement de donnée sensible dans l’application. Par conséquent, seul le mot de passe des utilisateurs sera chiffré. Cette partie est gérée par paramétrage dans le security.yaml de Symfony.
+Protection contre les injections SQL et XSS
+Symfony offre un ensemble de solutions pour se protéger contre les injections SQL et XSS, deux des vulnérabilités les plus courantes dans les applications web.
+Injections SQL
+L’accès à la base de données est piloté par le module Doctrine ORM. Ce dernier utilise par défaut des requêtes préétablies et des paramètres, ce qui empêche d’injecter du code SQL malveillant et de passer des caractères spéciaux qui pourraient être mal interprétés par le moteur SQL. En effet, Doctrine vérifie automatiquement si le contenu de la variable reçue est correct.
+Attaques XSS
+Une attaque XSS (Cross-Site Scripting) permet à un attaquant d'injecter du code malveillant (généralement du JavaScript) dans une page web afin de récupérer des informations (mot de passe utilisateur, par exemple).
+Sur Symfony, les pages sont rendues via le module de template Twig, qui utilise des variables pour éviter l’injection de code malveillant. Pour les formulaires, Symfony utilise le composant Form qui protège automatiquement l’utilisateur et l’application contre les attaques XSS en filtrant les données saisies dans les formulaires.
+La sécurité côté serveur pour éviter les attaques DDoS
+La première chose à faire est d’assurer une maintenance régulière du serveur web : mise à jour logicielle régulière, désactivation des fonctionnalités non utilisées, etc.
+L’application étant appelée à être installée chez un hébergeur, il conviendra de vérifier contractuellement et via des réunions de suivi régulières si ces actions de base sont bien respectées.
+L’installation d’un pare-feu pour se protéger contre les attaques externes est également possible mais dépend de l’hébergeur.
+Les attaques DDoS visent à saturer les ressources d'un serveur (bande passante, CPU, etc.) en envoyant un volume de trafic anormalement élevé. Pour se protéger efficacement contre ces attaques, il est nécessaire de mettre en place des solutions au niveau de l'infrastructure réseau, qui sont généralement gérées par l’hébergeur. Des solutions comme Cloudflare ou Akamai peuvent être utilisées pour atténuer les attaques DDoS.
+La sécurité du code
+Nous avons déjà abordé précédemment l’importance de la validation et du filtrage des données saisies par un utilisateur et les solutions offertes par Symfony.
+Il est important ici d’ajouter qu’il est crucial de bien gérer les messages d’erreurs renvoyés par l’application afin de ne pas divulguer des informations concernant l’application (framework, langage) ou l’infrastructure (type de serveur, etc.). Symfony permet d’éviter ce type d’erreur, ce qui peut être renforcé par des tests de sécurité.
+Des outils gratuits existent sur le marché pour simuler des attaques externes, comme Kali Linux.
+
+

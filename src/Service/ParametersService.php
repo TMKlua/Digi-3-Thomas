@@ -13,7 +13,7 @@ class ParametersService
         private EntityManagerInterface $entityManager,
         private ParametersRepository $parametersRepository,
         private PermissionService $permissionService,
-        private Security $security
+        private SecurityService $securityService
     ) {}
 
     public function createParameter(array $data): Parameters
@@ -57,7 +57,7 @@ class ParametersService
         }
 
         $parameter->setParamUpdatedAt(new \DateTime());
-        $parameter->setParamUpdatedBy($this->security->getUser());
+        $parameter->setParamUpdatedBy($this->securityService->getCurrentUser());
 
         $this->entityManager->flush();
 

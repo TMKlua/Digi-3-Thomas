@@ -17,7 +17,7 @@ class ProjectService
         private EntityManagerInterface $entityManager,
         private ProjectRepository $projectRepository,
         private PermissionService $permissionService,
-        private Security $security
+        private SecurityService $securityService
     ) {
     }
 

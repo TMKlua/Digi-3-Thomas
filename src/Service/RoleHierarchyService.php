@@ -14,6 +14,13 @@ class RoleHierarchyService
      */
     private const ROLE_HIERARCHY = [
         User::ROLE_ADMIN => [
+            User::ROLE_RESPONSABLE,
+            User::ROLE_PROJECT_MANAGER,
+            User::ROLE_LEAD_DEVELOPER,
+            User::ROLE_DEVELOPER,
+            User::ROLE_USER
+        ],
+        User::ROLE_RESPONSABLE => [
             User::ROLE_PROJECT_MANAGER,
             User::ROLE_LEAD_DEVELOPER,
             User::ROLE_DEVELOPER,
@@ -41,28 +48,28 @@ class RoleHierarchyService
         // Permissions système
         'system' => [
             'manage_configuration' => [User::ROLE_ADMIN],
-            'view_logs' => [User::ROLE_ADMIN],
+            'view_logs' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE],
             'manage_system_settings' => [User::ROLE_ADMIN],
         ],
         
         // Permissions utilisateurs
         'users' => [
-            'view_users' => [User::ROLE_ADMIN, User::ROLE_PROJECT_MANAGER],
-            'create_users' => [User::ROLE_ADMIN],
-            'edit_users' => [User::ROLE_ADMIN],
+            'view_users' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE, User::ROLE_PROJECT_MANAGER],
+            'create_users' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE],
+            'edit_users' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE],
             'delete_users' => [User::ROLE_ADMIN],
             'manage_roles' => [User::ROLE_ADMIN],
-            'view_own_profile' => [User::ROLE_ADMIN, User::ROLE_PROJECT_MANAGER, User::ROLE_LEAD_DEVELOPER, User::ROLE_DEVELOPER, User::ROLE_USER],
+            'view_own_profile' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE, User::ROLE_PROJECT_MANAGER, User::ROLE_LEAD_DEVELOPER, User::ROLE_DEVELOPER, User::ROLE_USER],
         ],
         
         // Permissions projets
         'projects' => [
-            'view_all_projects' => [User::ROLE_ADMIN, User::ROLE_PROJECT_MANAGER],
-            'create_projects' => [User::ROLE_ADMIN, User::ROLE_PROJECT_MANAGER],
-            'edit_projects' => [User::ROLE_ADMIN, User::ROLE_PROJECT_MANAGER],
-            'delete_projects' => [User::ROLE_ADMIN],
-            'view_project_statistics' => [User::ROLE_ADMIN, User::ROLE_PROJECT_MANAGER],
-            'view_projects' => [User::ROLE_ADMIN, User::ROLE_PROJECT_MANAGER, User::ROLE_LEAD_DEVELOPER, User::ROLE_DEVELOPER],
+            'view_all_projects' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE, User::ROLE_PROJECT_MANAGER],
+            'create_projects' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE, User::ROLE_PROJECT_MANAGER],
+            'edit_projects' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE, User::ROLE_PROJECT_MANAGER],
+            'delete_projects' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE],
+            'view_project_statistics' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE, User::ROLE_PROJECT_MANAGER],
+            'view_projects' => [User::ROLE_ADMIN, User::ROLE_RESPONSABLE, User::ROLE_PROJECT_MANAGER, User::ROLE_LEAD_DEVELOPER, User::ROLE_DEVELOPER],
         ],
         
         // Permissions tâches
@@ -101,8 +108,10 @@ class RoleHierarchyService
      */
     public function hasPermission(string $role, string $permission): bool
     {
-        // Pour le débogage
-        // echo "Vérification de la permission $permission pour le rôle $role<br>";
+        // Si le rôle est ROLE_ADMIN, il a toutes les permissions
+        if ($role === User::ROLE_ADMIN) {
+            return true;
+        }
         
         // Parcourir tous les domaines de permissions
         foreach (self::PERMISSIONS as $domain => $permissions) {
@@ -112,40 +121,21 @@ class RoleHierarchyService
                     return true;
                 }
                 
-                // Si le rôle est ROLE_ADMIN, il a toutes les permissions
-                if ($role === User::ROLE_ADMIN) {
-                    return true;
-                }
-                
-                // Pour les autres rôles, vérifier la hiérarchie
-                foreach (self::ROLE_HIERARCHY as $parentRole => $childRoles) {
-                    // Si le rôle est un enfant d'un rôle parent qui a la permission
-                    if (in_array($role, $childRoles) && in_array($parentRole, $permissions[$permission])) {
+                // Vérifier si un rôle parent du rôle actuel est dans la liste des rôles autorisés
+                $reachableRoles = $this->getReachableRoles($role);
+                foreach ($permissions[$permission] as $allowedRole) {
+                    if (in_array($allowedRole, $reachableRoles)) {
                         return true;
                     }
                 }
                 
+                // Permission trouvée mais non autorisée pour ce rôle
                 return false;
             }
         }
         
+        // Permission non trouvée
         return false;
-    }
-
-    /**
-     * Vérifie si un rôle est dans la hiérarchie d'un autre rôle
-     */
-    private function isRoleInHierarchy(string $role, string $childRole): bool
-    {
-        if ($role === $childRole) {
-            return true;
-        }
-        
-        if (!isset(self::ROLE_HIERARCHY[$role])) {
-            return false;
-        }
-        
-        return in_array($childRole, self::ROLE_HIERARCHY[$role]);
     }
 
     /**
@@ -157,9 +147,16 @@ class RoleHierarchyService
         
         if (isset(self::ROLE_HIERARCHY[$role])) {
             $reachableRoles = array_merge($reachableRoles, self::ROLE_HIERARCHY[$role]);
+            
+            // Récupérer récursivement les rôles accessibles
+            foreach (self::ROLE_HIERARCHY[$role] as $childRole) {
+                if (isset(self::ROLE_HIERARCHY[$childRole])) {
+                    $reachableRoles = array_merge($reachableRoles, $this->getReachableRoles($childRole));
+                }
+            }
         }
         
-        return $reachableRoles;
+        return array_unique($reachableRoles);
     }
 
     /**

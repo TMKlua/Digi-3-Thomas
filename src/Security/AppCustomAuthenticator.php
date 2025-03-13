@@ -19,8 +19,6 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use Symfony\Component\Security\Csrf\CsrfToken;
 
 class AppCustomAuthenticator extends AbstractLoginFormAuthenticator
 {
@@ -29,124 +27,135 @@ class AppCustomAuthenticator extends AbstractLoginFormAuthenticator
     public const LOGIN_ROUTE = 'app_auth';
 
     public function __construct(
-        private UrlGeneratorInterface $urlGenerator,
-        private LoggerInterface $logger,
-        private CsrfTokenManagerInterface $csrfTokenManager
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly LoggerInterface $logger
     ) {}
 
+    /**
+     * Cette méthode détermine si l'authenticator doit être utilisé pour la requête actuelle
+     */
     public function supports(Request $request): bool
     {
-        $isCorrectRoute = $request->attributes->get('_route') === self::LOGIN_ROUTE;
-        $isPostMethod = $request->isMethod('POST');
-        $hasLoginAction = $request->request->get('action') === 'login';
+        // Vérifier si c'est une requête POST vers la route de login
+        $isLoginRoute = $request->attributes->get('_route') === self::LOGIN_ROUTE;
+        $isPost = $request->isMethod('POST');
         
-        // Log pour le débogage
-        if ($isCorrectRoute && $isPostMethod) {
-            $this->logger->debug('Tentative d\'authentification détectée', [
+        // Journaliser pour le débogage
+        if ($isLoginRoute && $isPost) {
+            $this->logger->debug('AppCustomAuthenticator supporte cette requête', [
                 'route' => $request->attributes->get('_route'),
                 'method' => $request->getMethod(),
-                'action' => $request->request->get('action'),
-                'post_data' => $request->request->all()
             ]);
         }
         
-        return $isCorrectRoute && $isPostMethod && $hasLoginAction;
+        return $isLoginRoute && $isPost;
     }
 
     public function authenticate(Request $request): Passport
     {
-        $email = $request->request->get('email', '');
-        $password = $request->request->get('password', '');
-        $csrfToken = $request->request->get('_csrf_token', '');
-        
-        // Vérifications plus strictes
-        if (empty($email)) {
-            throw new CustomUserMessageAuthenticationException('L\'email ne peut pas être vide.');
-        }
-        
-        if (empty($password)) {
-            throw new CustomUserMessageAuthenticationException('Le mot de passe ne peut pas être vide.');
-        }
-        
-        if (empty($csrfToken)) {
-            $this->logger->error('Token CSRF manquant dans la requête');
-            throw new CustomUserMessageAuthenticationException('Le jeton CSRF est manquant.');
-        }
-
-        // Vérification du token CSRF
-        if (!$this->isCsrfTokenValid('authenticate', $csrfToken)) {
-            $this->logger->error('Token CSRF invalide', [
-                'token' => $csrfToken
+        try {
+            // Récupérer les données du formulaire
+            $formData = $request->request->all('login_form');
+            
+            $this->logger->debug('Données du formulaire reçues', [
+                'formData' => $formData,
             ]);
-            throw new CustomUserMessageAuthenticationException('Token CSRF invalide. Veuillez réessayer.');
+            
+            if (!is_array($formData) || !isset($formData['email']) || !isset($formData['password'])) {
+                throw new CustomUserMessageAuthenticationException('Formulaire de connexion invalide.');
+            }
+            
+            $email = trim($formData['email']);
+            $password = $formData['password'];
+            $csrfToken = $formData['_token'] ?? '';
+            
+            // Vérifications des champs obligatoires
+            if (empty($email)) {
+                throw new CustomUserMessageAuthenticationException('L\'email ne peut pas être vide.');
+            }
+            
+            if (empty($password)) {
+                throw new CustomUserMessageAuthenticationException('Le mot de passe ne peut pas être vide.');
+            }
+
+            // Stocker l'email pour l'afficher en cas d'erreur
+            if ($request->hasSession()) {
+                $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, $email);
+            }
+
+            $badges = [];
+            
+            // Vérifier que le token CSRF est présent
+            if (empty($csrfToken)) {
+                $this->logger->warning('Tentative de connexion sans token CSRF', [
+                    'email' => $email,
+                    'ip' => $request->getClientIp(),
+                ]);
+                throw new CustomUserMessageAuthenticationException('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
+            }
+            
+            // Utiliser le même identifiant que dans le type de formulaire
+            $badges[] = new CsrfTokenBadge('login_form', $csrfToken);
+            
+            // Ajouter le badge RememberMe si la case est cochée
+            if (isset($formData['remember_me']) && $formData['remember_me']) {
+                $badges[] = new RememberMeBadge();
+            }
+
+            return new Passport(
+                new UserBadge($email),
+                new PasswordCredentials($password),
+                $badges
+            );
+        } catch (CustomUserMessageAuthenticationException $e) {
+            // Rethrow custom exceptions
+            throw $e;
+        } catch (\Exception $e) {
+            // Log unexpected exceptions and convert to a user-friendly message
+            $this->logger->error('Erreur inattendue lors de l\'authentification: ' . $e->getMessage(), [
+                'exception' => $e,
+                'ip' => $request->getClientIp(),
+            ]);
+            throw new CustomUserMessageAuthenticationException('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
         }
-
-        // Journaliser le token CSRF pour le débogage
-        $this->logger->debug('Token CSRF reçu', [
-            'token' => $csrfToken,
-            'email' => $email
-        ]);
-
-        $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, $email);
-
-        return new Passport(
-            new UserBadge($email),
-            new PasswordCredentials($password),
-            [
-                new CsrfTokenBadge('authenticate', $csrfToken),
-                new RememberMeBadge(),
-            ]
-        );
-    }
-
-    /**
-     * Vérifie si un token CSRF est valide
-     */
-    private function isCsrfTokenValid(string $id, string $token): bool
-    {
-        $expectedToken = $this->csrfTokenManager->getToken($id)->getValue();
-        $this->logger->debug('Vérification du token CSRF', [
-            'id' => $id,
-            'token_reçu' => $token,
-            'token_attendu' => $expectedToken,
-        ]);
-        return $this->csrfTokenManager->isTokenValid(new CsrfToken($id, $token));
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        $user = $token->getUser();
-        
-        if (!$user instanceof User) {
-            return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
         }
-        
-        // Redirection basée sur le rôle de l'utilisateur
-        // Utiliser une seule route 'app_dashboard' pour tous les rôles pour simplifier
-        $targetPath = 'app_dashboard';
-        
-        // Si vous avez besoin de routes spécifiques par rôle plus tard, vous pourrez les ajouter ici
-        // $targetPath = match($user->getUserRole()->value) {
-        //     User::ROLE_ADMIN => 'app_dashboard',
-        //     User::ROLE_RESPONSABLE => 'app_dashboard',
-        //     User::ROLE_PROJECT_MANAGER => 'app_dashboard',
-        //     default => 'app_dashboard'
-        // };
 
-        return new RedirectResponse($this->urlGenerator->generate($targetPath));
+        return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        $this->logger->warning('Échec d\'authentification', [
-            'exception' => $exception->getMessage()
-        ]);
-        
-        if ($request->hasSession()) {
-            $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
-        }
+        try {
+            // Récupérer l'email depuis le formulaire de manière sécurisée
+            $formData = $request->request->all('login_form');
+            $email = is_array($formData) && isset($formData['email']) ? $formData['email'] : 'unknown';
+            
+            $this->logger->warning('Échec d\'authentification', [
+                'message' => $exception->getMessage(),
+                'email' => $email,
+                'ip' => $request->getClientIp(),
+            ]);
+            
+            // Stocker l'erreur dans la session pour l'afficher sur la page de connexion
+            if ($request->hasSession()) {
+                $request->getSession()->set(SecurityRequestAttributes::AUTHENTICATION_ERROR, $exception);
+            }
 
-        return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
+            return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
+        } catch (\Exception $e) {
+            // En cas d'erreur, journaliser et rediriger vers la page de connexion
+            $this->logger->error('Erreur lors du traitement de l\'échec d\'authentification: ' . $e->getMessage(), [
+                'exception' => $e,
+                'ip' => $request->getClientIp(),
+            ]);
+            return new RedirectResponse($this->urlGenerator->generate(self::LOGIN_ROUTE));
+        }
     }
 
     protected function getLoginUrl(Request $request): string

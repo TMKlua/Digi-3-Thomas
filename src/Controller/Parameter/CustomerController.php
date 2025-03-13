@@ -3,14 +3,13 @@
 namespace App\Controller\Parameter;
 
 use App\Entity\Customers;
-use App\Entity\User;
 use App\Repository\CustomersRepository;
 use App\Service\PermissionService;
+use App\Service\SecurityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Psr\Log\LoggerInterface;
 
@@ -24,10 +23,10 @@ class CustomerController extends AbstractCrudController
         ValidatorInterface $validator,
         LoggerInterface $logger,
         PermissionService $permissionService,
-        Security $security,
+        SecurityService $securityService,
         CustomersRepository $customersRepository
     ) {
-        parent::__construct($entityManager, $validator, $logger, $permissionService, $security);
+        parent::__construct($entityManager, $validator, $logger, $permissionService, $securityService);
         $this->customersRepository = $customersRepository;
     }
 
@@ -58,63 +57,37 @@ class CustomerController extends AbstractCrudController
 
     protected function canEdit(): bool
     {
-        return $this->permissionService->hasPermission('edit_customers');
+        return $this->permissionService->canEditCustomer();
     }
 
     protected function canDelete(): bool
     {
-        return $this->permissionService->hasPermission('delete_customers');
+        return $this->permissionService->canDeleteCustomer();
     }
 
     #[Route('/', name: 'app_parameter_customers')]
     public function index(): Response
     {
-        // Vérifier si l'utilisateur est authentifié
-        $currentUser = $this->security->getUser();
-        if (!$currentUser) {
-            throw $this->createAccessDeniedException('Utilisateur non authentifié');
-        }
-
-        // Vérifier si l'utilisateur peut voir la liste des clients
-        if (!$this->canView()) {
-            throw $this->createAccessDeniedException('Vous n\'avez pas les permissions nécessaires pour voir la liste des clients');
-        }
-
-        return $this->render('parameter/customer/index.html.twig', [
-            'customers' => $this->customersRepository->findAll(),
-            'user' => $this->security->getUser(),
-            'canEdit' => $this->canEdit(),
-            'canDelete' => $this->canDelete()
-        ]);
+        return parent::index();
     }
 
     protected function validateData(array $data): void
     {
-        $requiredFields = ['name', 'street', 'zipcode', 'city', 'country'];
+        if (empty($data['name'])) {
+            throw new \InvalidArgumentException('Le nom du client est requis');
+        }
         
-        foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
-                throw new \InvalidArgumentException("Le champ $field est obligatoire");
-            }
+        if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException('Email invalide');
         }
-
-        if (strlen($data['name']) < 2) {
-            throw new \InvalidArgumentException('Le nom du client est trop court');
-        }
-
-        if (!empty($data['vat']) && !preg_match('/^[A-Z]{2}\d{9,12}$/', $data['vat'])) {
-            throw new \InvalidArgumentException('Le numéro de TVA doit être au format européen (ex: FR123456789)');
-        }
-
-        if (!empty($data['siren']) && !preg_match('/^\d{9}$/', $data['siren'])) {
-            throw new \InvalidArgumentException('Le numéro SIREN doit contenir exactement 9 chiffres');
+        
+        if (!empty($data['phone']) && !preg_match('/^\+?[0-9\s\-\(\)]{8,20}$/', $data['phone'])) {
+            throw new \InvalidArgumentException('Numéro de téléphone invalide');
         }
     }
 
     protected function createEntity(array $data): object
     {
-        $this->denyAccessUnlessGranted('create', null, 'Vous n\'avez pas les permissions nécessaires pour créer un client.');
-        
         $customer = new Customers();
         $this->updateEntity($customer, $data);
         return $customer;
@@ -125,35 +98,75 @@ class CustomerController extends AbstractCrudController
         if (!$entity instanceof Customers) {
             throw new \InvalidArgumentException('L\'entité doit être un client');
         }
-
-        $this->denyAccessUnlessGranted('edit', $entity, 'Vous n\'avez pas les permissions nécessaires pour modifier ce client.');
-
-        $currentUser = $this->security->getUser();
-        if (!$currentUser) {
-            throw new \RuntimeException('Utilisateur non authentifié');
+        
+        if (isset($data['name'])) {
+            $entity->setCustomerName($data['name']);
         }
-
-        $entity->setCustomerName($data['name'])
-               ->setCustomerAddressStreet($data['street'])
-               ->setCustomerAddressZipcode($data['zipcode'])
-               ->setCustomerAddressCity($data['city'])
-               ->setCustomerAddressCountry($data['country'])
-               ->setCustomerVAT($data['vat'] ?? null)
-               ->setCustomerSIREN($data['siren'] ?? null)
-               ->setCustomerUpdatedAt(new \DateTime())
-               ->setCustomerUpdatedBy($currentUser);
+        
+        if (isset($data['email'])) {
+            $entity->setCustomerReference($data['email']);
+        }
+        
+        if (isset($data['phone'])) {
+            // Pas de champ téléphone dans l'entité, on peut l'ignorer ou l'ajouter dans une mise à jour future
+        }
+        
+        if (isset($data['address'])) {
+            $entity->setCustomerAddressStreet($data['address']);
+        }
+        
+        if (isset($data['city'])) {
+            $entity->setCustomerAddressCity($data['city']);
+        }
+        
+        if (isset($data['postal_code'])) {
+            $entity->setCustomerAddressZipcode($data['postal_code']);
+        }
+        
+        if (isset($data['country'])) {
+            $entity->setCustomerAddressCountry($data['country']);
+        }
+        
+        if (isset($data['website'])) {
+            // Pas de champ website dans l'entité, on peut l'ignorer ou l'ajouter dans une mise à jour future
+        }
+        
+        if (isset($data['notes'])) {
+            // Pas de champ notes dans l'entité, on peut l'ignorer ou l'ajouter dans une mise à jour future
+        }
+        
+        if (isset($data['vat'])) {
+            $entity->setCustomerVat($data['vat']);
+        }
+        
+        if (isset($data['siren'])) {
+            $entity->setCustomerSiren($data['siren']);
+        }
+        
+        // Mettre à jour la date de modification
+        $entity->setCustomerUpdatedAt(new \DateTime());
+        
+        // Mettre à jour l'utilisateur qui a fait la modification
+        $currentUser = $this->securityService->getCurrentUser();
+        if ($currentUser) {
+            $entity->setCustomerUpdatedBy($currentUser);
+        }
     }
 
     protected function getRequestData(Request $request): array
     {
+        $data = parent::getRequestData($request);
+        
         return [
-            'name' => $request->request->get('customerName'),
-            'street' => $request->request->get('customerAddressStreet'),
-            'zipcode' => $request->request->get('customerAddressZipcode'),
-            'city' => $request->request->get('customerAddressCity'),
-            'country' => $request->request->get('customerAddressCountry'),
-            'vat' => $request->request->get('customerVAT'),
-            'siren' => $request->request->get('customerSIREN')
+            'name' => $data['name'] ?? '',
+            'email' => $data['email'] ?? '',
+            'phone' => $data['phone'] ?? '',
+            'address' => $data['address'] ?? '',
+            'city' => $data['city'] ?? '',
+            'postal_code' => $data['postal_code'] ?? '',
+            'country' => $data['country'] ?? '',
+            'website' => $data['website'] ?? '',
+            'notes' => $data['notes'] ?? '',
         ];
     }
 }

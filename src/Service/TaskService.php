@@ -12,7 +12,6 @@ use App\Repository\TasksRepository;
 use App\Repository\TasksAttachmentsRepository;
 use App\Repository\TasksCommentsRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -29,7 +28,7 @@ class TaskService
         private TasksAttachmentsRepository $attachmentsRepository,
         private TasksCommentsRepository $commentsRepository,
         private PermissionService $permissionService,
-        private Security $security,
+        private SecurityService $securityService,
         private ?SluggerInterface $slugger = null,
         ?string $attachmentsDirectory = null
     ) {
@@ -157,14 +156,14 @@ class TaskService
      */
     public function createComment(Tasks $task, string $content): TasksComments
     {
-        if (!$this->permissionService->canAddComment($task)) {
-            throw new \RuntimeException('Permission denied to add comment to this task');
+        if (!$this->permissionService->canViewTask($task)) {
+            throw new \RuntimeException('Permission denied to comment on this task');
         }
 
         $comment = new TasksComments();
         $comment->setTask($task);
         $comment->setContent($content);
-        $comment->setUser($this->security->getUser());
+        $comment->setUser($this->securityService->getCurrentUser());
         // La date de création est définie dans le constructeur de TasksComments
 
         $this->entityManager->persist($comment);
@@ -189,7 +188,7 @@ class TaskService
      */
     public function getCommentsByUser(): array
     {
-        $user = $this->security->getUser();
+        $user = $this->securityService->getCurrentUser();
         return $this->commentsRepository->findBy(['user' => $user]);
     }
 
@@ -220,8 +219,8 @@ class TaskService
      */
     public function uploadAttachment(Tasks $task, UploadedFile $file, ?string $description = null): TasksAttachments
     {
-        if (!$this->permissionService->canAddAttachment($task)) {
-            throw new \RuntimeException('Permission denied to add attachment to this task');
+        if (!$this->permissionService->canViewTask($task)) {
+            throw new \RuntimeException('Permission denied to upload attachment to this task');
         }
 
         // Vérifier que le slugger est disponible
@@ -249,7 +248,7 @@ class TaskService
         $attachment->setMimeType($file->getMimeType());
         $attachment->setFileSize($file->getSize());
         $attachment->setDescription($description);
-        $attachment->setUploadedBy($this->security->getUser());
+        $attachment->setUploadedBy($this->securityService->getCurrentUser());
         // La date de création est définie dans le constructeur de TasksAttachments
 
         $this->entityManager->persist($attachment);
@@ -328,7 +327,7 @@ class TaskService
      */
     public function canAccessAttachment(TasksAttachments $attachment): bool
     {
-        $user = $this->security->getUser();
+        $user = $this->securityService->getCurrentUser();
         if (!$user instanceof User) {
             return false;
         }

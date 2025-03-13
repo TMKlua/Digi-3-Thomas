@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\Customers;
 use App\Repository\CustomersRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 
 class CustomersService
 {
@@ -13,7 +12,7 @@ class CustomersService
         private EntityManagerInterface $entityManager,
         private CustomersRepository $customersRepository,
         private PermissionService $permissionService,
-        private Security $security
+        private SecurityService $securityService
     ) {}
 
     public function createCustomer(array $data): Customers
@@ -75,7 +74,7 @@ class CustomersService
         }
 
         $customer->setCustomerUpdatedAt(new \DateTime());
-        $customer->setCustomerUpdatedBy($this->security->getUser());
+        $customer->setCustomerUpdatedBy($this->securityService->getCurrentUser());
 
         $this->entityManager->flush();
 

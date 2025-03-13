@@ -11,25 +11,6 @@ services:
     _defaults:
         autowire: true      # Permet l'injection automatique des dépendances
         autoconfigure: true # Configure automatiquement les services
-        bind:
-            # Liaison globale des services courants
-            Symfony\Bundle\SecurityBundle\Security: '@security.helper'
-            Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface: '@security.token_storage'
-            Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface: '@security.authorization_checker'
-
-    # Enregistrement explicite du service Security
-    Symfony\Bundle\SecurityBundle\Security:
-        alias: security.helper
-
-    # Service personnalisé de Permission et Rôles
-    App\Service\RoleHierarchyService:
-        public: true
-
-    App\Service\PermissionService:
-        arguments:
-            $security: '@security.helper'
-            $roleHierarchy: '@App\Service\RoleHierarchyService'
-
     # Rend les classes de src/ disponibles en tant que services
     App\:
         resource: '../src/'
@@ -38,11 +19,25 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # Configuration spécifique pour le contrôleur User
-    App\Controller\Parameter\UserController:
+    # Services personnalisés
+    App\Service\RoleHierarchyService:
+        public: true
+
+    App\Service\SecurityService:
         arguments:
             $security: '@security.helper'
-            $permissionService: '@App\Service\PermissionService'
+            $passwordHasher: '@security.password_hasher'
+
+    App\Service\PermissionService:
+        arguments:
+            $securityService: '@App\Service\SecurityService'
+            $roleHierarchy: '@App\Service\RoleHierarchyService'
+
+    # Service d'authentification personnalisé
+    App\Security\AppCustomAuthenticator:
+        arguments:
+            $urlGenerator: '@router'
+            $logger: '@logger'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

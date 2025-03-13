@@ -33,7 +33,7 @@
                 {# Table principale #}
                 <div class="crud-table" role="region" aria-label="Liste des {{ entity_label }}s">
                     <table aria-describedby="table-description">
-                        <caption id="table-description" class="sr-only">Liste des {{ entity_label }}s avec leurs informations</caption>
+                        <caption id="table-description">Liste des {{ entity_label }}s avec leurs informations</caption>
                         <thead>
                             <tr>
                                 {% block table_headers %}{% endblock %}
@@ -111,18 +111,3 @@
     {{ parent() }}
     {% block crud_scripts %}{% endblock %}
 {% endblock %}
-
-<style>
-    /* Style pour les lecteurs d'écran uniquement */
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border-width: 0;
-    }
-</style> 

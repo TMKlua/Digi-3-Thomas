@@ -15,6 +15,7 @@ export class AuthManager {
         this.resetPasswordForm = document.getElementById("resetPasswordForm");
         this.registerForm = document.getElementById("register_form");
         this.registerPasswordInput = document.getElementById("register_password");
+        this.loginForm = document.getElementById("login_form");
         
         // Contraintes de validation du mot de passe
         this.passwordConstraints = {
@@ -78,13 +79,9 @@ export class AuthManager {
         }
         
         // Gérer la soumission du formulaire de connexion
-        const loginForm = document.getElementById('login_form');
-        if (loginForm) {
-            loginForm.addEventListener('submit', this.handleLoginFormSubmit.bind(this));
+        if (this.loginForm) {
+            this.loginForm.addEventListener('submit', this.handleLoginFormSubmit.bind(this));
         }
-        
-        // Initialiser la fonction globale pour la visibilité du mot de passe
-        window.togglePasswordVisibility = AuthManager.togglePasswordVisibility;
     }
     
     /**
@@ -345,18 +342,22 @@ export class AuthManager {
      * @param {Event} e - L'événement de soumission
      */
     handleRegisterFormSubmit(e) {
-        e.preventDefault();
+        // Ne pas empêcher la soumission du formulaire par défaut
+        // e.preventDefault();
         
         // Vérifier que le token CSRF est présent
-        const csrfToken = document.getElementById('register_csrf_token');
-        if (!csrfToken || !csrfToken.value) {
-            console.error('Token CSRF manquant');
-            alert('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
+        const csrfTokenInput = document.getElementById('register_csrf_token');
+        if (!csrfTokenInput) {
+            console.error('Élément token CSRF non trouvé dans le DOM');
             return;
         }
         
-        // Définir le cookie CSRF avant la soumission
-        document.cookie = `CSRF-REGISTER=${csrfToken.value}; path=/; SameSite=Lax`;
+        if (!csrfTokenInput.value) {
+            console.error('Token CSRF manquant');
+            alert('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
+            e.preventDefault();
+            return;
+        }
         
         // Valider le mot de passe
         const password = this.registerPasswordInput.value;
@@ -364,11 +365,12 @@ export class AuthManager {
         
         if (errors.length > 0) {
             alert(errors.join('\n'));
+            e.preventDefault();
             return;
         }
         
-        // Soumettre le formulaire
-        this.registerForm.submit();
+        // Laisser le formulaire se soumettre normalement
+        console.log('Formulaire d\'inscription valide, soumission en cours...');
     }
     
     /**
@@ -376,18 +378,25 @@ export class AuthManager {
      * @param {Event} e - L'événement de soumission
      */
     handleLoginFormSubmit(e) {
-        e.preventDefault();
+        // Ne pas empêcher la soumission du formulaire par défaut
+        // e.preventDefault();
         
         // Vérifier que le token CSRF est présent
-        const csrfToken = document.getElementById('login_csrf_token');
-        if (!csrfToken || !csrfToken.value) {
-            console.error('Token CSRF manquant');
-            alert('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
+        const csrfTokenInput = document.getElementById('login_csrf_token');
+        if (!csrfTokenInput) {
+            console.error('Élément token CSRF non trouvé dans le DOM');
             return;
         }
         
-        // Soumettre le formulaire
-        document.getElementById('login_form').submit();
+        if (!csrfTokenInput.value) {
+            console.error('Token CSRF manquant');
+            alert('Erreur de sécurité: token CSRF manquant. Veuillez rafraîchir la page.');
+            e.preventDefault();
+            return;
+        }
+        
+        // Laisser le formulaire se soumettre normalement
+        console.log('Formulaire de connexion valide, soumission en cours...');
     }
     
     /**
@@ -398,9 +407,9 @@ export class AuthManager {
         const input = document.getElementById(inputId);
         if (input) {
             input.type = input.type === 'password' ? 'text' : 'password';
-            const icon = input.nextElementSibling.querySelector('img');
-            if (icon) {
-                icon.src = input.type === 'password' ? '/build/images/icons/eye.png' : '/build/images/icons/eye-slash.png';
+            const button = input.parentElement.querySelector('.toggle-password');
+            if (button) {
+                button.setAttribute('aria-label', input.type === 'password' ? 'Afficher le mot de passe' : 'Masquer le mot de passe');
             }
         }
     }
@@ -413,4 +422,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Exposer la fonction togglePasswordVisibility globalement pour les attributs onclick
-window.togglePasswordVisibility = AuthManager.togglePasswordVisibility; 
+window.togglePasswordVisibility = function(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    const button = input.parentElement.querySelector('.toggle-password');
+    if (!button) return;
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.setAttribute('aria-label', 'Masquer le mot de passe');
+    } else {
+        input.type = 'password';
+        button.setAttribute('aria-label', 'Afficher le mot de passe');
+    }
+}; 

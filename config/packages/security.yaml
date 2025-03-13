@@ -4,7 +4,7 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
         App\Entity\User:
             algorithm: auto
-            cost: 12
+            cost: 15  # Coût plus élevé pour une meilleure sécurité
 
     # Configuration des providers utilisateurs
     providers:
@@ -33,23 +33,26 @@ security:
             logout:
                 path: app_logout
                 target: app_auth
+                # Invalidation de la session lors de la déconnexion
+                invalidate_session: true
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800
+                lifetime: 604800  # 1 semaine
                 path: /
-            # Protection CSRF réactivée
-            # csrf_protection: false
-
+                secure: true  # Cookies sécurisés en HTTPS
+                httponly: true  # Protection XSS
+          
     # Contrôle d'accès global
     access_control:
         # Routes publiques (non authentifiées)
         - { path: ^/$, roles: PUBLIC_ACCESS }
         - { path: ^/auth, roles: PUBLIC_ACCESS }
         - { path: ^/logout, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
         
-        # Routes accessibles à tous les utilisateurs authentifiés (ROLE_USER)
-        - { path: ^/parameter/generaux, roles: ROLE_USER }
-        - { path: ^/parameter/about, roles: ROLE_USER }
+        # Routes accessibles à tous les utilisateurs authentifiés
+        - { path: ^/dashboard, roles: IS_AUTHENTICATED_REMEMBERED }
+        - { path: ^/parameter, roles: IS_AUTHENTICATED_REMEMBERED }
         
         # Routes pour les chefs de projet (ROLE_PROJECT_MANAGER)
         # Accès en lecture seule aux utilisateurs et clients
@@ -63,8 +66,11 @@ security:
         - { path: ^/parameter/users/, roles: [ROLE_RESPONSABLE, ROLE_ADMIN] }
         - { path: ^/parameter/customers/, roles: [ROLE_RESPONSABLE, ROLE_ADMIN] }
         
-        # Routes exclusives aux administrateurs
+        # Routes pour les administrateurs uniquement
         - { path: ^/parameter/app_configuration, roles: ROLE_ADMIN }
+
+        # Routes administratives
+        - { path: ^/admin, roles: ROLE_ADMIN }
 
 # Configuration spécifique pour les tests
 when@test:

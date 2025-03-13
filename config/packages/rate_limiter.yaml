@@ -3,4 +3,8 @@ framework:
         login:
             policy: 'fixed_window'
             limit: 5
-            interval: '15 minutes' 
+            interval: '15 minutes'
+        reset_password:
+            policy: 'fixed_window'
+            limit: 3
+            interval: '60 minutes' 

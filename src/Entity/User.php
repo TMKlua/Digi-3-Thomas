@@ -66,7 +66,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private ?string $userLastName = null;
 
-    #[ORM\Column(length: 35, unique: true)]
+    #[ORM\Column(length: 100, unique: true)]
     #[Assert\NotBlank(message: 'L\'email ne peut pas être vide.')]
     #[Assert\Email(
         message: 'L\'email {{ value }} n\'est pas valide.',
@@ -97,8 +97,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private ?string $resetToken = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $resetTokenExpiresAt = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $resetTokenExpiresAt = null;
 
     public function __construct()
     {
@@ -154,9 +154,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
+    public function getUserPassword(): ?string
+    {
+        return $this->userPassword;
+    }
+
+    /**
+     * @param string $userPassword
+     * @return $this
+     */
+    public function setUserPassword(string $userPassword): static
+    {
+        $this->userPassword = $userPassword;
+        return $this;
+    }
+
     public function getUserCreatedAt(): \DateTimeInterface
     {
         return $this->userCreatedAt;
+    }
+
+    public function setUserCreatedAt(\DateTimeInterface $userCreatedAt): static
+    {
+        $this->userCreatedAt = $userCreatedAt;
+        return $this;
     }
 
     public function getUserUpdatedAt(): ?\DateTimeInterface
@@ -186,43 +210,58 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->resetToken;
     }
 
-    public function setResetToken(?string $resetToken): static
+    public function setResetToken(?string $resetToken): self
     {
         $this->resetToken = $resetToken;
         return $this;
     }
 
-    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    public function getResetTokenExpiresAt(): ?\DateTimeImmutable
     {
         return $this->resetTokenExpiresAt;
     }
 
-    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    public function setResetTokenExpiresAt(?\DateTimeImmutable $resetTokenExpiresAt): self
     {
         $this->resetTokenExpiresAt = $resetTokenExpiresAt;
         return $this;
     }
 
+    /**
+     * Méthode requise par l'interface UserInterface
+     */
     public function getUserIdentifier(): string
     {
         return $this->userEmail;
     }
 
+    /**
+     * Méthode requise par l'interface PasswordAuthenticatedUserInterface
+     */
     public function getPassword(): string
     {
         return $this->userPassword;
     }
 
+    /**
+     * Méthode requise par l'interface UserInterface
+     */
     public function getRoles(): array
     {
         return [self::getRoleValue($this->userRole)];
     }
 
+    /**
+     * Méthode requise par l'interface UserInterface
+     */
     public function eraseCredentials(): void
     {
         // Si vous stockez des données temporaires sensibles
     }
 
+    /**
+     * Alias pour setUserPassword pour compatibilité avec PasswordAuthenticatedUserInterface
+     */
     public function setPassword(string $hashedPassword): self
     {
         $this->userPassword = $hashedPassword;
@@ -240,6 +279,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * Méthode de fabrique pour créer un nouvel utilisateur
+     */
     public static function create(
         UserPasswordHasherInterface $passwordHasher,
         string $firstName,
@@ -252,8 +294,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $user->setUserFirstName($firstName);
         $user->setUserLastName($lastName);
         $user->setUserEmail($email);
-        $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+        $user->setUserPassword($passwordHasher->hashPassword($user, $plainPassword));
         $user->setUserRole($role);
+        $user->setUserCreatedAt(new \DateTime());
+        $user->setUserUpdatedAt(new \DateTime());
         return $user;
     }
 }

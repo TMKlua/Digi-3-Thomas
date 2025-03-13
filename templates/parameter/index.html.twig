@@ -61,25 +61,18 @@
             <h2 id="password-section-title">Modifier son mot de passe</h2>
             {{ form_start(passwordForm, { method: "POST", 'attr': {'aria-labelledby': 'password-section-title'} }) }}
             <div class="password-field">
-              {{ form_row(passwordForm.oldPassword, {'id': 'password_form_old_password', 'attr': {'aria-describedby': 'old-password-help'}}) }}
+              {{ form_row(passwordForm.actual_password, {'id': 'password_form_old_password', 'attr': {'aria-describedby': 'old-password-help'}}) }}
               <button type="button" class="toggle-password" aria-label="Afficher ou masquer l'ancien mot de passe" onclick="togglePasswordVisibility('password_form_old_password')">
                 <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true">
               </button>
               <div id="old-password-help" class="form-text sr-only">Entrez votre mot de passe actuel</div>
             </div>
             <div class="password-field">
-              {{ form_row(passwordForm.newPassword, {'id': 'password_form_new_password', 'attr': {'aria-describedby': 'new-password-help'}}) }}
+              {{ form_row(passwordForm.password, {'id': 'password_form_new_password', 'attr': {'aria-describedby': 'new-password-help'}}) }}
               <button type="button" class="toggle-password" aria-label="Afficher ou masquer le nouveau mot de passe" onclick="togglePasswordVisibility('password_form_new_password')">
                 <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true">
               </button>
               <div id="new-password-help" class="form-text sr-only">Entrez votre nouveau mot de passe</div>
-            </div>
-            <div class="password-field">
-              {{ form_row(passwordForm.confirmPassword, {'id': 'password_form_confirm_password', 'attr': {'aria-describedby': 'confirm-password-help'}}) }}
-              <button type="button" class="toggle-password" aria-label="Afficher ou masquer la confirmation du mot de passe" onclick="togglePasswordVisibility('password_form_confirm_password')">
-                <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true">
-              </button>
-              <div id="confirm-password-help" class="form-text sr-only">Confirmez votre nouveau mot de passe</div>
             </div>
             <button type="submit" class="btn-submit">Nouveau mot de passe</button>
             {{ form_end(passwordForm) }}
@@ -90,48 +83,4 @@
   </section>
 </main>
 
-<style>
-  /* Style pour les lecteurs d'écran uniquement */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-</style>
-
-<script>
-  function togglePasswordVisibility(inputId) {
-    const passwordInput = document.getElementById(inputId);
-    if (!passwordInput) return;
-    
-    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
-    
-    // Annoncer le changement pour les lecteurs d'écran
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.classList.add('sr-only');
-    announcement.textContent = type === 'text' ? 'Mot de passe visible' : 'Mot de passe masqué';
-    document.body.appendChild(announcement);
-    
-    setTimeout(() => {
-      document.body.removeChild(announcement);
-    }, 1000);
-  }
-  
-  // Prévisualisation de l'image de profil
-  document.getElementById('file').onchange = function(event) {
-    const output = document.getElementById('output');
-    output.src = URL.createObjectURL(event.target.files[0]);
-    output.onload = function() {
-      URL.revokeObjectURL(output.src) // Libérer la mémoire
-    }
-  };
-</script>
 {% endblock %}

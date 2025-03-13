@@ -4,7 +4,10 @@ namespace App\Controller\Auth;
 
 use App\Entity\User;
 use App\Enum\UserRole;
-use App\Service\PermissionService;
+use App\Form\Auth\LoginFormType;
+use App\Form\Auth\RegisterFormType;
+use App\Form\Auth\ResetPasswordRequestFormType;
+use App\Form\Auth\ResetPasswordFormType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,14 +27,11 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 #[Route('/auth')]
 class SecurityController extends AbstractController
 {
-    private const TOKEN_LENGTH = 40;
     private const TOKEN_EXPIRATION = '+1 hour';
 
     public function __construct(
         private readonly RateLimiterFactory $loginLimiter,
         private readonly LoggerInterface $logger,
-        private readonly AppCustomAuthenticator $authenticator,
-        private readonly PermissionService $permissionService,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
     ) {
     }
@@ -40,39 +40,37 @@ class SecurityController extends AbstractController
      * Page d'authentification
      */
     #[Route('', name: 'app_auth', methods: ['GET', 'POST'])]
-    public function auth(AuthenticationUtils $authenticationUtils, Request $request): Response
-    {
+    public function auth(
+        AuthenticationUtils $authenticationUtils, 
+        LoggerInterface $logger
+    ): Response {
         // Si l'utilisateur est déjà connecté, le rediriger vers le tableau de bord
         if ($this->getUser()) {
             return $this->redirectToRoute('app_dashboard');
         }
 
-        // Limiter les tentatives de connexion
-        $limiter = $this->loginLimiter->create($request->getClientIp());
-        if (!$limiter->consume(1)->isAccepted()) {
-            return $this->render('auth/auth.html.twig', [
-                'error' => 'Trop de tentatives de connexion. Veuillez réessayer dans 5 minutes.',
-                'last_username' => $authenticationUtils->getLastUsername(),
+        // Créer les formulaires
+        $loginForm = $this->createForm(LoginFormType::class);
+        $registrationForm = $this->createForm(RegisterFormType::class);
+        
+        // Récupérer l'erreur d'authentification s'il y en a une
+        $error = $authenticationUtils->getLastAuthenticationError();
+        $lastUsername = $authenticationUtils->getLastUsername();
+        
+        // Journaliser l'erreur pour le débogage
+        if ($error) {
+            $logger->debug('Erreur d\'authentification', [
+                'message' => $error->getMessage(),
+                'class' => get_class($error),
             ]);
         }
 
-        // Récupérer l'erreur d'authentification s'il y en a une
-        $error = $authenticationUtils->getLastAuthenticationError();
-        $errorMessage = null;
-        
-        if ($error) {
-            $this->logger->warning('Erreur d\'authentification: ' . $error->getMessage());
-            $errorMessage = $error->getMessage();
-        }
-
-        // Générer un nouveau token CSRF pour le formulaire
-        $csrfToken = $this->csrfTokenManager->getToken('authenticate')->getValue();
-
         // Rendre le template d'authentification
         return $this->render('auth/auth.html.twig', [
-            'error' => $errorMessage,
-            'last_username' => $authenticationUtils->getLastUsername(),
-            'csrf_token' => $csrfToken,
+            'error' => $error ? $error->getMessage() : null,
+            'last_username' => $lastUsername,
+            'login_form' => $loginForm->createView(),
+            'registration_form' => $registrationForm->createView(),
         ]);
     }
 
@@ -85,60 +83,58 @@ class SecurityController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $entityManager,
         UserAuthenticatorInterface $userAuthenticator,
+        AppCustomAuthenticator $authenticator
     ): Response {
-        // Vérifier le token CSRF
-        $submittedToken = $request->request->get('_csrf_token');
-        if (!$this->isCsrfTokenValid('register', $submittedToken)) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Token CSRF invalide.'
-            ], Response::HTTP_BAD_REQUEST);
+        $form = $this->createForm(RegisterFormType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            
+            // Vérifier si l'utilisateur existe déjà
+            $existingUser = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $data['email']]);
+            if ($existingUser) {
+                $this->addFlash('error', 'Cet email est déjà utilisé.');
+                return $this->redirectToRoute('app_auth');
+            }
+
+            // Validation du mot de passe (ajout de validation basique)
+            if (strlen($data['password']) < 8) {
+                $this->addFlash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
+                return $this->redirectToRoute('app_auth');
+            }
+
+            try {
+                // Créer le nouvel utilisateur
+                $user = new User();
+                $user->setUserFirstName($data['first_name']);
+                $user->setUserLastName($data['last_name']);
+                $user->setUserEmail($data['email']);
+                $user->setUserPassword($passwordHasher->hashPassword($user, $data['password']));
+                $user->setUserRole(UserRole::USER);
+                $user->setUserCreatedAt(new \DateTimeImmutable());
+                $user->setUserUpdatedAt(new \DateTimeImmutable());
+
+                // Persister l'utilisateur
+                $entityManager->persist($user);
+                $entityManager->flush();
+
+                // Connecter automatiquement l'utilisateur
+                return $userAuthenticator->authenticateUser(
+                    $user,
+                    $authenticator,
+                    $request
+                );
+            } catch (\Exception $e) {
+                // Journaliser l'erreur
+                $this->logger->error('Erreur lors de l\'inscription: ' . $e->getMessage());
+                $this->addFlash('error', 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.');
+                return $this->redirectToRoute('app_auth');
+            }
         }
 
-        // Récupérer les données du formulaire
-        $email = $request->request->get('email');
-        $password = $request->request->get('password');
-        $firstName = $request->request->get('first_name');
-        $lastName = $request->request->get('last_name');
-
-        // Vérifier si l'utilisateur existe déjà
-        $existingUser = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
-        if ($existingUser) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Cet email est déjà utilisé.'
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        // Valider le mot de passe
-        $passwordValidation = $this->validatePassword($password);
-        if (!$passwordValidation['valid']) {
-            return $this->json([
-                'success' => false,
-                'message' => $passwordValidation['message']
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        // Créer le nouvel utilisateur en utilisant la méthode statique create
-        $user = User::create(
-            $passwordHasher,
-            $firstName,
-            $lastName,
-            $email,
-            $password,
-            UserRole::USER
-        );
-
-        // Persister l'utilisateur
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        // Connecter automatiquement l'utilisateur
-        return $userAuthenticator->authenticateUser(
-            $user,
-            $this->authenticator,
-            $request
-        );
+        // En cas d'erreur, rediriger vers la page d'authentification
+        return $this->redirectToRoute('app_auth');
     }
 
     /**
@@ -152,61 +148,74 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * Réinitialisation du mot de passe
+     * Demande de réinitialisation du mot de passe
      */
-    #[Route('/reset-password', name: 'app_reset_password', methods: ['POST'])]
-    public function resetPassword(
+    #[Route('/reset-password-request', name: 'app_reset_password_request', methods: ['GET', 'POST'])]
+    public function resetPasswordRequest(
         Request $request,
         EntityManagerInterface $entityManager,
-        MailerInterface $mailer,
+        MailerInterface $mailer
     ): Response {
-        // Vérifier le token CSRF
-        $submittedToken = $request->request->get('_csrf_token');
-        if (!$this->isCsrfTokenValid('reset_password', $submittedToken)) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Token CSRF invalide.'
-            ], Response::HTTP_BAD_REQUEST);
+        // Si l'utilisateur est déjà connecté, le rediriger vers le tableau de bord
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_dashboard');
         }
 
-        $email = $request->request->get('email');
-        $user = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
+        $form = $this->createForm(ResetPasswordRequestFormType::class);
+        $form->handleRequest($request);
 
-        // Même si l'utilisateur n'existe pas, on renvoie un message de succès pour des raisons de sécurité
-        if (!$user) {
-            return $this->json([
-                'success' => true,
-                'message' => 'Si votre email est enregistré, vous recevrez un lien de réinitialisation.'
-            ]);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            $email = $data['email'];
+            
+            try {
+                $user = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
+
+                // Même si l'utilisateur n'existe pas, on renvoie un message de succès pour des raisons de sécurité
+                if ($user) {
+                    // Générer un token de réinitialisation
+                    $token = bin2hex(random_bytes(32));
+                    $user->setResetToken($token);
+                    $user->setResetTokenExpiresAt(new \DateTimeImmutable(self::TOKEN_EXPIRATION));
+                    $entityManager->flush();
+
+                    // Envoyer l'email de réinitialisation
+                    $resetEmail = (new TemplatedEmail())
+                        ->to($user->getUserEmail())
+                        ->subject('Réinitialisation de votre mot de passe')
+                        ->htmlTemplate('emails/reset_password.html.twig')
+                        ->context([
+                            'resetUrl' => $this->generateUrl('app_reset_password_confirm', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL),
+                            'user' => $user,
+                            'expiration' => '1 heure'
+                        ]);
+
+                    $mailer->send($resetEmail);
+                    
+                    // Journaliser la demande de réinitialisation
+                    $this->logger->info('Demande de réinitialisation de mot de passe', [
+                        'email' => $email,
+                        'ip' => $request->getClientIp(),
+                    ]);
+                }
+
+                $this->addFlash('success', 'Si votre email est enregistré, vous recevrez un lien de réinitialisation.');
+                return $this->redirectToRoute('app_auth');
+            } catch (\Exception $e) {
+                // Journaliser l'erreur
+                $this->logger->error('Erreur lors de la demande de réinitialisation: ' . $e->getMessage());
+                $this->addFlash('error', 'Une erreur est survenue. Veuillez réessayer ultérieurement.');
+                return $this->redirectToRoute('app_auth');
+            }
         }
 
-        // Générer un token de réinitialisation
-        $token = $this->generateSecureToken();
-        $user->setResetToken($token);
-        $user->setResetTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
-        $entityManager->flush();
-
-        // Envoyer l'email de réinitialisation
-        $email = (new TemplatedEmail())
-            ->to($user->getUserEmail())
-            ->subject('Réinitialisation de votre mot de passe')
-            ->htmlTemplate('emails/reset_password.html.twig')
-            ->context([
-                'resetUrl' => $this->generateUrl('app_reset_password_confirm', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL),
-                'user' => $user,
-                'expiration' => '1 heure'
-            ]);
-
-        $mailer->send($email);
-
-        return $this->json([
-            'success' => true,
-            'message' => 'Si votre email est enregistré, vous recevrez un lien de réinitialisation.'
+        return $this->render('auth/reset_password_request.html.twig', [
+            'form' => $form->createView(),
         ]);
     }
 
     /**
-     * Confirmation de réinitialisation du mot de passe
+     * Page de confirmation de réinitialisation du mot de passe
      */
     #[Route('/reset-password/{token}', name: 'app_reset_password_confirm', methods: ['GET', 'POST'])]
     public function resetPasswordConfirm(
@@ -215,95 +224,56 @@ class SecurityController extends AbstractController
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
     ): Response {
-        // Vérifier si le token existe
         $user = $entityManager->getRepository(User::class)->findOneBy(['resetToken' => $token]);
-        
+
+        // Vérifier si le token est valide et non expiré
         if (!$user || !$user->getResetTokenExpiresAt() || $user->getResetTokenExpiresAt() < new \DateTimeImmutable()) {
-            return $this->render('auth/reset_password_error.html.twig', [
-                'error' => 'Ce lien de réinitialisation est invalide ou a expiré.'
-            ]);
-        }
-
-        // Si c'est une requête POST, traiter le formulaire
-        if ($request->isMethod('POST')) {
-            $submittedToken = $request->request->get('_csrf_token');
-            if (!$this->isCsrfTokenValid('reset_password_confirm', $submittedToken)) {
-                return $this->render('auth/reset_password_confirm.html.twig', [
-                    'token' => $token,
-                    'error' => 'Token CSRF invalide.'
-                ]);
-            }
-
-            $password = $request->request->get('password');
-            
-            // Valider le mot de passe
-            $passwordValidation = $this->validatePassword($password);
-            if (!$passwordValidation['valid']) {
-                return $this->render('auth/reset_password_confirm.html.twig', [
-                    'token' => $token,
-                    'error' => $passwordValidation['message']
-                ]);
-            }
-
-            // Mettre à jour le mot de passe
-            $user->setPassword($passwordHasher->hashPassword($user, $password));
-            $user->setResetToken(null);
-            $user->setResetTokenExpiresAt(null);
-            $entityManager->flush();
-
-            // Rediriger vers la page de connexion
-            $this->addFlash('success', 'Votre mot de passe a été réinitialisé avec succès.');
+            $this->addFlash('error', 'Le lien de réinitialisation est invalide ou a expiré.');
             return $this->redirectToRoute('app_auth');
         }
 
-        // Afficher le formulaire de réinitialisation
+        $form = $this->createForm(ResetPasswordFormType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $data = $form->getData();
+                
+                // Mettre à jour le mot de passe
+                $user->setUserPassword($passwordHasher->hashPassword($user, $data['password']));
+                $user->setResetToken(null);
+                $user->setResetTokenExpiresAt(null);
+                $user->setUserUpdatedAt(new \DateTimeImmutable());
+                $entityManager->flush();
+
+                // Journaliser la réinitialisation réussie
+                $this->logger->info('Réinitialisation de mot de passe réussie', [
+                    'user_id' => $user->getId(),
+                    'email' => $user->getUserEmail(),
+                    'ip' => $request->getClientIp(),
+                ]);
+
+                $this->addFlash('success', 'Votre mot de passe a été réinitialisé avec succès.');
+                return $this->redirectToRoute('app_auth');
+            } catch (\Exception $e) {
+                // Journaliser l'erreur
+                $this->logger->error('Erreur lors de la réinitialisation du mot de passe: ' . $e->getMessage());
+                $this->addFlash('error', 'Une erreur est survenue. Veuillez réessayer ultérieurement.');
+            }
+        }
+
         return $this->render('auth/reset_password_confirm.html.twig', [
+            'form' => $form->createView(),
             'token' => $token
         ]);
     }
 
     /**
-     * Valide un mot de passe selon les critères de sécurité
+     * Redirection vers la demande de réinitialisation de mot de passe
      */
-    private function validatePassword(string $password): array
+    #[Route('/reset-password', name: 'app_reset_password', methods: ['GET'])]
+    public function resetPasswordRedirect(): Response
     {
-        $errors = [];
-        
-        if (strlen($password) < 8) {
-            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
-        }
-        
-        if (!preg_match('/[A-Z]/', $password)) {
-            $errors[] = 'Le mot de passe doit contenir au moins une lettre majuscule.';
-        }
-        
-        if (!preg_match('/[a-z]/', $password)) {
-            $errors[] = 'Le mot de passe doit contenir au moins une lettre minuscule.';
-        }
-        
-        if (!preg_match('/[0-9]/', $password)) {
-            $errors[] = 'Le mot de passe doit contenir au moins un chiffre.';
-        }
-        
-        if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-            $errors[] = 'Le mot de passe doit contenir au moins un caractère spécial.';
-        }
-        
-        if (empty($errors)) {
-            return ['valid' => true];
-        }
-        
-        return [
-            'valid' => false,
-            'message' => implode(' ', $errors)
-        ];
-    }
-
-    /**
-     * Génère un token sécurisé pour la réinitialisation de mot de passe
-     */
-    private function generateSecureToken(): string
-    {
-        return bin2hex(random_bytes(32));
+        return $this->redirectToRoute('app_reset_password_request');
     }
 }

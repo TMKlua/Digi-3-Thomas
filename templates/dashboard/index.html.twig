@@ -17,7 +17,7 @@
                         <h3>{{ user.userFirstName }}</h3>
                         <h3>{{ user.userLastName }}</h3>
                         <p>{{ user.userEmail }}</p>
-                        <p>{{ user.userRole|replace({'ROLE_': ''}) }}</p>
+                        <p>{{ user.userRole.value|replace({'ROLE_': ''}) }}</p>
                     </div>
                 </div>
             {% endif %}

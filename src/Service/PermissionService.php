@@ -18,7 +18,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 class PermissionService
 {
     public function __construct(
-        private Security $security,
+        private SecurityService $securityService,
         private RoleHierarchyService $roleHierarchy
     ) {}
 
@@ -29,8 +29,7 @@ class PermissionService
      */
     private function getCurrentUser(): ?User
     {
-        $user = $this->security->getUser();
-        return $user instanceof User ? $user : null;
+        return $this->securityService->getCurrentUser();
     }
 
     /**
@@ -359,5 +358,15 @@ class PermissionService
 
         return $task->getTaskAssignedTo() === $user && 
                $this->hasPermission('upload_task_attachments');
+    }
+
+    /**
+     * Vérifie si l'utilisateur peut voir son propre profil
+     * 
+     * @return bool True si l'utilisateur peut voir son propre profil, false sinon
+     */
+    public function canViewOwnProfile(): bool
+    {
+        return $this->hasPermission('view_own_profile');
     }
 }

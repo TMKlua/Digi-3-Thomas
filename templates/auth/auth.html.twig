@@ -5,37 +5,33 @@
 {% block body %}
 <main id="main-content" role="main">
   <div class="auth-container">
-    <!-- Section de connexion -->
     <div class="auth-section flex" id="loginSection" aria-labelledby="login-heading">
-      <form id="login_form" method="POST" action="{{ path('app_auth') }}" aria-labelledby="login-form-heading">
-        <h2 id="login-form-heading" class="sr-only">Formulaire de connexion</h2>
-        <input
-          type="hidden"
-          name="_csrf_token"
-          value="{{ csrf_token is defined ? csrf_token : csrf_token('authenticate') }}"
-          id="login_csrf_token"
-        />
-        <input type="hidden" name="action" value="login" id="login_action" />
-
+      {{ form_start(login_form, {'action': path('app_auth'), 'method': 'POST', 'attr': {'id': 'login_form', 'aria-labelledby': 'login-form-heading'}}) }}
+        <h2 id="login-form-heading">Formulaire de connexion</h2>
+        
+        {{ form_widget(login_form._token, {'id': 'login_csrf_token'}) }}
+        
         <div class="form-group">
-          <label for="login_email">Email</label>
-          <input type="email" id="login_email" name="email" required aria-required="true" autocomplete="email" />
+          {{ form_label(login_form.email) }}
+          {{ form_widget(login_form.email, {'id': 'login_email', 'attr': {'aria-required': 'true'}}) }}
+          {{ form_errors(login_form.email, {'attr': {'role': 'alert'}}) }}
         </div>
 
         <div class="form-group">
-          <label for="login_password">Mot de passe</label>
+          {{ form_label(login_form.password) }}
           <div class="password-container">
-            <input type="password" id="login_password" name="password" required aria-required="true" autocomplete="current-password" />
+            {{ form_widget(login_form.password, {'id': 'login_password', 'attr': {'aria-required': 'true'}}) }}
             <button type="button" class="toggle-password" aria-label="Afficher ou masquer le mot de passe" onclick="togglePasswordVisibility('login_password')">
               <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true" style="width: 15px; height: 15px;">
             </button>
           </div>
+          {{ form_errors(login_form.password, {'attr': {'role': 'alert'}}) }}
         </div>
 
         <div class="form-group remember-me">
           <div class="checkbox-container">
-            <input type="checkbox" id="remember_me" name="remember_me" />
-            <label for="remember_me">Se souvenir de moi</label>
+            {{ form_widget(login_form.remember_me, {'id': 'remember_me'}) }}
+            {{ form_label(login_form.remember_me) }}
           </div>
           <a href="#" id="forgotPasswordLink" class="forgot-password-link">Mot de passe oublié ?</a>
         </div>
@@ -45,7 +41,8 @@
         {% endif %}
 
         <button type="submit" class="auth-submit">Se connecter</button>
-      </form>
+      {{ form_end(login_form, {'render_rest': true}) }}
+      
       <div class="auth-decorate flex-col" aria-labelledby="login-heading">
         <h3 id="login-heading">Bonjour mon ami !</h3>
         <p>
@@ -54,7 +51,7 @@
         <a href="#" id="switchToRegister" role="button">S'inscrire</a>
       </div>
     </div>
-    <!-- Section d'inscription -->
+
     <div class="auth-section flex" id="registerSection" style="display: none" aria-labelledby="register-heading">
       <div class="auth-decorate flex-col" aria-labelledby="register-heading">
         <h3 id="register-heading">Content de te revoir !</h3>
@@ -64,38 +61,47 @@
         </p>
         <a href="#" id="switchToLogin" role="button">Se connecter</a>
       </div>
-      <form id="register_form" method="POST" action="{{ path('app_register') }}" aria-labelledby="register-form-heading">
-        <h2 id="register-form-heading" class="sr-only">Formulaire d'inscription</h2>
-        <input
-          type="hidden"
-          name="_csrf_token"
-          value="{{ csrf_token('register') }}"
-          id="register_csrf_token"
-        />
-        <input type="hidden" name="action" value="register" id="register_action" />
-
+      
+      {{ form_start(registration_form, {'action': path('app_register'), 'method': 'POST', 'attr': {'id': 'register_form', 'aria-labelledby': 'register-form-heading'}}) }}
+        <h2 id="register-form-heading">Formulaire d'inscription</h2>
+        
+        {{ form_widget(registration_form._token, {'id': 'register_csrf_token'}) }}
+        
         <div class="form-group">
-          <label for="first_name">Prénom :</label>
-          <input type="text" id="first_name" name="first_name" required aria-required="true" autocomplete="given-name" />
+          {{ form_label(registration_form.first_name) }}
+          {{ form_widget(registration_form.first_name, {'id': 'first_name'}) }}
+          {{ form_errors(registration_form.first_name, {'attr': {'role': 'alert'}}) }}
         </div>
 
         <div class="form-group">
-          <label for="last_name">Nom :</label>
-          <input type="text" id="last_name" name="last_name" required aria-required="true" autocomplete="family-name" />
+          {{ form_label(registration_form.last_name) }}
+          {{ form_widget(registration_form.last_name, {'id': 'last_name'}) }}
+          {{ form_errors(registration_form.last_name, {'attr': {'role': 'alert'}}) }}
         </div>
 
         <div class="form-group">
-          <label for="register_email">Email</label>
-          <input type="email" id="register_email" name="email" required aria-required="true" autocomplete="email" />
+          {{ form_label(registration_form.email) }}
+          {{ form_widget(registration_form.email, {'id': 'register_email'}) }}
+          {{ form_errors(registration_form.email, {'attr': {'role': 'alert'}}) }}
         </div>
 
         <div class="form-group">
-          <label for="register_password">Mot de passe</label>
+          {{ form_label(registration_form.password) }}
           <div class="password-container">
-            <input type="password" id="register_password" name="password" required aria-required="true" autocomplete="new-password" />
+            {{ form_widget(registration_form.password, {'id': 'register_password'}) }}
             <button type="button" class="toggle-password" aria-label="Afficher ou masquer le mot de passe" onclick="togglePasswordVisibility('register_password')">
               <img src="{{ asset('build/images/icons/eye.png') }}" alt="" aria-hidden="true" style="width: 15px; height: 15px;">
             </button>
+          </div>
+          {{ form_errors(registration_form.password, {'attr': {'role': 'alert'}}) }}
+        </div>
+
+        <div class="form-group rgpd-consent">
+          <div class="checkbox-container">
+            <input type="checkbox" id="rgpd_consent" name="rgpd_consent" required>
+            <label for="rgpd_consent">
+              J'accepte que mes données personnelles soient collectées et traitées conformément aux conditions d'utilisation.
+            </label>
           </div>
         </div>
 
@@ -104,20 +110,22 @@
         {% endif %}
 
         <button type="submit" class="auth-submit">S'inscrire</button>
-      </form>
+      {{ form_end(registration_form, {'render_rest': true}) }}
     </div>
   </div>
-  <!-- Modale de réinitialisation -->
+
   <div id="resetPasswordModal" class="modal" style="display: none;" role="dialog" aria-labelledby="reset-password-heading" aria-modal="true" hidden>
     <div class="modal-content">
       <button type="button" class="close" aria-label="Fermer la boîte de dialogue">&times;</button>
       <h2 id="reset-password-heading">Réinitialisation du mot de passe</h2>
-      <form id="resetPasswordForm" method="POST" action="{{ path('app_reset_password') }}" aria-labelledby="reset-password-heading">
+      <p>Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
+      
+      <form id="resetPasswordForm" method="POST" action="{{ path('app_reset_password_request') }}" aria-labelledby="reset-password-heading">
         <div class="form-group">
           <label for="reset_email">Email</label>
-          <input type="email" id="reset_email" name="email" required aria-required="true" autocomplete="email">
+          <input type="email" id="reset_email" name="reset_password_request_form[email]" required aria-required="true" autocomplete="email" class="form-control">
         </div>
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token('reset_password') }}" id="reset_csrf_token">
+        <input type="hidden" name="_csrf_token" id="reset_csrf_token" value="{{ csrf_token('reset_password') }}">
         <button type="submit" class="auth-submit">Envoyer le lien</button>
       </form>
     </div>
@@ -127,4 +135,5 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('build/js/auth/auth.js') }}"></script>
 {% endblock %}
