@@ -24,107 +24,153 @@
         </ul>
     </aside>
       
-<main class="project-details">
-    {% if current_project %}
-        <h2>{{ current_project.name }}</h2>
-        <p>{{ current_project.description }}</p>
+    <main class="project-details">
+        {% if current_project %}
+            <h2>{{ current_project.name }}</h2>
+            <p>{{ current_project.description }}</p>
 
-        <div class="project-dates">
+            <div class="project-dates">
+                <div>
+                    <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
+                    <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
+                </div>
+                <div>
+                    <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
+                    <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
+                </div>
+            </div>
+
             <div>
-                <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
-                <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
+                <label>Chef de projet :</label>
+                <span>
+                    {{ app.user ? app.user.userFirstName() ~ ' ' ~ app.user.userLastName() : 'Non défini' }}
+                </span>
+                <br>           
+                <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
+                {% if current_project %}
+                <div id="createTaskForm" style="display: none;" class="styled-form">
+                    {{ form_start(taskForm) }}
+                        {{ form_row(taskForm.taskName) }}
+                        {{ form_row(taskForm.taskDescription) }}
+                        {{ form_row(taskForm.taskType) }}
+                        {{ form_row(taskForm.taskStatus) }}
+                        {{ form_row(taskForm.taskCategory) }}
+                        {{ form_row(taskForm.taskAttachments) }}
+                        {{ form_row(taskForm.taskDateFrom) }}
+                        {{ form_row(taskForm.taskDateTo) }}
+                        <button type="submit">Ajouter la tâche</button>
+                    {{ form_end(taskForm) }}
+                </div>
+                {% endif %}
             </div>
-            <div>
-                <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
-                <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
-            </div>
-        </div>
 
-        <div>
-            <label>Chef de projet :</label>
-            <span>
-                {{ app.user ? app.user.userFirstName() ~ ' ' ~ app.user.userLastName() : 'Non défini' }}
-            </span>
-            <br>           
-            <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
-            {% if current_project %}
-            <div id="createTaskForm" style="display: none;" class="styled-form">
-                {{ form_start(taskForm) }}
-                    {{ form_row(taskForm.taskName) }}
-                    {{ form_row(taskForm.taskDescription) }}
-                    {{ form_row(taskForm.taskType) }}
-                    {{ form_row(taskForm.taskStatus) }}
-                    {{ form_row(taskForm.taskCategory) }}
-                    {{ form_row(taskForm.taskAttachments) }}
-                    {{ form_row(taskForm.taskDateFrom) }}
-                    {{ form_row(taskForm.taskDateTo) }}
-                    <button type="submit">Ajouter la tâche</button>
-                {{ form_end(taskForm) }}
-            </div>
-            {% endif %}
-        </div>
+            <br>
 
-        <br>
-
-        <div class="kanban-column" data-column="a-faire">
-            <h3>À faire</h3>
-            <div class="kanban-tasks">
-                {% for task in current_project.tasks %}
-                    <div class="task-card" id="task-{{ task.id }}" draggable="true">
+<div class="kanban-board" id="kanbanBoard">
+    <div class="kanban-column" data-column="a-faire">
+        <h3>À faire</h3>
+        <div class="kanban-tasks">
+            {% for task in current_project.tasks %}
+                {% if task.taskRank == 1 %}
+                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
                         <h4>{{ task.taskName }}</h4>
                         <div class="task-info">
                             <p><strong>Description :</strong> {{ task.taskDescription }}</p>
                             <p><strong>Type :</strong> {{ task.taskType }}</p>
-                            <p><strong>Statut :</strong> {{ task.taskStatus }}</p>
-                            <p><strong>Catégorie :</strong> {{ task.taskCategory }}</p>
+                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
                             <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
                             <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
+                {% endif %}
+            {% endfor %}
         </div>
+    </div>
+
+    <div class="kanban-column" data-column="bloque">
+        <h3>Bloqué</h3>
+        <div class="kanban-tasks">
+            {% for task in current_project.tasks %}
+                {% if task.taskRank == 2 %}
+                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column" data-column="en-cours">
+        <h3>En cours</h3>
+        <div class="kanban-tasks">
+            {% for task in current_project.tasks %}
+                {% if task.taskRank == 3 %}
+                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column" data-column="terminee">
+        <h3>Terminée</h3>
+        <div class="kanban-tasks">
+            {% for task in current_project.tasks %}
+                {% if task.taskRank >= 4 %}
+                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
 
 
-            <div class="kanban-column" data-column="en-cours">
-                <h3>En cours</h3>
-                <div class="kanban-tasks">
-                    {# Placeholder for tasks in 'En cours' #}
+            {% else %}
+                <p>Sélectionnez un projet pour voir les détails.</p>
+            {% endif %}
+
+            {# Formulaire de création de projet #}
+            <div id="createProjectForm" style="display: none;" class="styled-form">
+                {{ form_start(form) }}
+                    {{ form_row(form.name) }}
+                    {{ form_row(form.description) }}
+                    {{ form_row(form.startDateForecast) }}
+                    {{ form_row(form.endDateForecast) }}
+                    <button type="submit" class="styled-button">Créer un nouveau projet</button>
+                {{ form_end(form) }}
+            </div>
+
+            {# Messages flash #}
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">
+                    {{ message }}
                 </div>
-            </div>
-
-            <div class="kanban-column" data-column="terminee">
-                <h3>Terminée</h3>
-                <div class="kanban-tasks">
-                    {# Placeholder for tasks in 'Terminée' #}
-                </div>
-            </div>
-        </div>
-
-        {% else %}
-            <p>Sélectionnez un projet pour voir les détails.</p>
-        {% endif %}
-
-        {# Formulaire de création de projet #}
-        <div id="createProjectForm" style="display: none;" class="styled-form">
-            {{ form_start(form) }}
-                {{ form_row(form.name) }}
-                {{ form_row(form.description) }}
-                {{ form_row(form.startDateForecast) }}
-                {{ form_row(form.endDateForecast) }}
-                <button type="submit" class="styled-button">Créer un nouveau projet</button>
-            {{ form_end(form) }}
-        </div>
-
-        {# Messages flash #}
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success">
-                {{ message }}
-            </div>
-        {% endfor %}
-</main>
-
-
+            {% endfor %}
+    </main>
 </div>
 
 {# Popup de confirmation de suppression #}
@@ -502,17 +548,18 @@
     clear: both;
     }
 
-    /* Styles pour le kanban */
 .kanban-board {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;  /* Changé de row à column pour disposition verticale */
     gap: 20px; /* Espacement entre les colonnes */
     margin-top: 20px;
-    overflow-x: auto; /* Permet le défilement horizontal si le nombre de colonnes augmente */
+    overflow-y: auto; /* Permet le défilement vertical si le nombre de colonnes augmente */
+    overflow-x: hidden; /* Supprime le défilement horizontal */
 }
 
 .kanban-column {
-    flex: 1 0 300px; /* Largeur fixe des colonnes avec une flexibilité minimale */
+    flex: 0 0 auto; /* Modifié pour s'adapter au contenu en hauteur */
+    width: 100%; /* Prend toute la largeur disponible */
     background-color: #f4f4f4;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -631,74 +678,125 @@
     }
 </script>
 <script>
-    function addColumn() {
-        const columnContainer = document.getElementById('kanbanColumns');
-        const columnName = prompt('Entrez le nom de la nouvelle colonne :');
-        if (columnName) {
-            // Créer une nouvelle colonne
-            const newColumn = document.createElement('div');
-            newColumn.classList.add('kanban-column');
-            newColumn.setAttribute('data-column', columnName.toLowerCase().replace(/\s+/g, '-'));
-            newColumn.innerHTML = `
-                <h3>${columnName}</h3>
-                <div class="kanban-tasks"></div>
-            `;
-            columnContainer.appendChild(newColumn);
-        }
-    }
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const tasks = document.querySelectorAll('.task-card');
-        const columns = document.querySelectorAll('.kanban-column');
+document.addEventListener('DOMContentLoaded', function () {
+    const columns = document.querySelectorAll('.kanban-column');
+    const tasksContainers = document.querySelectorAll('.kanban-tasks');
+    let draggedItem = null;
 
-        tasks.forEach(task => {
-            task.draggable = true;
+    document.querySelectorAll('.task-card').forEach(task => {
+        task.addEventListener('dragstart', handleDragStart);
+        task.addEventListener('dragend', handleDragEnd);
+    });
 
-            task.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('taskId', task.dataset.taskId);
-            });
+    columns.forEach(column => {
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('drop', handleDrop);
+    });
+
+    tasksContainers.forEach(container => {
+        container.addEventListener('dragover', handleDragOver);
+        container.addEventListener('drop', handleDrop);
+        container.addEventListener('dragenter', function (e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
         });
-
-        columns.forEach(column => {
-            column.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Autoriser le drop
-            });
-
-            column.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const taskId = e.dataTransfer.getData('taskId');
-                const newStatus = column.dataset.column;
-
-                // Déplacer visuellement la tâche
-                const task = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
-                column.querySelector('.kanban-tasks').appendChild(task);
-
-                // Envoyer la modification au serveur
-                fetch('/management-project/update-task-status', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        taskId: taskId,
-                        newStatus: newStatus,
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        console.log(data.success);
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur:', error);
-                });
-            });
+        container.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
         });
     });
+
+    function handleDragStart(e) {
+        draggedItem = this;
+        e.dataTransfer.setData('text/plain', this.getAttribute('data-task-id'));
+        setTimeout(() => {
+            this.style.opacity = '0.5';
+        }, 0);
+    }
+
+    function handleDragEnd() {
+        this.style.opacity = '1';
+        document.querySelectorAll('.drag-over').forEach(element => {
+            element.classList.remove('drag-over');
+        });
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const taskContainer = this.classList.contains('kanban-tasks') ? this : this.querySelector('.kanban-tasks');
+        const columnStatus = this.closest('.kanban-column').getAttribute('data-column');
+        const taskId = e.dataTransfer.getData('text/plain');
+        const task = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+
+        if (!task) return;
+
+        const y = e.clientY;
+        const sibling = [...taskContainer.querySelectorAll('.task-card:not([data-task-id="' + taskId + '"])')].find(sibling => {
+            const box = sibling.getBoundingClientRect();
+            return y <= box.top + box.height / 2;
+        });
+
+        if (sibling) {
+            taskContainer.insertBefore(task, sibling);
+        } else {
+            taskContainer.appendChild(task);
+        }
+
+        const tasksInColumn = taskContainer.querySelectorAll('.task-card');
+        const taskIds = Array.from(tasksInColumn).map((taskElement, index) => ({
+            id: taskElement.getAttribute('data-task-id'),
+            rank: index + 1
+        }));
+
+        taskIds.forEach(taskData => {
+            const taskElement = document.querySelector(`.task-card[data-task-id="${taskData.id}"]`);
+            const rankElement = taskElement.querySelector('.task-info p strong:contains("Rang")')?.parentNode;
+            if (rankElement) {
+                rankElement.innerHTML = `<strong>Rang :</strong> ${taskData.rank}`;
+            }
+            taskElement.setAttribute('data-rank', taskData.rank);
+        });
+
+        fetch('/management-project/update-task-position', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taskId, newStatus: columnStatus, taskOrder: taskIds })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    displayError(data.error);
+                } else {
+                    console.log('Mise à jour réussie:', data.success);
+                }
+            })
+            .catch(error => {
+                displayError('Erreur de connexion au serveur.');
+                console.error('Erreur:', error);
+            });
+    }
+
+    function displayError(message) {
+        let errorBox = document.querySelector('.error-box');
+        if (!errorBox) {
+            errorBox = document.createElement('div');
+            errorBox.className = 'error-box';
+            document.body.appendChild(errorBox);
+        }
+        errorBox.innerText = message;
+        errorBox.style.display = 'block';
+        setTimeout(() => {
+            errorBox.style.display = 'none';
+        }, 3000);
+    }
+});
+
 </script>
 
 {% endblock %}

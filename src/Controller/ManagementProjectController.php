@@ -22,22 +22,17 @@ class ManagementProjectController extends AbstractController
         EntityManagerInterface $entityManager,
         ?int $id = null
     ): Response {
-        // Création d'un nouveau projet
         $project = new ManagerProject();
         $form = $this->createForm(ManagerProjectType::class, $project);
     
-        // Création d'une nouvelle tâche
         $task = new Tasks();
         $taskForm = $this->createForm(TaskType::class, $task);
     
-        // Traiter la soumission des formulaires
         $form->handleRequest($request);
         $taskForm->handleRequest($request);
     
-        // Récupérer les projets de l'utilisateur connecté
         $projects = $projectRepository->findBy(['projectLeader' => $this->getUser()]);
     
-        // Identifier le projet courant (sélectionné)
         $currentProject = null;
         if ($id) {
             $currentProject = $projectRepository->find($id);
@@ -64,16 +59,20 @@ class ManagementProjectController extends AbstractController
             if (!$task->getTaskDateFrom()) {
                 $task->setTaskDateFrom(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
             }
-    
+            
             if ($currentProject) {
                 $task->setProject($currentProject);
+                
+                // Définir le rang en fonction du nombre de tâches existantes
+                $task->setTaskRanks($this->getNextTaskRank($currentProject));
+                $entityManager->persist($task);
+                $entityManager->flush();
+                
+                $this->updateTaskRanks($entityManager, $currentProject);
             } else {
                 $this->addFlash('error', 'Aucun projet sélectionné pour cette tâche.');
                 return $this->redirectToRoute('app_management_project');
             }
-    
-            $entityManager->persist($task);
-            $entityManager->flush();
     
             $this->addFlash('success', 'Tâche ajoutée avec succès !');
             return $this->redirectToRoute('app_management_project', ['id' => $currentProject->getId()]);
@@ -86,6 +85,21 @@ class ManagementProjectController extends AbstractController
             'taskForm' => $taskForm->createView(),
             'tasks' => $currentProject ? $currentProject->getTasks() : [],
         ]);
+    }
+
+    private function updateTaskRanks(EntityManagerInterface $entityManager, ManagerProject $project): void
+    {
+        $tasks = $project->getTasks();
+        $rank = 1;
+        foreach ($tasks as $task) {
+            $task->setTaskRanks($rank++);
+        }
+        $entityManager->flush();
+    }
+
+    private function getNextTaskRank(ManagerProject $project): int
+    {
+        return count($project->getTasks());
     }
 
     #[Route('/management-project/delete/{id}', name: 'app_project_delete', methods: ['POST'])]
@@ -125,5 +139,38 @@ class ManagementProjectController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['success' => 'Statut de la tâche mis à jour'], Response::HTTP_OK);
+    }
+
+    #[Route('/management-project/update-task-position', name: 'app_update_task_position', methods: ['POST'])]
+    public function updateTaskPosition(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $content = json_decode($request->getContent(), true);
+
+        // Vérifier que les données nécessaires sont fournies
+        if (!isset($content['taskId'], $content['newStatus'], $content['taskOrder'])) {
+            return $this->json(['error' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Récupérer la tâche par son ID
+        $task = $entityManager->getRepository(Tasks::class)->find($content['taskId']);
+        if (!$task) {
+            return $this->json(['error' => 'Tâche introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Mettre à jour le statut de la tâche
+        $task->setTaskStatus($content['newStatus']);
+
+        // Mettre à jour l'ordre des tâches dans la colonne
+        foreach ($content['taskOrder'] as $taskData) {
+            $taskToUpdate = $entityManager->getRepository(Tasks::class)->find($taskData['id']);
+            if ($taskToUpdate) {
+                $taskToUpdate->setRank($taskData['rank']);
+                $entityManager->persist($taskToUpdate);
+            }
+        }
+
+        $entityManager->flush();
+
+        return $this->json(['success' => 'Position des tâches mise à jour'], Response::HTTP_OK);
     }
 }

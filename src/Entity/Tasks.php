@@ -24,9 +24,8 @@ class Tasks
     #[ORM\Column(length: 35)]
     private ?string $taskName = null;
 
-
-    #[ORM\Column(length: 255)]
-    private ?string $taskDescription = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $taskDescription = null;    
 
     #[ORM\Column(length: 35, nullable: true)]
     private ?string $taskStatus = null;
@@ -36,6 +35,9 @@ class Tasks
 
     #[ORM\Column(nullable: true)]
     private ?int $taskUser = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private ?int $taskRank = 1;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $taskRealStartDate = null;
@@ -87,6 +89,18 @@ class Tasks
     public function setTaskName(string $taskName): static
     {
         $this->taskName = $taskName;
+
+        return $this;
+    }
+
+    public function getTaskRank(): ?int
+    {
+        return $this->taskRank;
+    }
+
+    public function setTaskRanks(int $taskRank): self
+    {
+        $this->taskRank = $taskRank;
 
         return $this;
     }
