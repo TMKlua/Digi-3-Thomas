@@ -50,9 +50,9 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
    php bin/console cache:clear
    ```
 
-6. Charger les fixtures si besoin (données de test) :
+6. Charger les fixtures si besoin (User de test avec tous les rôles différents) :
    ```bash
-   php bin/console doctrine:fixtures:load
+   php bin/console app:create-default-users
    ```
 
 7. Démarrer le serveur de développement :
@@ -110,12 +110,6 @@ Les Voters sont des classes qui déterminent si un utilisateur a le droit d'effe
 - `create` : Créer un utilisateur
 - `change_role` : Changer le rôle d'un utilisateur
 
-### Vérification des permissions dans les contrôleurs
-
-```php
-$this->denyAccessUnlessGranted('view', $project);
-$this->denyAccessUnlessGranted('create', null);
-```
 
 ## Utilisateurs par défaut
 
