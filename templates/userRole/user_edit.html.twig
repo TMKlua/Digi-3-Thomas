@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Modifier l'utilisateur {{ user.userFirstName }} {{ user.userLastName }}</h1>
+
+    <form method="POST">
+        <div>
+            <label for="roles">Rôles</label>
+            <select name="roles[]" multiple>
+                <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Administrateur</option>
+                <option value="ROLE_RESPONSABLE" {% if 'ROLE_RESPONSABLE' in user.roles %}selected{% endif %}>Chef de projet</option>
+                <option value="ROLE_LEAD_DEV" {% if 'ROLE_LEAD_DEV' in user.roles %}selected{% endif %}>Lead Développeur</option>
+                <option value="ROLE_DEV" {% if 'ROLE_DEV' in user.roles %}selected{% endif %}>Développeur</option>
+                <option value="ROLE_USER" {% if 'ROLE_USER' in user.roles %}selected{% endif %}>Utilisateur standard</option>
+            </select>
+        </div>
+        <div>
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password">
+        </div>
+
+        <button type="submit">Sauvegarder</button>
+    </form>
+{% endblock %}
