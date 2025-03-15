@@ -67,7 +67,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const logoutDialog = document.getElementById('logout-dialog');
-        const logoutForm = document.querySelector('.logout-form');
+        const logoutForm = document.querySelector('form[action="{{ path('app_logout') }}"]'); // Sélectionne le formulaire par son action
 
         // Fermeture avec la touche Echap
         document.addEventListener('keydown', function(event) {

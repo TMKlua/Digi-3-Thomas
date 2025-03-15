@@ -147,7 +147,7 @@ class ManagementProjectController extends AbstractController
             'a-faire' => 1,
             'bloque' => 2,
             'en-cours' => 3,
-            'termine' => 4,
+            'terminee' => 4,
         ];
     
         if (!isset($columnRanks[$content['newColumn']])) {
@@ -160,7 +160,7 @@ class ManagementProjectController extends AbstractController
         }
     
         $task->setTaskColumnRank($columnRanks[$content['newColumn']]);
-    
+        
         foreach ($content['taskOrder'] as $taskData) {
             $taskToUpdate = $entityManager->getRepository(Tasks::class)->find($taskData['id']);
             if ($taskToUpdate) {
