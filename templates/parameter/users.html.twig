@@ -11,7 +11,7 @@
         <div class="users-page">
             <div class="users-header flex">
                 <h2>Gestion des utilisateurs</h2>
-                <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <button id="toggleAddUserForm" class="btn-add">
                     Ajouter un utilisateur
                 </button>
             </div>
@@ -22,6 +22,38 @@
             {% for message in app.flashes('error') %}
                 <div class="alert-error">{{ message }}</div>
             {% endfor %}
+
+            <!-- Form that appears only when the button is clicked -->
+            <div id="addUserFormContainer" class="add-user-form-container" style="display: none;">
+                <form id="addUserForm" class="user-form">
+                    <div class="form-group">
+                        <label for="firstName">Prénom</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Nom</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Rôle</label>
+                        <select id="role" name="role" required>
+                            <option class="role-badge role-admin" value="ROLE_ADMIN">Administrateur</option>
+                            <option class="role-badge role-manager" value="ROLE_MANAGER">Manager</option>
+                            <option class="role-badge role-lead-dev" value="ROLE_LEAD_DEV">Lead Développeur</option>
+                            <option class="role-badge role-dev" value="ROLE_DEV">Développeur</option>
+                            <option class="role-badge role-user" value="ROLE_USER">Utilisateur</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelAddUser">Annuler</button>
+                        <button type="button" class="btn-submit" id="saveNewUser">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
 
             <div class="users-table">
                 <table>
@@ -54,13 +86,13 @@
                                             data-user-id="{{ user.id }}"
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editUserModal">
-                                        <img src="{{ asset('img/icons/edit.png') }}" alt="Modifier" style="height: 50px; width: 50px; object-fit: contain;">
+                                        <i class="fas fa-edit" style="font-size: 30px;"></i> <!-- Icône d'édition -->
                                     </button>
                                     <button class="btn-delete delete-user" 
                                             data-user-id="{{ user.id }}"
                                             data-bs-toggle="modal" 
                                             data-bs-target="#deleteUserModal">
-                                        <img src="{{ asset('img/icons/delete.png') }}" alt="Supprimer" style="height: 50px; width: 50px; object-fit: contain;">
+                                        <i class="fas fa-trash-alt" style="font-size: 30px;"></i> <!-- Icône de suppression -->
                                     </button>
                                 </td>
                             </tr>
@@ -76,73 +108,23 @@
     </div>
 </section>
 
-{# Modals #}
-<div class="modal fade" id="addUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Ajouter un utilisateur</h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addUserForm" class="user-form">
-                    <div class="form-group">
-                        <label for="firstName">Prénom</label>
-                        <input type="text" id="firstName" name="firstName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lastName">Nom</label>
-                        <input type="text" id="lastName" name="lastName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="role">Rôle</label>
-                        <select id="role" name="role" required>
-                            <option value="ROLE_USER">Utilisateur</option>
-                            <option value="ROLE_ADMIN">Administrateur</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-submit" id="saveNewUser">Enregistrer</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="deleteUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirmer la suppression</h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-delete" id="confirmDelete">Supprimer</button>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
+
 
 {% block javascripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Toggle Add User Modal visibility
-        document.querySelector('.btn-add').addEventListener('click', function() {
-            const addUserModal = document.getElementById('addUserModal');
-            if (addUserModal) {
-                new bootstrap.Modal(addUserModal).show();
-            }
+        // Toggle Add User Form visibility
+        document.getElementById('toggleAddUserForm').addEventListener('click', function() {
+            const formContainer = document.getElementById('addUserFormContainer');
+            formContainer.style.display = 'block';
+        });
+
+        // Hide form when cancel button is clicked
+        document.getElementById('cancelAddUser').addEventListener('click', function() {
+            const formContainer = document.getElementById('addUserFormContainer');
+            formContainer.style.display = 'none';
+            document.getElementById('addUserForm').reset();
         });
 
         // Toggle Delete User Modal visibility
@@ -205,63 +187,164 @@
 
 {% block stylesheets %}
 <style>
-    /* General Styling */
-    .modal-content {
-        padding: 20px;
-    }
+ /* Styles de base */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    .user-form {
-        display: flex;
+.parameter_landing {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.parameter_content {
+    flex: 1;
+    padding: 20px;
+    min-width: 300px;
+}
+
+/* Table responsive */
+.users-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th, .users-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.users-table img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Formulaire responsive */
+.user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group input, .form-group select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Boutons responsive */
+.btn-add, .btn-cancel, .btn-submit {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-add {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-submit {
+    background-color: #008CBA;
+    color: white;
+}
+
+/* Média queries pour le responsive */
+@media screen and (max-width: 768px) {
+    .users-header {
         flex-direction: column;
-        gap: 15px;
+        align-items: flex-start;
     }
 
-    .form-group {
-        display: flex;
+    .btn-add {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .users-table table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .users-table th, .users-table td {
+        display: block;
+        text-align: center;
+    }
+
+    .form-actions {
         flex-direction: column;
-    }
-
-    .form-group label {
-        font-weight: bold;
-    }
-
-    .form-group input, .form-group select {
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-
-    .modal-footer {
-        display: flex;
-        justify-content: space-between;
     }
 
     .btn-cancel, .btn-submit {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
+        width: 100%;
+        margin-top: 5px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .parameter_landing {
+        flex-direction: column;
     }
 
-    .btn-cancel {
-        background-color: #f44336;
-        color: white;
+    .users-table th, .users-table td {
+        font-size: 14px;
     }
 
-    .btn-submit {
-        background-color: #4CAF50;
-        color: white;
+    .btn-add, .btn-cancel, .btn-submit {
+        font-size: 14px;
+        padding: 8px 12px;
     }
+}
 
-    @media (max-width: 768px) {
-        .user-form {
-            gap: 10px;
-        }
+/* Styles des badges pour les rôles */
+.role-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
 
-        .form-group input, .form-group select {
-            font-size: 14px;
-        }
-    }
+/* Couleurs spécifiques par rôle */
+.role-admin {
+    background-color: #e74c3c; /* Rouge pour admin */
+}
+
+.role-manager {
+    background-color: #f39c12; /* Orange pour manager */
+}
+
+.role-lead-dev {
+    background-color: #9b59b6; /* Violet pour lead developer */
+}
+
+.role-dev {
+    background-color: #3498db; /* Bleu pour developer */
+}
+
+.role-user {
+    background-color: #2ecc71; /* Vert pour user */
+}
+
 </style>
 {% endblock %}
-    

@@ -26,27 +26,27 @@
       
     <main class="project-details">
         {% if current_project %}
-            <h2>{{ current_project.name }}</h2>
+            <h2><i class="fas fa-project-diagram"></i> {{ current_project.name }}</h2>
             <p>{{ current_project.description }}</p>
 
             <div class="project-dates">
                 <div>
-                    <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
-                    <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
+                    <i class="fas fa-calendar-alt"></i> <span>Début prévisionnel :</span> {{ current_project.getStartDateForecast() ? current_project.getStartDateForecast().format('d-m-Y') : 'Non défini' }}
+                    <i class="fas fa-calendar-check"></i> <span>Début réel :</span> <span class="real">{{ current_project.getStartDate() ? current_project.getStartDate().format('d-m-Y') : 'Non défini' }}</span>
                 </div>
                 <div>
-                    <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
-                    <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
+                    <i class="fas fa-calendar-alt"></i> <span>Fin prévisionnelle :</span> {{ current_project.getEndDateForecast() ? current_project.getEndDateForecast().format('d-m-Y') : 'Non défini' }}
+                    <i class="fas fa-calendar-check"></i> <span>Fin réelle :</span> <span class="real">{{ current_project.getEndDate() ? current_project.getEndDate().format('d-m-Y') : 'Non défini' }}</span>
                 </div>
             </div>
 
             <div>
-                <label>Chef de projet :</label>
-                <span>
-                    {{ app.user ? app.user.userFirstName() ~ ' ' ~ app.user.userLastName() : 'Non défini' }}
-                </span>
+                <label><i class="fas fa-user"></i> Chef de projet :</label>
+                <span>{{ app.user ? app.user.userFirstName() ~ ' ' ~ app.user.userLastName() : 'Non défini' }}</span>
                 <br>           
-                <button class="add-task-button" onclick="showTaskForm()">Créer une tâche</button>
+                <button class="add-task-button" onclick="showTaskForm()">
+                    <i class="fas fa-tasks"></i> Créer une tâche
+                </button>
                 {% if current_project %}
                 <div id="createTaskForm" style="display: none;" class="styled-form">
                     {{ form_start(taskForm) }}
@@ -66,88 +66,87 @@
 
             <br>
 
-<div class="kanban-board" id="kanbanBoard">
-    <div class="kanban-column" data-column="a-faire">
-        <h3>À faire</h3>
-        <div class="kanban-tasks">
-            {% for task in current_project.tasks %}
-                {% if task.taskRank == 1 %}
-                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
-                        <h4>{{ task.taskName }}</h4>
-                        <div class="task-info">
-                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                            <p><strong>Type :</strong> {{ task.taskType }}</p>
-                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
-                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                        </div>
+            <div class="kanban-board" id="kanbanBoard">
+                <div class="kanban-column" data-column="a-faire">
+                    <h3>À faire</h3>
+                    <div class="kanban-tasks" data-column-id="a-faire">
+                        {% for task in current_project.tasks %}
+                            {% if task.taskColumnRank == 1 %}
+                                <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true" data-column="{{ task.taskColumnRank }}">
+                                    <h4>{{ task.taskName }}</h4>
+                                    <div class="task-info">
+                                        <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                                        <p><strong>Type :</strong> {{ task.taskType }}</p>
+                                        <p><strong>Rang :</strong> {{ task.taskRank }}</p>
+                                        <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                                        <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
+                </div>
 
-    <div class="kanban-column" data-column="bloque">
-        <h3>Bloqué</h3>
-        <div class="kanban-tasks">
-            {% for task in current_project.tasks %}
-                {% if task.taskRank == 2 %}
-                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
-                        <h4>{{ task.taskName }}</h4>
-                        <div class="task-info">
-                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                            <p><strong>Type :</strong> {{ task.taskType }}</p>
-                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
-                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                        </div>
+                <div class="kanban-column" data-column="bloque">
+                    <h3>Bloqué</h3>
+                    <div class="kanban-tasks" data-column-id="bloque">
+                        {% for task in current_project.tasks %}
+                            {% if task.taskColumnRank == 2 %}
+                                <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true" data-column="{{ task.taskColumnRank }}">
+                                    <h4>{{ task.taskName }}</h4>
+                                    <div class="task-info">
+                                        <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                                        <p><strong>Type :</strong> {{ task.taskType }}</p>
+                                        <p><strong>Rang :</strong> {{ task.taskRank }}</p>
+                                        <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                                        <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
+                </div>
 
-    <div class="kanban-column" data-column="en-cours">
-        <h3>En cours</h3>
-        <div class="kanban-tasks">
-            {% for task in current_project.tasks %}
-                {% if task.taskRank == 3 %}
-                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
-                        <h4>{{ task.taskName }}</h4>
-                        <div class="task-info">
-                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                            <p><strong>Type :</strong> {{ task.taskType }}</p>
-                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
-                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                        </div>
+                <div class="kanban-column" data-column="en-cours">
+                    <h3>En cours</h3>
+                    <div class="kanban-tasks" data-column-id="en-cours">
+                        {% for task in current_project.tasks %}
+                            {% if task.taskColumnRank == 3 %}
+                                <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true" data-column="{{ task.taskColumnRank }}">
+                                    <h4>{{ task.taskName }}</h4>
+                                    <div class="task-info">
+                                        <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                                        <p><strong>Type :</strong> {{ task.taskType }}</p>
+                                        <p><strong>Rang :</strong> {{ task.taskRank }}</p>
+                                        <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                                        <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
+                </div>
 
-    <div class="kanban-column" data-column="terminee">
-        <h3>Terminée</h3>
-        <div class="kanban-tasks">
-            {% for task in current_project.tasks %}
-                {% if task.taskRank >= 4 %}
-                    <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true">
-                        <h4>{{ task.taskName }}</h4>
-                        <div class="task-info">
-                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                            <p><strong>Type :</strong> {{ task.taskType }}</p>
-                            <p><strong>Rang :</strong> {{ task.taskRank }}</p>
-                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                        </div>
+                <div class="kanban-column" data-column="terminee">
+                    <h3>Terminée</h3>
+                    <div class="kanban-tasks" data-column-id="terminee">
+                        {% for task in current_project.tasks %}
+                            {% if task.taskColumnRank >= 4 %}
+                                <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true" data-column="{{ task.taskColumnRank }}">
+                                    <h4>{{ task.taskName }}</h4>
+                                    <div class="task-info">
+                                        <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                                        <p><strong>Type :</strong> {{ task.taskType }}</p>
+                                        <p><strong>Rang :</strong> {{ task.taskRank }}</p>
+                                        <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                                        <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </div>
-</div>
-
+                </div>
+            </div>
 
             {% else %}
                 <p>Sélectionnez un projet pour voir les détails.</p>
@@ -173,12 +172,11 @@
     </main>
 </div>
 
-{# Popup de confirmation de suppression #}
 <div id="deletePopup" class="popup" style="display: none;">
     <div class="popup-content">
         <p>Êtes-vous sûr de vouloir supprimer ce projet ?</p>
-        <button id="confirmDelete" class="confirm-button">Confirmer</button>
-        <button id="cancelDelete" class="cancel-button">Annuler</button>
+        <button id="confirmDelete" class="confirm-button"><i class="fas fa-check"></i> Confirmer</button>
+        <button id="cancelDelete" class="cancel-button"><i class="fas fa-times"></i> Annuler</button>
     </div>
 </div>
 
@@ -550,35 +548,44 @@
 
 .kanban-board {
     display: flex;
-    flex-direction: column;  /* Changé de row à column pour disposition verticale */
+    flex-direction: column;  /* Disposition verticale des colonnes */
     gap: 20px; /* Espacement entre les colonnes */
-    margin-top: 20px;
-    overflow-y: auto; /* Permet le défilement vertical si le nombre de colonnes augmente */
-    overflow-x: hidden; /* Supprime le défilement horizontal */
+    align-items: center; /* Centrer les colonnes */
+    padding: 20px;
+    background-color: #2C2C2C;
+    min-height: 100vh;
 }
 
 .kanban-column {
-    flex: 0 0 auto; /* Modifié pour s'adapter au contenu en hauteur */
-    width: 100%; /* Prend toute la largeur disponible */
-    background-color: #f4f4f4;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: #3C3C3C;
+    border-radius: 10px;
+    padding: 20px;
+    width: 90%; /* Largeur ajustée pour s'adapter à l'écran */
+    max-width: 400px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
 }
 
-.kanban-column h3 {
-    text-align: center;
-    font-size: 18px;
-    color: #333;
-    margin-bottom: 10px;
+.kanban-column h2 {
+    color: #00FFCC;
+    margin-bottom: 15px;
 }
 
 .kanban-tasks {
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Espacement entre les cartes */
+    gap: 10px;
 }
+
+.kanban-task {
+    background-color: #444;
+    padding: 15px;
+    border-radius: 5px;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
 
 .task-card {
     background-color: #fff;
@@ -729,8 +736,8 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         e.stopPropagation();
 
-        const taskContainer = this.classList.contains('kanban-tasks') ? this : this.querySelector('.kanban-tasks');
-        const columnStatus = this.closest('.kanban-column').getAttribute('data-column');
+        const taskContainer = this.querySelector('.kanban-tasks') || this;
+        const columnStatus = this.getAttribute('data-column');
         const taskId = e.dataTransfer.getData('text/plain');
         const task = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
 
@@ -754,19 +761,14 @@ document.addEventListener('DOMContentLoaded', function () {
             rank: index + 1
         }));
 
-        taskIds.forEach(taskData => {
-            const taskElement = document.querySelector(`.task-card[data-task-id="${taskData.id}"]`);
-            const rankElement = taskElement.querySelector('.task-info p strong:contains("Rang")')?.parentNode;
-            if (rankElement) {
-                rankElement.innerHTML = `<strong>Rang :</strong> ${taskData.rank}`;
-            }
-            taskElement.setAttribute('data-rank', taskData.rank);
-        });
-
         fetch('/management-project/update-task-position', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ taskId, newStatus: columnStatus, taskOrder: taskIds })
+            body: JSON.stringify({ 
+                taskId, 
+                newColumn: columnStatus, 
+                taskOrder: taskIds 
+            })
         })
             .then(response => response.json())
             .then(data => {
@@ -796,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
 });
-
 </script>
+
 
 {% endblock %}

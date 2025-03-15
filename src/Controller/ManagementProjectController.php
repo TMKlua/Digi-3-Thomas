@@ -15,17 +15,20 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ManagementProjectController extends AbstractController
 {
-    #[Route('/management-project/{id}', name: 'app_management_project')]
+    #[Route('/management-project/{id<\d+>?}', name: 'app_management_project')]
     public function managementProject(
         ManagerProjectRepository $projectRepository,
         Request $request,
         EntityManagerInterface $entityManager,
-        ?int $id = null
+        ?string $id = null
     ): Response {
+        $id = $id !== null ? (int) $id : null;
+        
         $project = new ManagerProject();
         $form = $this->createForm(ManagerProjectType::class, $project);
     
         $task = new Tasks();
+        $task->setTaskRank(1); // Définir la valeur par défaut du taskRank
         $taskForm = $this->createForm(TaskType::class, $task);
     
         $form->handleRequest($request);
@@ -63,12 +66,10 @@ class ManagementProjectController extends AbstractController
             if ($currentProject) {
                 $task->setProject($currentProject);
                 
-                // Définir le rang en fonction du nombre de tâches existantes
-                $task->setTaskRanks($this->getNextTaskRank($currentProject));
                 $entityManager->persist($task);
                 $entityManager->flush();
                 
-                $this->updateTaskRanks($entityManager, $currentProject);
+                $this->updateTaskRank($entityManager, $currentProject);
             } else {
                 $this->addFlash('error', 'Aucun projet sélectionné pour cette tâche.');
                 return $this->redirectToRoute('app_management_project');
@@ -87,25 +88,20 @@ class ManagementProjectController extends AbstractController
         ]);
     }
 
-    private function updateTaskRanks(EntityManagerInterface $entityManager, ManagerProject $project): void
+    private function updateTaskRank(EntityManagerInterface $entityManager, ManagerProject $project): void
     {
         $tasks = $project->getTasks();
         $rank = 1;
         foreach ($tasks as $task) {
-            $task->setTaskRanks($rank++);
+            $task->setTaskRank($rank);
         }
         $entityManager->flush();
     }
 
-    private function getNextTaskRank(ManagerProject $project): int
-    {
-        return count($project->getTasks());
-    }
-
+    
     #[Route('/management-project/delete/{id}', name: 'app_project_delete', methods: ['POST'])]
     public function deleteProject(ManagerProject $project, EntityManagerInterface $entityManager): Response
     {
-        // Vérifier si le projet appartient à l'utilisateur connecté
         if ($project->getProjectLeader() !== $this->getUser()) {
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à supprimer ce projet.');
         }
@@ -122,18 +118,15 @@ class ManagementProjectController extends AbstractController
     {
         $content = json_decode($request->getContent(), true);
 
-        // Vérifier que les données nécessaires sont fournies
         if (!isset($content['taskId'], $content['newStatus'])) {
             return $this->json(['error' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
         }
 
-        // Récupérer la tâche par son ID
         $task = $entityManager->getRepository(Tasks::class)->find($content['taskId']);
         if (!$task) {
             return $this->json(['error' => 'Tâche introuvable'], Response::HTTP_NOT_FOUND);
         }
 
-        // Mettre à jour le statut de la tâche
         $task->setTaskStatus($content['newStatus']);
         $entityManager->persist($task);
         $entityManager->flush();
@@ -145,32 +138,39 @@ class ManagementProjectController extends AbstractController
     public function updateTaskPosition(Request $request, EntityManagerInterface $entityManager): Response
     {
         $content = json_decode($request->getContent(), true);
-
-        // Vérifier que les données nécessaires sont fournies
-        if (!isset($content['taskId'], $content['newStatus'], $content['taskOrder'])) {
+    
+        if (!isset($content['taskId'], $content['newColumn'], $content['taskOrder'])) {
             return $this->json(['error' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
         }
-
-        // Récupérer la tâche par son ID
+    
+        $columnRanks = [
+            'a-faire' => 1,
+            'bloque' => 2,
+            'en-cours' => 3,
+            'termine' => 4,
+        ];
+    
+        if (!isset($columnRanks[$content['newColumn']])) {
+            return $this->json(['error' => 'Colonne invalide'], Response::HTTP_BAD_REQUEST);
+        }
+    
         $task = $entityManager->getRepository(Tasks::class)->find($content['taskId']);
         if (!$task) {
             return $this->json(['error' => 'Tâche introuvable'], Response::HTTP_NOT_FOUND);
         }
-
-        // Mettre à jour le statut de la tâche
-        $task->setTaskStatus($content['newStatus']);
-
-        // Mettre à jour l'ordre des tâches dans la colonne
+    
+        $task->setTaskColumnRank($columnRanks[$content['newColumn']]);
+    
         foreach ($content['taskOrder'] as $taskData) {
             $taskToUpdate = $entityManager->getRepository(Tasks::class)->find($taskData['id']);
             if ($taskToUpdate) {
-                $taskToUpdate->setRank($taskData['rank']);
+                $taskToUpdate->setTaskRank($taskData['rank']);
                 $entityManager->persist($taskToUpdate);
             }
         }
-
+    
         $entityManager->flush();
-
-        return $this->json(['success' => 'Position des tâches mise à jour'], Response::HTTP_OK);
+    
+        return $this->json(['success' => 'Position et colonne des tâches mises à jour'], Response::HTTP_OK);
     }
 }

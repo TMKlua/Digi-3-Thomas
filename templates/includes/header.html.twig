@@ -1,44 +1,63 @@
 <header>
+    <!-- Navigation principale -->
     <nav class="flex">
+        <!-- Logo du site -->
         <div class="header-logo">
-            <a href="{{ path('home_index') }}" class="flex">
+            <a href="{{ path('app_dashboard') }}" class="flex">
                 <img src="/img/header/home-logo.png" alt="Logo Digi-3">
             </a> 
         </div>
+
+        <!-- Menu de navigation -->
         <ul class="flex">
+            <!-- Lien vers le dashboard -->
             <li class="{% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %}">
                 <a href="{{ path('app_dashboard') }}" style="font-size: 18px;">Dashboard</a>
             </li>
+            <!-- Lien vers la gestion des projets -->
             <li class="{% if app.request.attributes.get('_route') == 'app_management_project' %}active{% endif %}">
                 <a href="{{ path('app_management_project') }}" style="font-size: 18px;">Gestion de projets</a>
             </li>
+            <!-- Lien vers les paramètres -->
             <li class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}active{% endif %}">
                 <a href="{{ path('app_parameter_generaux') }}" style="font-size: 18px;">Paramètres</a>
             </li>
         </ul>
+
+        <!-- Barre de recherche -->
         <input type="text" class="header-search" placeholder="Rechercher" class="search-input" style="font-size: 18px; width: 150px;">
+
+        <!-- Lien vers le profil de l'utilisateur (actuellement sans contenu) -->
         <a href="{{ path('app_parameter_generaux') }}" class="header-account flex">
         </a>
-        <form action="{{ path('app_logout') }}" method="post" class="logout-form flex" onsubmit="return showLogoutDialog(event);">
+
+        <!-- Formulaire de déconnexion -->
+        <form action="{{ path('app_logout') }}" method="post" onsubmit="return showLogoutDialog(event);">
             <button type="submit" class="logout-btn flex">
-                <img src="/img/header/deconnect.png" alt="Icône déconnexion">
+                <!-- Icône de déconnexion en blanc -->
+                <i class="fas fa-sign-out-alt" style="font-size: 30px; color: white;"></i>
             </button>
         </form>
     </nav>
 
-    <!-- Modale de déconnexion améliorée -->
+    <!-- Modale de confirmation de déconnexion -->
     <div id="logout-dialog" class="logout-dialog">
         <div class="logout-dialog-content">
+            <!-- En-tête de la modale -->
             <div class="logout-dialog-header">
                 <h3>Déconnexion</h3>
                 <span class="close" onclick="closeLogoutDialog()">&times;</span>
             </div>
+            <!-- Corps de la modale -->
             <div class="logout-dialog-body">
                 <p style="color:white">Êtes-vous sûr de vouloir vous déconnecter ?</p>
                 <p class="logout-subtitle">Vous devrez vous reconnecter pour accéder à votre compte.</p>
             </div>
+            <!-- Boutons de la modale -->
             <div class="logout-dialog-buttons">
+                <!-- Bouton d'annulation -->
                 <button type="button" onclick="closeLogoutDialog()" class="cancel-btn">Annuler</button>
+                <!-- Bouton de confirmation de déconnexion -->
                 <button type="button" onclick="confirmLogout()" class="confirm-btn">Se déconnecter</button>
             </div>
         </div>

@@ -31,8 +31,7 @@ class UserRoleCommandService extends Command
     {
         $users = [
             ['admin@digiworks.fr', 'Admin123!', 'ROLE_ADMIN', 'Jean', 'Dupont'],
-            ['responsable@digiworks.fr', 'Responsable123!', 'ROLE_RESPONSABLE', 'Marc', 'Lanvin'],
-            ['pm@digiworks.fr', 'ProjectManager123!', 'ROLE_RESPONSABLE', 'Pierre', 'Martin'],
+            ['manager@digiworks.fr', 'Manager123!', 'ROLE_MANAGER', 'Marc', 'Lanvin'],
             ['lead@digiworks.fr', 'LeadDev123!', 'ROLE_LEAD_DEV', 'Sophie', 'Durand'],
             ['dev@digiworks.fr', 'Dev123!', 'ROLE_DEV', 'Alexandre', 'Lemoine'],
             ['user@digiworks.fr', 'User123!', 'ROLE_USER', 'Claire', 'Dufresne'],

@@ -39,6 +39,9 @@ class Tasks
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $taskRank = 1;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private ?int $taskColumnRank = 1;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $taskRealStartDate = null;
 
@@ -98,10 +101,21 @@ class Tasks
         return $this->taskRank;
     }
 
-    public function setTaskRanks(int $taskRank): self
+    public function setTaskRank(int $taskRank): self
     {
         $this->taskRank = $taskRank;
 
+        return $this;
+    }
+
+    public function getTaskColumnRank(): ?int
+    {
+        return $this->taskColumnRank;
+    }
+
+    public function setTaskColumnRank(int $taskColumnRank): self
+    {
+        $this->taskColumnRank = $taskColumnRank;
         return $this;
     }
 

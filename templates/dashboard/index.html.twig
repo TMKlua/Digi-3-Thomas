@@ -1,9 +1,8 @@
-{% extends 'base.html.twig' %} 
+{% extends 'base.html.twig' %}
 
-{% block title %}Digi-3 - Dashboard{% endblock %} 
+{% block title %}Digi-3 - Dashboard{% endblock %}
 
-{% block body %} 
-
+{% block body %}
     {% include 'includes/header.html.twig' %}
 
     <div class="dashboard-container">
@@ -22,24 +21,25 @@
 
             <div class="user-stats card">
                 <div class="tasks">
-                    <p>Tâches</p>
+                    <p><i class="fas fa-tasks"></i> Tâches</p>
                     <h3>85% <span class="up-arrow">↑</span></h3>
                 </div>
                 <div class="projects">
-                    <p>Projets</p>
+                    <p><i class="fas fa-project-diagram"></i> Projets</p>
                     <h3>13 <span class="down-arrow">↓</span></h3>
                 </div>
             </div>
 
             <nav class="sidebar-nav card">
                 <ul>
-                    <a href="#" class="btn-link">Page d'accueil <i class="fas fa-home"></i></a>
-                    <a href="#" class="btn-link">Calendrier</a>
-                    <a href="#" class="btn-link">Efficacité des tâches</a>
-                    <a href="#" class="btn-link">Productivité individuelle</a>
+                    <a href="#" class="btn-link"><i class="fas fa-home"></i> Page d'accueil</a>
+                    <a href="#" class="btn-link"><i class="fas fa-calendar-alt"></i> Calendrier</a>
+                    <a href="#" class="btn-link"><i class="fas fa-chart-line"></i> Efficacité des tâches</a>
+                    <a href="#" class="btn-link"><i class="fas fa-users"></i> Productivité individuelle</a>
                 </ul>
             </nav>
         </div>
+
         <div class="main-content">
             <div class="calendar card">
                 <h4>Calendrier</h4>
@@ -59,27 +59,26 @@
                     </div>
                     <p>8 en cours</p>
                 </div>
-                <a href="#" class="more-info">En savoir plus</a>
+                <a href="#" class="more-info"><i class="fas fa-info-circle"></i> En savoir plus</a>
             </div>
 
             <div class="efficiency-box card">
-                <h4>Efficacité des tâches</h4>
+                <h4><i class="fas fa-cogs"></i> Efficacité des tâches</h4>
             </div>
 
             <div class="productivity-box card">
-                <h4>Productivité individuelle</h4>
+                <h4><i class="fas fa-rocket"></i> Productivité individuelle</h4>
                 <p>Liste de tâches + un total</p>
                 <p>Comparaison entre effort prévisionnel et réel</p>
             </div>
         </div>
     </div>
-
 {% endblock %}
 
 {% block stylesheets %}
 <style>
     body {
-        color: #000; /* Texte global en noir */
+        color: #000;
         margin: 0;
         font-family: Arial, sans-serif;
     }
@@ -118,7 +117,7 @@
 
     .user-details h3, .user-details p {
         margin: 5px 0;
-        color: #000; /* Texte des détails utilisateur en noir */
+        color: #000;
     }
 
     .user-stats {
@@ -132,7 +131,7 @@
 
     .tasks p, .tasks h3,
     .projects p, .projects h3 {
-        color: #000; /* Texte et flèches des statistiques en noir */
+        color: #000;
     }
 
     .up-arrow {
@@ -195,13 +194,13 @@
     .efficiency-box h4, 
     .productivity-box h4, 
     .productivity-box p {
-        color: #000; /* Texte des sections en noir */
+        color: #000;
     }
 
     .more-info {
         display: inline-block;
         margin-top: 10px;
-        color: #000; /* Lien en noir */
+        color: #000;
         text-decoration: none;
     }
 
@@ -209,8 +208,7 @@
         text-decoration: underline;
     }
 
-    /* Media Queries pour rendre le design responsive */
-
+    /* Media Queries */
     @media screen and (max-width: 1024px) {
         .dashboard-container {
             flex-direction: column;

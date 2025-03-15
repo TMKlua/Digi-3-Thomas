@@ -1,108 +1,97 @@
 {% extends 'base.html.twig' %} 
-{% block title %}Digi-3 - Paramètres généraux{%endblock %}
-{% block body %}
-{% include 'includes/header.html.twig' with {'user': user} %}
-<section class="parameter_landing flex">
-  {% include 'parameter/_menu.html.twig' %}
-  <div class="parameter_content">
-    <div class="account-page">
-      <div class="account-header flex">
-    <h2>Mon compte</h2>
-    <div class="account-info flex">
-        <!-- Informations utilisateur -->
-        <div class="title flex-col">
-            <p><strong>Prénom :</strong> {{ user.userFirstName }}</p>
-            <p><strong>Nom :</strong> {{ user.userLastName }}</p>
-            <p><strong>Email :</strong> {{ user.userEmail }}</p>
-        </div>
-        
-        <!-- Section photo de profil -->
-        <div class="profile-pic flex">
-            <label class="flex" for="file">
-                <img
-                    src="/img/account/account-change.png"
-                    alt="Icone changement de photo de profil"
-                    class="profile-pic-icon"
-                />
-                <p>Modifier la photo de profil</p>
-            </label>
-            <input id="file" type="file" name="profile_picture" style="display:none" />
-            <img
-                id="output"
-                src="{{ user.userAvatar }}"
-                alt="Photo de profil de {{ user.userEmail }}"
-                class="user-avatar"
-            />
-        </div>
-    </div>
-</div>
 
-      <div class="account-body flex">
-        <div class="account-email flex-col">
-          <h3>Modifier son adresse e-mail</h3>
-          {{ form_start(emailForm, { method: "POST" }) }}
-          {{ form_row(emailForm.email) }}
-          {{ form_row(emailForm.password) }}
-          <div class="">
-            <button type="submit" class="btn-submit">
-              Nouvelle adresse e-mail
-            </button>
+{% block title %}Digi-3 - Paramètres généraux{% endblock %}
+
+{% block body %}
+  {% include 'includes/header.html.twig' with {'user': user} %}
+  <section class="parameter_landing flex">
+    {% include 'parameter/_menu.html.twig' %}
+    <div class="parameter_content">
+      <div class="account-page">
+        <div class="account-header flex">
+          <h2>Mon compte</h2>
+          <div class="account-info flex">
+            <!-- Informations utilisateur -->
+            <div class="title flex-col">
+              <p><strong>Prénom :</strong> {{ user.userFirstName }}</p>
+              <p><strong>Nom :</strong> {{ user.userLastName }}</p>
+              <p><strong>Email :</strong> {{ user.userEmail }}</p>
+            </div>
+            
+            <!-- Section photo de profil -->
+            <div class="profile-pic flex">
+              <label class="flex" for="file">
+                <img src="/img/account/account-change.png" alt="Icone changement de photo de profil" class="profile-pic-icon" />
+                <p>Modifier la photo de profil</p>
+              </label>
+              <input id="file" type="file" name="profile_picture" style="display:none" />
+              <img id="output" src="{{ user.userAvatar }}" alt="Photo de profil de {{ user.userEmail }}" class="user-avatar" />
+            </div>
+          </div>
+        </div>
+
+        <div class="account-body flex">
+          <div class="account-email flex-col">
+            <h3>Modifier son adresse e-mail</h3>
+            {{ form_start(emailForm, { method: "POST" }) }}
+              {{ form_row(emailForm.email) }}
+              {{ form_row(emailForm.password) }}
+              <div>
+                <button type="submit" class="btn-submit">Nouvelle adresse e-mail</button>
+                {% for message in app.flashes('error') %}
+                  <div>{{ message }}</div>
+                {% endfor %}
+                {% for message in app.flashes('success') %}
+                  <div>{{ message }}</div>
+                {% endfor %}
+              </div>
+            {{ form_end(emailForm) }}
+          </div>
+          
+          <div class="account-password flex-col">
+            <h3>Modifier son mot de passe</h3>
+            {{ form_start(passwordForm, { method: "POST" }) }}
+              {{ form_row(passwordForm.actual_password) }}
+              {{ form_row(passwordForm.password) }}
+              <button type="submit" class="btn-submit">Nouveau mot de passe</button>
+            {{ form_end(passwordForm) }}
             {% for message in app.flashes('error') %}
-            <div >{{ message }}</div>
-            {% endfor %}
-            {% for message in app.flashes('success') %}
-            <div >{{ message }}</div>
+              <div class="alert alert-danger">{{ message }}</div>
             {% endfor %}
           </div>
-
-          {{ form_end(emailForm) }}
-        </div>
-        <div class="account-password flex-col">
-          <h3>Modifier son mot de passe</h3>
-          {{ form_start(passwordForm, { method: "POST" }) }}
-          {{ form_row(passwordForm.actual_password) }}
-          {{ form_row(passwordForm.password) }}
-          <button type="submit" class="btn-submit">Nouveau mot de passe</button>
-          {{ form_end(passwordForm) }}
-          {% for message in app.flashes('error') %}
-          <div class="alert alert-danger">{{ message }}</div>
-          {% endfor %}
         </div>
       </div>
     </div>
-  </div>
-</section>
-{% endblock %} {% block javascripts %}
-<script>
-  document.getElementById("file").addEventListener("change", function (event) {
-    const file = event.target.files[0];
-    if (file) {
-      console.log("Fichier sélectionné:", file.name);
+  </section>
+{% endblock %}
 
-      const formData = new FormData();
-      formData.append("profile_picture", file);
+{% block javascripts %}
+  <script>
+    document.getElementById("file").addEventListener("change", function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        console.log("Fichier sélectionné:", file.name);
 
-      fetch("/parameter/generaux", {
-        method: "POST",
-        body: formData, // Envoie les données du formulaire
-      })
-        .then((response) => {
-          console.log("Réponse du serveur:", response);
-          return response.json(); // Essayez de parser la réponse en JSON
+        const formData = new FormData();
+        formData.append("profile_picture", file);
+
+        fetch("/parameter/generaux", {
+          method: "POST",
+          body: formData,
         })
-        .then((data) => {
-          console.log("Données récupérées:", data);
-          if (data.success) {
-            document.getElementById("output").src = data.newProfilePictureUrl; // Mettez à jour l'image de profil
-          } else {
-            console.error("Erreur:", data.error);
-          }
-        })
-        .catch((error) => {
-          console.error("Erreur lors de la requête:", error);
-        });
-    }
-  });
-</script>
-
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Données récupérées:", data);
+            if (data.success) {
+              document.getElementById("output").src = data.newProfilePictureUrl;
+            } else {
+              console.error("Erreur:", data.error);
+            }
+          })
+          .catch((error) => {
+            console.error("Erreur lors de la requête:", error);
+          });
+      }
+    });
+  </script>
 {% endblock %}

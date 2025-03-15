@@ -3,27 +3,42 @@
     <li
       class="{% if app.request.attributes.get('_route') == 'app_parameter_generaux' %}parameter_menu_active{% endif %}"
     >
-      <a href="{{ path('app_parameter_generaux') }}">Général</a>
+      <a href="{{ path('app_parameter_generaux') }}">
+        <i class="fas fa-cogs" style="margin-right: 8px;"></i> <!-- Icône de paramètres généraux -->
+        Général
+      </a>
     </li>
     <li
       class="{% if app.request.attributes.get('_route') == 'app_parameter_users' %}parameter_menu_active{% endif %}"
     >
-      <a href="{{ path('app_parameter_users') }}">Gestion User</a>
+      <a href="{{ path('app_parameter_users') }}">
+        <i class="fas fa-users" style="margin-right: 8px;"></i> <!-- Icône de gestion des utilisateurs -->
+        Gestion User
+      </a>
     </li>
     <li
       class="{% if app.request.attributes.get('_route') == 'app_parameter_projects' %}parameter_menu_active{% endif %}"
     >
-      <a href="{{ path('app_parameter_projects') }}">Gestion Projets</a>
+      <a href="{{ path('app_parameter_projects') }}">
+        <i class="fas fa-briefcase" style="margin-right: 8px;"></i> <!-- Icône de gestion des projets -->
+        Gestion Projets
+      </a>
     </li>
     <li
       class="{% if app.request.attributes.get('_route') == 'app_parameter_customers' %}parameter_menu_active{% endif %}"
     >
-      <a href="{{ path('app_parameter_customers') }}">Gestion Client</a>
+      <a href="{{ path('app_parameter_customers') }}">
+        <i class="fas fa-user-tie" style="margin-right: 8px;"></i> <!-- Icône de gestion des clients -->
+        Gestion Client
+      </a>
     </li>
     <li
       class="{% if app.request.attributes.get('_route') == 'app_parameter_about' %}parameter_menu_active{% endif %}"
     >
-      <a href="{{ path('app_parameter_about') }}">À Propos</a>
+      <a href="{{ path('app_parameter_about') }}">
+        <i class="fas fa-info-circle" style="margin-right: 8px;"></i> <!-- Icône de À propos -->
+        À Propos
+      </a>
     </li>
   </ul>
 </div>
