@@ -1,36 +1,43 @@
-{% extends 'base.html.twig' %} 
+{% extends 'base.html.twig' %}
 
 {% block title %}Digi-3 - Paramètres généraux{% endblock %}
 
 {% block body %}
+
+  {# Inclusion de l'en-tête avec les informations de l'utilisateur #}
   {% include 'includes/header.html.twig' with {'user': user} %}
+  
   <section class="parameter_landing flex">
+    {# Menu des paramètres #}
     {% include 'parameter/_menu.html.twig' %}
+    
     <div class="parameter_content">
       <div class="account-page">
         <div class="account-header flex">
-          <h2>Mon compte</h2>
-          <div class="account-info flex">
-            <!-- Informations utilisateur -->
-            <div class="title flex-col">
+          <h2 class="account-header-title">Mon compte</h2>
+          <div class="account-header-bar"></div>  {# Barre horizontale #}
+          <div class="account-header-vertical-bar"></div> {# Barre verticale ajoutée à droite #}
+          <div class="account-header-info flex">
+            {# Informations personnelles de l'utilisateur alignées à droite de la barre #}
+            <div class="account-header-info-text">
               <p><strong>Prénom :</strong> {{ user.userFirstName }}</p>
               <p><strong>Nom :</strong> {{ user.userLastName }}</p>
               <p><strong>Email :</strong> {{ user.userEmail }}</p>
             </div>
             
-            <!-- Section photo de profil -->
+            {# Section photo de profil avec option de changement #}
             <div class="profile-pic flex">
               <label class="flex" for="file">
                 <img src="/img/account/account-change.png" alt="Icone changement de photo de profil" class="profile-pic-icon" />
-                <p>Modifier la photo de profil</p>
               </label>
-              <input id="file" type="file" name="profile_picture" style="display:none" />
+              <input id="file" type="file" name="profile_picture" style="display:none" accept="image/png, image/jpeg, image/gif" />
               <img id="output" src="{{ user.userAvatar }}" alt="Photo de profil de {{ user.userEmail }}" class="user-avatar" />
             </div>
           </div>
         </div>
 
         <div class="account-body flex">
+          {# Formulaire pour modifier l'adresse e-mail #}
           <div class="account-email flex-col">
             <h3>Modifier son adresse e-mail</h3>
             {{ form_start(emailForm, { method: "POST" }) }}
@@ -38,6 +45,8 @@
               {{ form_row(emailForm.password) }}
               <div>
                 <button type="submit" class="btn-submit">Nouvelle adresse e-mail</button>
+                
+                {# Affichage des messages d'erreur et de succès #}
                 {% for message in app.flashes('error') %}
                   <div>{{ message }}</div>
                 {% endfor %}
@@ -48,6 +57,7 @@
             {{ form_end(emailForm) }}
           </div>
           
+          {# Formulaire pour modifier le mot de passe #}
           <div class="account-password flex-col">
             <h3>Modifier son mot de passe</h3>
             {{ form_start(passwordForm, { method: "POST" }) }}
@@ -55,6 +65,8 @@
               {{ form_row(passwordForm.password) }}
               <button type="submit" class="btn-submit">Nouveau mot de passe</button>
             {{ form_end(passwordForm) }}
+            
+            {# Affichage des messages d'erreur pour le mot de passe #}
             {% for message in app.flashes('error') %}
               <div class="alert alert-danger">{{ message }}</div>
             {% endfor %}
@@ -63,35 +75,69 @@
       </div>
     </div>
   </section>
+
 {% endblock %}
 
 {% block javascripts %}
   <script>
+    {# Script pour gérer l'upload de la photo de profil #}
     document.getElementById("file").addEventListener("change", function (event) {
       const file = event.target.files[0];
       if (file) {
-        console.log("Fichier sélectionné:", file.name);
+        // Vérifier si le fichier est une image valide
+        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (validImageTypes.includes(file.type)) {
+          console.log("Fichier sélectionné:", file.name);
 
-        const formData = new FormData();
-        formData.append("profile_picture", file);
+          const formData = new FormData();
+          formData.append("profile_picture", file);
 
-        fetch("/parameter/generaux", {
-          method: "POST",
-          body: formData,
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Données récupérées:", data);
-            if (data.success) {
-              document.getElementById("output").src = data.newProfilePictureUrl;
-            } else {
-              console.error("Erreur:", data.error);
-            }
+          {# Envoi du fichier vers le serveur via une requête POST #}
+          fetch("/parameter/generaux", {
+            method: "POST",
+            body: formData,
           })
-          .catch((error) => {
-            console.error("Erreur lors de la requête:", error);
-          });
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("Données récupérées:", data);
+              if (data.success) {
+                document.getElementById("output").src = data.newProfilePictureUrl;
+              } else {
+                console.error("Erreur:", data.error);
+              }
+            })
+            .catch((error) => {
+              console.error("Erreur lors de la requête:", error);
+            });
+        } else {
+          alert("Veuillez sélectionner une image valide (jpg, jpeg, png, gif).");
+        }
       }
     });
   </script>
+{% endblock %}
+
+{% block stylesheets %}
+  <style>
+
+    .account-header-title {
+      margin-right: 20px;
+    }
+
+    .account-header-info {
+      display: flex;
+      align-items: center;
+      margin-left: 20px;
+    }
+
+    .account-header-info-text {
+      margin-right: 20px;
+    }
+
+    .profile-pic {
+      margin-left: 20px;
+    }
+
+
+  </style>
 {% endblock %}

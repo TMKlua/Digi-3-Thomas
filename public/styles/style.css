@@ -305,12 +305,6 @@ header nav ul li.active a::after {
   justify-content: flex-start;
 }
 
-.account-info p:nth-child(1) {
-  font-size: 1.5rem;
-  text-align: end;
-  width: 100%;
-}
-
 /* ACCOUNT-CHANGE PROFILE PICTURE */
 #output {
   position: absolute;
