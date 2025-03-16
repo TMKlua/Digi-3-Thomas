@@ -2,6 +2,10 @@
 
 {% block title %}Digi-3 - Paramètres généraux{% endblock %}
 
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles/parameter/general.css') }}" async>
+{% endblock %}
+
 {% block body %}
 
   {# Inclusion de l'en-tête avec les informations de l'utilisateur #}
@@ -23,6 +27,7 @@
               <p><strong>Prénom :</strong> {{ user.userFirstName }}</p>
               <p><strong>Nom :</strong> {{ user.userLastName }}</p>
               <p><strong>Email :</strong> {{ user.userEmail }}</p>
+              <p><strong>Rôle :</strong> {{ user.userRole }}</p>
             </div>
             
             {# Section photo de profil avec option de changement #}
@@ -79,65 +84,5 @@
 {% endblock %}
 
 {% block javascripts %}
-  <script>
-    {# Script pour gérer l'upload de la photo de profil #}
-    document.getElementById("file").addEventListener("change", function (event) {
-      const file = event.target.files[0];
-      if (file) {
-        // Vérifier si le fichier est une image valide
-        const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        if (validImageTypes.includes(file.type)) {
-          console.log("Fichier sélectionné:", file.name);
-
-          const formData = new FormData();
-          formData.append("profile_picture", file);
-
-          {# Envoi du fichier vers le serveur via une requête POST #}
-          fetch("/parameter/generaux", {
-            method: "POST",
-            body: formData,
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              console.log("Données récupérées:", data);
-              if (data.success) {
-                document.getElementById("output").src = data.newProfilePictureUrl;
-              } else {
-                console.error("Erreur:", data.error);
-              }
-            })
-            .catch((error) => {
-              console.error("Erreur lors de la requête:", error);
-            });
-        } else {
-          alert("Veuillez sélectionner une image valide (jpg, jpeg, png, gif).");
-        }
-      }
-    });
-  </script>
-{% endblock %}
-
-{% block stylesheets %}
-  <style>
-
-    .account-header-title {
-      margin-right: 20px;
-    }
-
-    .account-header-info {
-      display: flex;
-      align-items: center;
-      margin-left: 20px;
-    }
-
-    .account-header-info-text {
-      margin-right: 20px;
-    }
-
-    .profile-pic {
-      margin-left: 20px;
-    }
-
-
-  </style>
+<script src="{{ asset('script/parameter/general.js') }}"></script>
 {% endblock %}

@@ -3,11 +3,16 @@
 {% block title %}Digi-3 - Gestion des utilisateurs{% endblock %}
 
 {% block body %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles/parameter/users.css') }}" async>
+{% endblock %}
+
 {% include 'includes/header.html.twig' with {'user': user} %}
 
 <section class="parameter_landing flex">
     {% include 'parameter/_menu.html.twig' %}
-    <div class="parameter_content">
+        <div class="parameter_content">
         <div class="users-page">
             <div class="users-header flex">
                 <h2>Gestion des utilisateurs</h2>
@@ -77,8 +82,24 @@
                                 <td>{{ user.userFirstName }}</td>
                                 <td>{{ user.userEmail }}</td>
                                 <td>
-                                    <span class="role-badge {% if user.userRole == 'ROLE_ADMIN' %}role-admin{% else %}role-user{% endif %}">
-                                        {{ user.userRole == 'ROLE_ADMIN' ? 'Admin' : 'User' }}
+                                    {% set roleClasses = {
+                                        'ROLE_ADMIN': 'role-admin',
+                                        'ROLE_MANAGER': 'role-manager',
+                                        'ROLE_LEAD_DEV': 'role-lead-dev',
+                                        'ROLE_DEV': 'role-dev',
+                                        'ROLE_USER': 'role-user'
+                                    } %}
+
+                                    {% set roleLabels = {
+                                        'ROLE_ADMIN': 'Administrateur',
+                                        'ROLE_MANAGER': 'Manager',
+                                        'ROLE_LEAD_DEV': 'Lead Développeur',
+                                        'ROLE_DEV': 'Développeur',
+                                        'ROLE_USER': 'Utilisateur'
+                                    } %}
+
+                                    <span class="role-badge {{ roleClasses[user.userRole] | default('role-user') }}">
+                                        {{ roleLabels[user.userRole] | default('Utilisateur') }}
                                     </span>
                                 </td>
                                 <td class="actions">
@@ -108,210 +129,7 @@
     </div>
 </section>
 
-{% endblock %}
-
 {% block javascripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle Add User Form visibility
-        document.getElementById('toggleAddUserForm').addEventListener('click', function() {
-            const formContainer = document.getElementById('addUserFormContainer');
-            formContainer.style.display = 'block';
-        });
-
-        // Hide form when cancel button is clicked
-        document.getElementById('cancelAddUser').addEventListener('click', function() {
-            const formContainer = document.getElementById('addUserFormContainer');
-            formContainer.style.display = 'none';
-            document.getElementById('addUserForm').reset();
-        });
-
-        // Add User
-        document.getElementById('saveNewUser').addEventListener('click', function() {
-            const formData = new FormData(document.getElementById('addUserForm'));
-            
-            fetch('{{ path('app_parameter_user_add') }}', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Utilisateur créé avec succès !');
-                    location.reload();
-                } else {
-                    alert('Erreur lors de la création de l\'utilisateur : ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Une erreur est survenue lors de l\'ajout de l\'utilisateur');
-            });
-        });
-    });
-</script>
+<script src="{{ asset('script/parameter/users.js') }}"></script>
 {% endblock %}
-
-{% block stylesheets %}
-<style>
- /* Styles de base */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.parameter_landing {
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.parameter_content {
-    flex: 1;
-    padding: 20px;
-    min-width: 300px;
-}
-
-/* Table responsive */
-.users-table table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.users-table th, .users-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-
-.users-table img {
-    max-width: 100%;
-    height: auto;
-}
-
-/* Formulaire responsive */
-.user-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group input, .form-group select {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-/* Boutons responsive */
-.btn-add, .btn-cancel, .btn-submit {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-}
-
-.btn-add {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-cancel {
-    background-color: #f44336;
-    color: white;
-}
-
-.btn-submit {
-    background-color: #008CBA;
-    color: white;
-}
-
-/* Média queries pour le responsive */
-@media screen and (max-width: 768px) {
-    .users-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .btn-add {
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    .users-table table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-
-    .users-table th, .users-table td {
-        display: block;
-        text-align: center;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .btn-cancel, .btn-submit {
-        width: 100%;
-        margin-top: 5px;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .parameter_landing {
-        flex-direction: column;
-    }
-
-    .users-table th, .users-table td {
-        font-size: 14px;
-    }
-
-    .btn-add, .btn-cancel, .btn-submit {
-        font-size: 14px;
-        padding: 8px 12px;
-    }
-}
-
-/* Styles des badges pour les rôles */
-.role-badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: bold;
-    text-align: center;
-    color: white;
-}
-
-/* Couleurs spécifiques par rôle */
-.role-admin {
-    background-color: #e74c3c; /* Rouge pour admin */
-}
-
-.role-manager {
-    background-color: #f39c12; /* Orange pour manager */
-}
-
-.role-lead-dev {
-    background-color: #9b59b6; /* Violet pour lead developer */
-}
-
-.role-dev {
-    background-color: #3498db; /* Bleu pour developer */
-}
-
-.role-user {
-    background-color: #2ecc71; /* Vert pour user */
-}
-
-</style>
 {% endblock %}

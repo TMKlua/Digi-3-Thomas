@@ -1,0 +1,17 @@
+.account-header-title {
+    margin-right: 20px;
+}
+
+.account-header-info {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.account-header-info-text {
+    margin-right: 20px;
+}
+
+.profile-pic {
+    margin-left: 20px;
+}

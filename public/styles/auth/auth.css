@@ -1,0 +1,162 @@
+
+/* Styles pour la modale */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    max-width: 450px;
+    width: 100%;
+    position: relative;
+    animation: modalFadeIn 0.4s ease-out;
+    border: 1px solid #333;
+}
+
+
+@keyframes modalFadeIn {
+    from {opacity: 0; transform: translateY(-20px) scale(0.95);}
+    to {opacity: 1; transform: translateY(0) scale(1);}
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #fff;
+    font-size: 24px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    font-size: 26px;
+    font-weight: normal;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s ease, transform 0.2s ease;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.close:hover {
+    color: #fff;
+    transform: rotate(90deg);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Styles pour le formulaire de réinitialisation */
+#resetPasswordForm {
+    margin-top: 20px;
+}
+
+#resetPasswordForm label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+    font-size: 14px;
+}
+
+#resetPasswordForm input[type="email"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    background-color: #252525;
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#resetPasswordForm input[type="email"]:focus {
+    border-color: #5c6bc0;
+    box-shadow: 0 0 0 2px rgba(92, 107, 192, 0.3);
+    outline: none;
+}
+
+#resetPasswordForm button {
+    width: 100%;
+    padding: 12px;
+    background-color: #5c6bc0;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+#resetPasswordForm button:hover {
+    background-color: #4a5bbc;
+}
+
+#resetPasswordResponse {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
+#resetPasswordResponse.success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+    border: 1px solid #43a047;
+}
+
+#resetPasswordResponse.error {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #e57373;
+    border: 1px solid #e53935;
+}
+
+/* Styles pour les contrôles de mot de passe */
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.forgot-password-link {
+    display: block;
+    text-align: right;
+    margin: 5px 0 15px;
+    color: #5c6bc0;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
+    color: #7986cb;
+}

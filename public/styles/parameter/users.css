@@ -1,0 +1,158 @@
+/* Styles de base */
+body {
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+.parameter_landing {
+display: flex;
+flex-wrap: wrap;
+}
+
+.parameter_content {
+flex: 1;
+padding: 20px;
+min-width: 300px;
+}
+
+/* Table responsive */
+.users-table table {
+width: 100%;
+border-collapse: collapse;
+}
+
+.users-table th, .users-table td {
+padding: 10px;
+border: 1px solid #ddd;
+text-align: left;
+}
+
+.users-table img {
+max-width: 100%;
+height: auto;
+}
+
+/* Formulaire responsive */
+.user-form {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+
+.form-group {
+display: flex;
+flex-direction: column;
+}
+
+.form-group input, .form-group select {
+padding: 10px;
+border: 1px solid #ddd;
+border-radius: 5px;
+}
+
+/* Boutons responsive */
+.btn-add, .btn-cancel, .btn-submit {
+padding: 10px 15px;
+border: none;
+border-radius: 5px;
+font-weight: bold;
+cursor: pointer;
+text-align: center;
+}
+
+.btn-add {
+background-color: #4CAF50;
+color: white;
+}
+
+.btn-cancel {
+background-color: #f44336;
+color: white;
+}
+
+.btn-submit {
+background-color: #008CBA;
+color: white;
+}
+
+/* Média queries pour le responsive */
+@media screen and (max-width: 768px) {
+.users-header {
+flex-direction: column;
+align-items: flex-start;
+}
+
+.btn-add {
+width: 100%;
+margin-top: 10px;
+}
+
+.users-table table {
+display: block;
+overflow-x: auto;
+white-space: nowrap;
+}
+
+.users-table th, .users-table td {
+display: block;
+text-align: center;
+}
+
+.form-actions {
+flex-direction: column;
+}
+
+.btn-cancel, .btn-submit {
+width: 100%;
+margin-top: 5px;
+}
+}
+
+@media screen and (max-width: 480px) {
+.parameter_landing {
+flex-direction: column;
+}
+
+.users-table th, .users-table td {
+font-size: 14px;
+}
+
+.btn-add, .btn-cancel, .btn-submit {
+font-size: 14px;
+padding: 8px 12px;
+}
+}
+
+/* Styles des badges pour les rôles */
+.role-badge {
+display: inline-block;
+padding: 5px 10px;
+border-radius: 12px;
+font-size: 14px;
+font-weight: bold;
+text-align: center;
+color: white;
+}
+
+/* Couleurs spécifiques par rôle */
+.role-admin {
+background-color: #e74c3c; /* Rouge pour admin */
+}
+
+.role-manager {
+background-color: #f39c12; /* Orange pour manager */
+}
+
+.role-lead-dev {
+background-color: #9b59b6; /* Violet pour lead developer */
+}
+
+.role-dev {
+background-color: #3498db; /* Bleu pour developer */
+}
+
+.role-user {
+background-color: #2ecc71; /* Vert pour user */
+}
