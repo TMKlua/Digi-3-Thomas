@@ -548,11 +548,10 @@
 
 .kanban-board {
     display: flex;
-    flex-direction: column;  /* Disposition verticale des colonnes */
+    flex-direction: row;  /* Disposition horizontale des colonnes */
     gap: 20px; /* Espacement entre les colonnes */
-    align-items: center; /* Centrer les colonnes */
+    align-items: flex-start; /* Aligner les colonnes en haut */
     padding: 20px;
-    background-color: #2C2C2C;
     min-height: 100vh;
 }
 
@@ -562,8 +561,10 @@
     padding: 20px;
     width: 90%; /* Largeur ajustée pour s'adapter à l'écran */
     max-width: 400px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     text-align: center;
+    display: flex;
+    flex-direction: column;
 }
 
 .kanban-column h2 {
@@ -575,6 +576,9 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding: 10px;
+    max-height: 800px; /* Limite la hauteur de la zone des tâches */
+    overflow-y: auto; /* Active le défilement vertical si nécessaire */
 }
 
 .kanban-task {
@@ -585,7 +589,6 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     text-align: left;
 }
-
 
 .task-card {
     background-color: #fff;

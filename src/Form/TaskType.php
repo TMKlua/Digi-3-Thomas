@@ -32,6 +32,7 @@ class TaskType extends AbstractType
                 ]),
                 'placeholder' => 'Sélectionnez un type',
                 'required' => true,
+                'label' => 'Type de tâche',
             ])
             ->add('taskDateFrom', DateType::class, [
                 'widget' => 'single_text',
@@ -48,6 +49,7 @@ class TaskType extends AbstractType
                     'Annulé' => 'Cancelled',
                 ],
                 'placeholder' => 'Sélectionnez un statut',
+                'label' => 'Statut de la tâche',
             ])
             ->add('taskCategory', ChoiceType::class, [
                 'choices' => [
@@ -56,6 +58,7 @@ class TaskType extends AbstractType
                     'Documentation' => 'Documentation',
                 ],
                 'placeholder' => 'Sélectionnez une catégorie',
+                'label' => 'Catégorie de la tâche',
             ])
             ->add('taskAttachments', FileType::class, [
                 'label' => 'Ajouter des fichiers',
