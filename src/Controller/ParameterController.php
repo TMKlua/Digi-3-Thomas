@@ -14,11 +14,11 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Validator\Validator\ValidatorInterface; // Import du bon ValidatorInterface
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Psr\Log\LoggerInterface;
 
 
@@ -247,27 +247,58 @@ class ParameterController extends AbstractController
     }
 
     #[Route('/parameter/user/add', name: 'app_parameter_user_add', methods: ['POST'])]
-    public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    public function addUser(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ValidatorInterface $validator): JsonResponse
     {
         try {
+            // Vérifier si l'email existe déjà
+            $email = $request->request->get('email');
+            $existingUser = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
+    
+            if ($existingUser) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Email is already in use'
+                ], 400);
+            }
+    
+            // Créer un nouvel utilisateur
             $user = new User();
             $user->setUserFirstName($request->request->get('firstName'))
                 ->setUserLastName($request->request->get('lastName'))
-                ->setUserEmail($request->request->get('email'))
-                ->setUserRole($request->request->get('role'));
-
-            // Generate a random password (you might want to send this via email)
-            $tempPassword = bin2hex(random_bytes(8));
-            $hashedPassword = $passwordHasher->hashPassword($user, $tempPassword);
+                ->setUserEmail($email)
+                ->setUserRole($request->request->get('role') ?: 'ROLE_USER') // Valeur par défaut si non fournie
+                ->setUserDateFrom(new \DateTime($request->request->get('dateFrom', 'now'))) // Si 'dateFrom' est passé dans la requête
+                ->setUserDateTo(new \DateTime($request->request->get('dateTo', 'now'))); // Si 'dateTo' est passé dans la requête
+    
+            // Vérifier si le mot de passe est fourni, sinon définir un mot de passe par défaut
+            $password = $request->request->get('password');
+            if (empty($password)) {
+                // Définir un mot de passe par défaut
+                $password = 'Test1234..';
+            }
+    
+            // Hachage du mot de passe
+            $hashedPassword = $passwordHasher->hashPassword($user, $password);
             $user->setPassword($hashedPassword);
-
+    
+            // Valider les données avec les contraintes de validation
+            $errors = $validator->validate($user);
+            if (count($errors) > 0) {
+                // Retourner les erreurs de validation
+                return $this->json([
+                    'success' => false,
+                    'errors' => (string) $errors
+                ], 400);
+            }
+    
+            // Persister l'utilisateur
             $entityManager->persist($user);
             $entityManager->flush();
-
+    
             return $this->json([
                 'success' => true,
                 'message' => 'User created successfully',
-                'tempPassword' => $tempPassword // In production, send this via email instead
+                'tempPassword' => $password // Retourner le mot de passe par défaut généré
             ]);
         } catch (\Exception $e) {
             return $this->json([
@@ -276,7 +307,7 @@ class ParameterController extends AbstractController
             ], 400);
         }
     }
-
+    
     #[Route('/parameter/user/delete/{id}', name: 'app_parameter_user_delete', methods: ['POST'])]
     public function deleteUser(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -404,6 +435,7 @@ class ParameterController extends AbstractController
             'user' => $user,
         ]);
     }
+
     #[Route('/parameter/about', name: 'app_parameter_about')]
     public function about(Security $security): Response
     {

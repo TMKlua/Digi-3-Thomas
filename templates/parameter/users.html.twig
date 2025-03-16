@@ -23,7 +23,7 @@
                 <div class="alert-error">{{ message }}</div>
             {% endfor %}
 
-            <!-- Form that appears only when the button is clicked -->
+            <!-- Formulaire d'ajout d'utilisateur -->
             <div id="addUserFormContainer" class="add-user-form-container" style="display: none;">
                 <form id="addUserForm" class="user-form">
                     <div class="form-group">
@@ -110,7 +110,6 @@
 
 {% endblock %}
 
-
 {% block javascripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -127,39 +126,6 @@
             document.getElementById('addUserForm').reset();
         });
 
-        // Toggle Delete User Modal visibility
-        let userToDelete = null;
-        
-        document.querySelectorAll('.delete-user').forEach(button => {
-            button.addEventListener('click', function() {
-                userToDelete = this.dataset.userId;
-                const deleteUserModal = document.getElementById('deleteUserModal');
-                if (deleteUserModal) {
-                    new bootstrap.Modal(deleteUserModal).show();
-                }
-            });
-        });
-
-        document.getElementById('confirmDelete').addEventListener('click', function() {
-            if (userToDelete) {
-                fetch(`{{ path('app_parameter_user_delete', {'id': '__id__'}) }}`.replace('__id__', userToDelete), {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Une erreur est survenue lors de la suppression');
-                });
-            }
-        });
-
         // Add User
         document.getElementById('saveNewUser').addEventListener('click', function() {
             const formData = new FormData(document.getElementById('addUserForm'));
@@ -171,9 +137,10 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    alert('Utilisateur créé avec succès !');
                     location.reload();
                 } else {
-                    alert(data.error);
+                    alert('Erreur lors de la création de l\'utilisateur : ' + data.error);
                 }
             })
             .catch(error => {
