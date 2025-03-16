@@ -18,6 +18,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 use App\Security\AppCustomAuthenticator;
+use Symfony\Component\Mime\Email;
 
 class SecurityController extends AbstractController
 {
@@ -189,91 +190,77 @@ class SecurityController extends AbstractController
     {
     }
 
-    #[Route('/auth/reset-password', name: 'app_reset_password', methods: ['POST'])]
-    public function resetPassword(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        MailerInterface $mailer,
-        TokenGeneratorInterface $tokenGenerator
-    ): Response {
-        $data = json_decode($request->getContent(), true);
-        $userEmail = trim(strip_tags($data['email'] ?? ''));
-
-        if (empty($userEmail)) {
-            return $this->createJsonResponse(false, 'Email requis');
+    #[Route('/forgot-password', name: 'app_forgot_password', methods: ['POST'])]
+    public function forgotPassword(Request $request, EntityManagerInterface $entityManager, TokenGeneratorInterface $tokenGenerator, MailerInterface $mailer): Response
+    {
+        // Utiliser 'email' car c'est le nom du champ dans votre formulaire HTML
+        $email = $request->request->get('email');
+        
+        if (!$email) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Email requis'
+            ]);
         }
-
-        $user = $entityManager->getRepository(User::class)->findOneBy([
-            'userEmail' => $userEmail
-        ]);
-
+    
+        // Utiliser 'userEmail' car c'est le nom de la propriété dans votre entité User
+        $user = $entityManager->getRepository(User::class)->findOneBy(['userEmail' => $email]);
+    
         if (!$user) {
-            return $this->createJsonResponse(false, 'Aucun compte trouvé avec cet email');
+            return $this->json([
+                'success' => false,
+                'message' => 'Aucun compte trouvé avec cet email.'
+            ]);
         }
-
-        $resetToken = $this->generateSecureToken();
-        $user->setResetToken($resetToken);
-        $user->setResetTokenExpiresAt(new \DateTime(self::TOKEN_EXPIRATION));
-
+    
+        // Générer un token
+        $token = $tokenGenerator->generateToken();
+        $user->setResetToken($token);
         $entityManager->persist($user);
         $entityManager->flush();
-
-        $resetLink = $this->generateUrl('app_reset_password_confirm', ['token' => $resetToken], 0);
-
-        $email = (new TemplatedEmail())
-            ->from('louisbousquet13@gmail.com')
-            ->to($user->getUserEmail())
-            ->subject('Digi-3 - Réinitialisation de votre mot de passe')
-            ->html(
-                "<h1>Réinitialisation de votre mot de passe</h1>" .
-                "<p>Bonjour,</p>" .
-                "<p>Une demande de réinitialisation de mot de passe a été effectuée pour votre compte. " .
-                "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>" .
-                "<p>Pour réinitialiser votre mot de passe, cliquez sur le lien suivant :</p>" .
-                "<a href='" . $resetLink . "'>Réinitialiser mon mot de passe</a>" .
-                "<p>Ce lien expirera dans 1 heure.</p>" .
-                "<p>L'équipe Digi-3</p>"
-            );
-
+    
         try {
-            $mailer->send($email);
-            return $this->createJsonResponse(true, 'Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.');
+            // Utiliser getUserEmail() pour obtenir l'adresse email de l'utilisateur
+            $emailMessage = (new Email())
+                ->from('no-reply@digi-3.com')
+                ->to($user->getUserEmail())  // Modifié ici pour utiliser getUserEmail()
+                ->subject('Réinitialisation de votre mot de passe')
+                ->text("Pour réinitialiser votre mot de passe, cliquez sur le lien suivant : \n" . $this->generateUrl('app_reset_password', ['token' => $token], true));
+    
+            $mailer->send($emailMessage);
+    
+            return $this->json([
+                'success' => true,
+                'message' => 'Un email de réinitialisation a été envoyé.'
+            ]);
         } catch (\Exception $e) {
-            return $this->createJsonResponse(false, 'Erreur lors de l\'envoi de l\'email', [], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'envoi de l\'email : ' . $e->getMessage()
+            ]);
         }
     }
 
-    #[Route('/auth/reset-password/{token}', name: 'app_reset_password_confirm', methods: ['POST'])]
-    public function resetPasswordConfirm(
-        string $token,
-        Request $request,
-        EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $passwordHasher
-    ): Response {
-        $user = $entityManager->getRepository(User::class)->findOneBy([
-            'resetToken' => $token
-        ]);
+    #[Route('/reset-password/{token}', name: 'app_reset_password', methods: ['POST'])]
+    public function resetPassword($token, Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        $user = $entityManager->getRepository(User::class)->findOneBy(['resetToken' => $token]);
 
-        if (!$user || !$user->getResetTokenExpiresAt() || $user->getResetTokenExpiresAt() < new \DateTime()) {
-            return $this->createJsonResponse(false, 'Ce lien de réinitialisation est invalide ou a expiré.');
+        if (!$user) {
+            $this->addFlash('error', 'Lien invalide ou expiré.');
+            return $this->redirectToRoute('app_auth');
         }
 
-        $plainPassword = $request->request->get('password');
-        $passwordErrors = $this->validatePassword($plainPassword);
+        if ($request->isMethod('POST')) {
+            $newPassword = $request->request->get('password');
+            $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+            $user->setResetToken(null); // Supprimer le token après utilisation
+            $entityManager->flush();
 
-        if (!empty($passwordErrors)) {
-            return $this->createJsonResponse(false, implode(', ', $passwordErrors));
+            $this->addFlash('success', 'Mot de passe réinitialisé avec succès.');
+            return $this->redirectToRoute('app_auth');
         }
 
-        $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-        $this->logger->debug('Hash du mot de passe généré:', ['hashedPassword' => !empty($hashedPassword)]);
-        $user->setPassword($hashedPassword);
-        $user->setResetToken(null);
-        $user->setResetTokenExpiresAt(null);
-
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        return $this->createJsonResponse(true, 'Votre mot de passe a été réinitialisé avec succès.');
+        return $this->render('security/reset_password.html.twig', ['token' => $token]);
     }
 }
