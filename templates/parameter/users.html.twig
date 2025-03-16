@@ -17,9 +17,9 @@
             <div class="users-header flex">
                 <h2>Gestion des utilisateurs</h2>
                 {% if is_granted('ROLE_ADMIN') %}
-                <button id="toggleAddUserForm" class="btn-add">
-                    Ajouter un utilisateur
-                </button>
+                    <button id="toggleAddUserForm" class="btn-add">
+                        <i class="fas fa-user-plus"></i> Ajouter un utilisateur
+                    </button>
                 {% endif %}
             </div>
 
