@@ -13,18 +13,22 @@
 <div class="project-management-container">
     <aside class="parameter_menu">
         <h3>Liste des projets</h3>
+            {% if not is_granted('ROLE_DEV') %}
             <button class="create-project-button" onclick="showCreateForm()">
                 <i class="fas fa-plus"></i> Créer un projet
             </button>
+            {% endif %}
         <ul>
             {% for project in projects %}
             <li class="{{ current_project and current_project.id == project.id ? 'active' : '' }}">
                 <a href="{{ path('app_management_project', { 'id': project.id }) }}">
                     {{ project.name }}
                 </a>
+                {% if not is_granted('ROLE_DEV') %}
                 <button type="button" class="delete-button" onclick="showDeletePopup({{ project.id }})">
                     <img src="/img/delete.png" alt="Supprimer" class="delete-icon">
                 </button>
+                {% endif %}
             </li>
             {% endfor %}
         </ul>
@@ -71,101 +75,150 @@
             <br>
 
             <div class="kanban-board" id="kanbanBoard">
-                <div class="kanban-column" data-column="a-faire">
-                    <h3>À faire</h3>
-<div class="kanban-tasks" data-column-id="a-faire">
-    {% for task in current_project.tasks %}
-        {% if task.taskColumnRank == 1 %}
-            <div class="task-card" id="task-{{ task.id }}" 
-                 data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" 
-                 draggable="true" data-column="{{ task.taskColumnRank }}"
-                 onclick="openTaskModal(
-                    '{{ task.id }}', 
-                    '{{ task.taskName }}', 
-                    '{{ task.taskDescription|e }}', 
-                    '{{ task.taskType }}', 
-                    '{{ task.taskStatus }}', 
-                    '{{ task.taskCategory }}', 
-                    '{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}', 
-                    '{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}'
-                 )">
-                <h4>{{ task.taskName }}</h4>
-                <div class="task-info">
-                    <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                    <p><strong>Type :</strong> {{ task.taskType }}</p>
-                    <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                    <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                </div>
-            </div>
-        {% endif %}
-    {% endfor %}
+    <div class="kanban-column" data-column="a-faire">
+        <h3>À faire</h3>
+        <div class="task-counter">
+            {% set counter = current_project.tasks|filter(t => t.taskColumnRank == 1)|length %}
+            <span>{{ counter }} / {{ current_project.tasks|length }}</span>
+        </div>
+        <div class="kanban-tasks" data-column-id="a-faire">
+            {% for task in current_project.tasks %}
+                {% if task.taskColumnRank == 1 %}
+                    <div class="task-card" id="task-{{ task.id }}" 
+                        data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" 
+                        draggable="true" data-column="{{ task.taskColumnRank }}"
+                        onclick="openTaskModal(
+                            '{{ task.id }}', 
+                            '{{ task.taskName }}', 
+                            '{{ task.taskDescription|e }}', 
+                            '{{ task.taskType }}', 
+                            '{{ task.taskStatus }}', 
+                            '{{ task.taskCategory }}', 
+                            '{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}', 
+                            '{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}'
+                        )">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <button class="create-project-button" onclick="showTaskForm()">
+            <i class="fas fa-plus"></i> Créer une tâche
+        </button>
+    </div>
+
+    <div class="kanban-column" data-column="bloque">
+        <h3>Bloqué</h3>
+        <div class="task-counter">
+            {% set counter = current_project.tasks|filter(t => t.taskColumnRank == 2)|length %}
+            <span>{{ counter }} / {{ current_project.tasks|length }}</span>
+        </div>
+        <div class="kanban-tasks" data-column-id="bloque">
+            {% for task in current_project.tasks %}
+                {% if task.taskColumnRank == 2 %}
+                    <div class="task-card" id="task-{{ task.id }}" 
+                        data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" 
+                        draggable="true" data-column="{{ task.taskColumnRank }}"
+                        onclick="openTaskModal(
+                            '{{ task.id }}', 
+                            '{{ task.taskName }}', 
+                            '{{ task.taskDescription|e }}', 
+                            '{{ task.taskType }}', 
+                            '{{ task.taskStatus }}', 
+                            '{{ task.taskCategory }}', 
+                            '{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}', 
+                            '{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}'
+                        )">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column" data-column="en-cours">
+        <h3>En cours</h3>
+        <div class="task-counter">
+            {% set counter = current_project.tasks|filter(t => t.taskColumnRank == 3)|length %}
+            <span>{{ counter }} / {{ current_project.tasks|length }}</span>
+        </div>
+        <div class="kanban-tasks" data-column-id="en-cours">
+            {% for task in current_project.tasks %}
+                {% if task.taskColumnRank == 3 %}
+                    <div class="task-card" id="task-{{ task.id }}" 
+                        data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" 
+                        draggable="true" data-column="{{ task.taskColumnRank }}"
+                        onclick="openTaskModal(
+                            '{{ task.id }}', 
+                            '{{ task.taskName }}', 
+                            '{{ task.taskDescription|e }}', 
+                            '{{ task.taskType }}', 
+                            '{{ task.taskStatus }}', 
+                            '{{ task.taskCategory }}', 
+                            '{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}', 
+                            '{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}'
+                        )">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="kanban-column" data-column="terminee">
+        <h3>Terminée</h3>
+        <div class="task-counter">
+            {% set counter = current_project.tasks|filter(t => t.taskColumnRank >= 4)|length %}
+            <span>{{ counter }} / {{ current_project.tasks|length }}</span>
+        </div>
+        <div class="kanban-tasks" data-column-id="terminee">
+            {% for task in current_project.tasks %}
+                {% if task.taskColumnRank >= 4 %}
+                    <div class="task-card" id="task-{{ task.id }}" 
+                        data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" 
+                        draggable="true" data-column="{{ task.taskColumnRank }}"
+                        onclick="openTaskModal(
+                            '{{ task.id }}', 
+                            '{{ task.taskName }}', 
+                            '{{ task.taskDescription|e }}', 
+                            '{{ task.taskType }}', 
+                            '{{ task.taskStatus }}', 
+                            '{{ task.taskCategory }}', 
+                            '{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}', 
+                            '{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}'
+                        )">
+                        <h4>{{ task.taskName }}</h4>
+                        <div class="task-info">
+                            <p><strong>Description :</strong> {{ task.taskDescription }}</p>
+                            <p><strong>Type :</strong> {{ task.taskType }}</p>
+                            <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
+                            <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
 </div>
-
-                    <button class="create-project-button" onclick="showTaskForm()">
-                    <i class="fas fa-plus"></i> Créer une tâche
-                </button>
-                </div>
-
-                <div class="kanban-column" data-column="bloque">
-                    <h3>Bloqué</h3>
-                    <div class="kanban-tasks" data-column-id="bloque">
-                        {% for task in current_project.tasks %}
-                            {% if task.taskColumnRank == 2 %}
-                                <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true" data-column="{{ task.taskColumnRank }}">
-                                    <h4>{{ task.taskName }}</h4>
-                                    <div class="task-info">
-                                        <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                                        <p><strong>Type :</strong> {{ task.taskType }}</p>
-                                        <p><strong>Rang :</strong> {{ task.taskRank }}</p>
-                                        <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                                        <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div class="kanban-column" data-column="en-cours">
-                    <h3>En cours</h3>
-                    <div class="kanban-tasks" data-column-id="en-cours">
-                        {% for task in current_project.tasks %}
-                            {% if task.taskColumnRank == 3 %}
-                                <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true" data-column="{{ task.taskColumnRank }}">
-                                    <h4>{{ task.taskName }}</h4>
-                                    <div class="task-info">
-                                        <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                                        <p><strong>Type :</strong> {{ task.taskType }}</p>
-                                        <p><strong>Rang :</strong> {{ task.taskRank }}</p>
-                                        <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                                        <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div class="kanban-column" data-column="terminee">
-                    <h3>Terminée</h3>
-                    <div class="kanban-tasks" data-column-id="terminee">
-                        {% for task in current_project.tasks %}
-                            {% if task.taskColumnRank >= 4 %}
-                                <div class="task-card" id="task-{{ task.id }}" data-task-id="{{ task.id }}" data-rank="{{ task.taskRank }}" draggable="true" data-column="{{ task.taskColumnRank }}">
-                                    <h4>{{ task.taskName }}</h4>
-                                    <div class="task-info">
-                                        <p><strong>Description :</strong> {{ task.taskDescription }}</p>
-                                        <p><strong>Type :</strong> {{ task.taskType }}</p>
-                                        <p><strong>Rang :</strong> {{ task.taskRank }}</p>
-                                        <p><strong>Date de début :</strong> <span>{{ task.taskDateFrom ? task.taskDateFrom.format('d-m-Y') : 'Non définie' }}</span></p>
-                                        <p><strong>Date de fin :</strong> <span>{{ task.taskDateTo ? task.taskDateTo.format('d-m-Y') : 'Non définie' }}</span></p>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
 
                 <!-- Popup modale -->
     <div id="taskDetailModal" class="modal">

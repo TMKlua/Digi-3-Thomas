@@ -11,9 +11,11 @@
         <div class="projects-page">
             <div class="projects-header flex">
                 <h2>Gestion des projets</h2>
+                {% if not is_granted('ROLE_DEV') %}
                 <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addProjectModal">
                     Ajouter un projet
                 </button>
+                {% endif %}
             </div>
 
             {% for message in app.flashes('success') %}
