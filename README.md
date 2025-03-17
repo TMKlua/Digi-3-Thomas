@@ -4,12 +4,54 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
 
 ## Fonctionnalités
 
-- **Gestion des utilisateurs** : Création, modification et suppression d'utilisateurs avec différents rôles (Admin, Chef de projet, Lead développeur, Développeur, etc.)
-- **Gestion des projets** : Création, modification et suivi de l'état d'avancement des projets
-- **Gestion des tâches** : Création, modification et suivi des tâches associées aux projets
-- **Gestion des clients** : Gestion des informations clients associés aux projets
-- **Système de permissions** : Contrôle d'accès basé sur les rôles avec une hiérarchie de permissions
-- **Tableau de bord** : Vue d'ensemble des projets et tâches en cours
+## Liste des fonctionnalités disponibles dans l’application
+
+1. **Authentification et Gestion des Utilisateurs**
+   - Accéder à la page de connexion via le bouton “Se connecter” en haut à droite.
+   - Choisir entre s’inscrire ou se connecter avec un email et un mot de passe.
+   - Possibilité de se connecter avec différents rôles (Admin, Manager, Utilisateur, etc.).
+   - Utilisation de la commande Red amis pour obtenir des utilisateurs par défaut avec tous les rôles configurés.
+
+2. **Tableau de Bord (Dashboard)**
+   - Après connexion, accès au dashboard principal affichant les informations clés.
+   - Navigation vers les différentes sections de l’application.
+
+3. **Gestion des Projets (Accessible aux Admins et Managers)**
+   - Accès à la page “Gestion de projet”.
+   - Création d’un projet via le bouton “Créer un projet”.
+   - Affichage de la liste des projets existants.
+   - Sélection d’un projet pour afficher ses détails.
+
+4. **Gestion des Tâches (Dans un projet spécifique)**
+   - Ajout d’une nouvelle tâche via le bouton “Ajouter une tâche”.
+   - Déplacement des tâches entre différentes colonnes (statuts).
+   - Création d’un nombre illimité de tâches.
+   - Consultation des détails d’une tâche en cliquant dessus.
+   - Suppression d’une tâche si nécessaire.
+
+5. **Paramètres de l’Application**
+   - Accès à la section “Paramètres” via le menu.
+   - Plusieurs onglets disponibles pour gérer les préférences de l’utilisateur.
+   
+   5.1. **Mon Compte**
+   - Modifier son identifiant (nom, email…).
+   - Changer sa photo de profil.
+
+   5.2. **Gestion des Utilisateurs (Accessible aux Admins)**
+   - Ajout d’un nouvel utilisateur via le panel d’administration.
+   - Modification des informations d’un utilisateur existant.
+   - Suppression d’un utilisateur.
+
+   5.3. **Gestion des Clients (Accessible aux Admins et Managers)**
+   - Ajouter un nouveau client.
+   - Modifier ou supprimer un client existant.
+
+   5.4. **Gestion des Projets**
+   - Voir la liste de tous les projets.
+   - Créer un nouveau projet directement depuis cette section.
+
+6. **Déconnexion**
+   - Bouton de déconnexion en haut à droite pour quitter la session.
 
 ## Prérequis
 
