@@ -10,6 +10,7 @@ use App\Entity\Parameters;
 use App\Entity\User;
 use App\Entity\Customers;
 use App\Entity\Tasks;
+use App\Form\CustomerType;
 use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -458,25 +459,39 @@ class ParameterController extends AbstractController
         // Get current user
         $currentUser = $this->getUser();
         
-        // Get all customers
-        $customers = $entityManager->getRepository(Customers::class)->findAll();
-
+        // Get customers for the current user
+        $customers = $entityManager->getRepository(Customers::class)->findBy(['customerUserMaj' => $currentUser]);
+    
         return $this->render('parameter/customers.html.twig', [
             'user' => $currentUser,
             'customers' => $customers
         ]);
     }
-
-    #[Route('/parameter/customer/add', name: 'app_parameter_customer_add', methods: ['POST'])]
+    
+    #[Route('/parameter/customers/add', name: 'app_parameter_customer_add', methods: ['POST'])]
     public function addCustomer(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         try {
             // Get current user
             $currentUser = $this->getUser();
             if (!$currentUser) {
-                throw new \Exception('User not authenticated');
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Utilisateur non authentifié'
+                ], 401);
             }
-
+    
+            // Validate required fields
+            $requiredFields = ['name', 'street', 'zipcode', 'city', 'country', 'vat', 'siren', 'reference'];
+            foreach ($requiredFields as $field) {
+                if (!$request->request->get($field)) {
+                    return $this->json([
+                        'success' => false,
+                        'error' => "Le champ $field est requis."
+                    ], 400);
+                }
+            }
+    
             $customer = new Customers();
             $customer->setCustomerName($request->request->get('name'))
                 ->setCustomerAddressStreet($request->request->get('street'))
@@ -485,8 +500,8 @@ class ParameterController extends AbstractController
                 ->setCustomerAddressCountry($request->request->get('country'))
                 ->setCustomerVAT($request->request->get('vat'))
                 ->setCustomerSIREN($request->request->get('siren'))
-                ->setCustomerReference($request->request->get('reference'))
-                ->setCustomerUserMaj($currentUser->getId());
+                ->setCustomerUserMaj($currentUser->getId())
+                ->setCustomerReference($request->request->get('reference'));
 
             // Handle dates if provided
             if ($request->request->get('dateFrom')) {
@@ -495,24 +510,140 @@ class ParameterController extends AbstractController
             if ($request->request->get('dateTo')) {
                 $customer->setCustomerDateTo(new \DateTime($request->request->get('dateTo')));
             }
-
+    
             $entityManager->persist($customer);
             $entityManager->flush();
-
+    
             return $this->json([
                 'success' => true,
-                'message' => 'Client ajouté avec succès'
+                'message' => 'Client ajouté avec succès',
+                'customer' => [
+                    'id' => $customer->getId(),
+                    'name' => $customer->getCustomerName(),
+                    'city' => $customer->getCustomerAddressCity(),
+                    'country' => $customer->getCustomerAddressCountry()
+                ]
             ]);
-
+    
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
                 'error' => 'Une erreur est survenue lors de l\'ajout du client: ' . $e->getMessage()
-            ], 400);
+            ], 500);
         }
     }
 
-    #[Route('/parameter/customer/delete/{id}', name: 'app_parameter_customer_delete', methods: ['POST'])]
+    #[Route('/parameter/customers/edit/{id}', name: 'app_parameter_customer_edit', methods: ['GET'])]
+    public function editCustomerForm(Request $request, EntityManagerInterface $entityManager, $id): Response
+    {
+        // Get current user
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return $this->redirectToRoute('app_login');
+        }
+    
+        // Find the customer by ID
+        $customer = $entityManager->getRepository(Customers::class)->find($id);
+        if (!$customer) {
+            throw $this->createNotFoundException('Client introuvable');
+        }
+    
+        // Ensure that the current user is authorized to edit the customer
+        if ($customer->getCustomerUserMaj() !== $currentUser->getId()) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à modifier ce client.');
+        }
+    
+        // Create the form for the customer
+        $form = $this->createForm(CustomerType::class, $customer);
+    
+        return $this->render('parameter/edit_customer.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+    
+    
+    #[Route('/parameter/customers/edit/{id}', name: 'app_parameter_customer_update', methods: ['POST'])]
+    public function updateCustomer(Request $request, EntityManagerInterface $entityManager, $id): JsonResponse
+    {
+        try {
+            // Get current user
+            $currentUser = $this->getUser();
+            if (!$currentUser) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Utilisateur non authentifié'
+                ], 401);
+            }
+    
+            // Find the customer by ID
+            $customer = $entityManager->getRepository(Customers::class)->find($id);
+            if (!$customer) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Client introuvable.'
+                ], 404);
+            }
+    
+            // Ensure that the current user is authorized to edit the customer
+            if ($customer->getCustomerUserMaj() !== $currentUser->getId()) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Vous n\'êtes pas autorisé à modifier ce client.'
+                ], 403);
+            }
+    
+            // Validate required fields
+            $requiredFields = ['name', 'street', 'zipcode', 'city', 'country', 'vat', 'siren', 'reference'];
+            foreach ($requiredFields as $field) {
+                if (!$request->request->get($field)) {
+                    return $this->json([
+                        'success' => false,
+                        'error' => "Le champ $field est requis."
+                    ], 400);
+                }
+            }
+    
+            // Update the customer's fields
+            $customer->setCustomerName($request->request->get('name'))
+                ->setCustomerAddressStreet($request->request->get('street'))
+                ->setCustomerAddressZipcode($request->request->get('zipcode'))
+                ->setCustomerAddressCity($request->request->get('city'))
+                ->setCustomerAddressCountry($request->request->get('country'))
+                ->setCustomerVAT($request->request->get('vat'))
+                ->setCustomerSIREN($request->request->get('siren'))
+                ->setCustomerReference($request->request->get('reference'));
+    
+            // Handle dates if provided
+            if ($request->request->get('dateFrom')) {
+                $customer->setCustomerDateFrom(new \DateTime($request->request->get('dateFrom')));
+            }
+            if ($request->request->get('dateTo')) {
+                $customer->setCustomerDateTo(new \DateTime($request->request->get('dateTo')));
+            }
+    
+            // Persist the changes
+            $entityManager->flush();
+    
+            return $this->json([
+                'success' => true,
+                'message' => 'Client modifié avec succès',
+                'customer' => [
+                    'id' => $customer->getId(),
+                    'name' => $customer->getCustomerName(),
+                    'city' => $customer->getCustomerAddressCity(),
+                    'country' => $customer->getCustomerAddressCountry()
+                ]
+            ]);
+    
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => 'Une erreur est survenue lors de la modification du client: ' . $e->getMessage()
+            ], 500);
+        }
+    }    
+    
+    #[Route('/parameter/customers/delete/{id}', name: 'app_parameter_customer_delete', methods: ['DELETE'])]
     public function deleteCustomer(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
         try {
@@ -521,10 +652,10 @@ class ParameterController extends AbstractController
             if (!$customer) {
                 throw new \Exception('Client non trouvé');
             }
-
+    
             $entityManager->remove($customer);
             $entityManager->flush();
-
+    
             return $this->json([
                 'success' => true,
                 'message' => 'Client supprimé avec succès'
@@ -535,7 +666,7 @@ class ParameterController extends AbstractController
                 'error' => 'Erreur lors de la suppression: ' . $e->getMessage()
             ], 400);
         }
-    }
+    }    
 
     #[Route('/parameter/projects', name: 'app_parameter_projects')]
     public function projects(EntityManagerInterface $entityManager): Response

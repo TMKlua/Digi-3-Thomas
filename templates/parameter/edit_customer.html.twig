@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Édition du client{% endblock %}
+
+{% block body %}
+    <h1>Édition du client</h1>
+
+    {# Vérification de l'existence du client #}
+    {% if form is not null %}
+        {{ form_start(form) }}
+
+        <div>
+            {{ form_row(form.customerName) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerEmail) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerPhone) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerAddressStreet) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerAddressZipcode) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerAddressCity) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerAddressCountry) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerVAT) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerSIREN) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerReference) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerDateFrom) }}
+        </div>
+
+        <div>
+            {{ form_row(form.customerDateTo) }}
+        </div>
+
+        <button type="submit">Enregistrer les modifications</button>
+
+        {{ form_end(form) }}
+    {% else %}
+        <p>Client non trouvé.</p>
+    {% endif %}
+{% endblock %}

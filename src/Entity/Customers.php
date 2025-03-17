@@ -17,6 +17,12 @@ class Customers
     #[ORM\Column(length: 255)]
     private ?string $customerName = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $customerEmail = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $customerPhone = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $customerAddressStreet = null;
 
@@ -60,6 +66,30 @@ class Customers
     public function setCustomerName(string $customerName): static
     {
         $this->customerName = $customerName;
+
+        return $this;
+    }
+
+    public function getCustomerEmail(): ?string
+    {
+        return $this->customerEmail;
+    }
+
+    public function setCustomerEmail(string $customerEmail): static
+    {
+        $this->customerEmail = $customerEmail;
+
+        return $this;
+    }
+
+    public function getCustomerPhone(): ?string
+    {
+        return $this->customerPhone;
+    }
+
+    public function setCustomerPhone(string $customerPhone): static
+    {
+        $this->customerPhone = $customerPhone;
 
         return $this;
     }

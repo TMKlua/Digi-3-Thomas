@@ -1,7 +1,14 @@
 {% extends 'base.html.twig' %}
+
 {% block title %}Digi-3 - Gestion des clients{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles/parameter/customers.css') }}" async>
+{% endblock %}
+
 {% block body %}
 {% include 'includes/header.html.twig' with {'user': user} %}
+
 <section class="parameter_landing flex">
     {% include 'parameter/_menu.html.twig' %}
     <div class="parameter_content">
@@ -9,7 +16,7 @@
             <div class="customers-header flex">
                 <h2>Gestion des clients</h2>
                 {% if not is_granted('ROLE_LEAD_DEV') %}
-                    <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                    <button class="btn-add" id="addCustomerBtn">
                         Ajouter un client
                     </button>
                 {% endif %}
@@ -49,17 +56,11 @@
                                 <td>{{ customer.customerSIREN }}</td>
                                 <td>{{ customer.customerReference }}</td>
                                 <td class="actions">
-                                    <button class="btn-edit edit-customer" 
-                                            data-customer-id="{{ customer.id }}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editCustomerModal">
-                                        <img src="{{ asset('img/icons/edit.png') }}" alt="Modifier" style="height: 50px; width: 50px; object-fit: contain;">
+                                    <button class="btn-edit edit-customer" data-customer-id="{{ customer.id }}">
+                                        <i class="fas fa-pen-to-square"></i>
                                     </button>
-                                    <button class="btn-delete delete-customer" 
-                                            data-customer-id="{{ customer.id }}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteCustomerModal">
-                                        <img src="{{ asset('img/icons/delete.png') }}" alt="Supprimer" style="height: 50px; width: 50px; object-fit: contain;">
+                                    <button class="btn-delete delete-customer" data-customer-id="{{ customer.id }}">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -74,77 +75,76 @@
         </div>
     </div>
 </section>
+
 {# Add Customer Modal #}
-<div class="modal fade" id="addCustomerModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Ajouter un client</h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addCustomerForm" class="flex-col">
-                    <div class="form-group">
-                        <label for="name">Nom</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="street">Adresse</label>
-                        <input type="text" id="street" name="street">
-                    </div>
-                    <div class="form-group">
-                        <label for="zipcode">Code postal</label>
-                        <input type="text" id="zipcode" name="zipcode">
-                    </div>
-                    <div class="form-group">
-                        <label for="city">Ville</label>
-                        <input type="text" id="city" name="city">
-                    </div>
-                    <div class="form-group">
-                        <label for="country">Pays</label>
-                        <input type="text" id="country" name="country">
-                    </div>
-                    <div class="form-group">
-                        <label for="vat">TVA</label>
-                        <input type="text" id="vat" name="vat">
-                    </div>
-                    <div class="form-group">
-                        <label for="siren">SIREN</label>
-                        <input type="text" id="siren" name="siren">
-                    </div>
-                    <div class="form-group">
-                        <label for="reference">Référence</label>
-                        <input type="text" id="reference" name="reference">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-submit" id="saveNewCustomer">Enregistrer</button>
-            </div>
+<div id="addCustomerModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Ajouter un client</h3>
+            <button type="button" class="modal-close" id="closeAddModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addCustomerForm" class="flex-col">
+                <div class="form-group">
+                    <label for="name">Nom</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="street">Adresse</label>
+                    <input type="text" id="street" name="street">
+                </div>
+                <div class="form-group">
+                    <label for="zipcode">Code postal</label>
+                    <input type="text" id="zipcode" name="zipcode">
+                </div>
+                <div class="form-group">
+                    <label for="city">Ville</label>
+                    <input type="text" id="city" name="city">
+                </div>
+                <div class="form-group">
+                    <label for="country">Pays</label>
+                    <input type="text" id="country" name="country">
+                </div>
+                <div class="form-group">
+                    <label for="vat">TVA</label>
+                    <input type="text" id="vat" name="vat">
+                </div>
+                <div class="form-group">
+                    <label for="siren">SIREN</label>
+                    <input type="text" id="siren" name="siren">
+                </div>
+                <div class="form-group">
+                    <label for="reference">Référence</label>
+                    <input type="text" id="reference" name="reference">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" id="cancelAddCustomer">Annuler</button>
+            <button type="button" class="btn-submit" id="saveNewCustomer">Enregistrer</button>
         </div>
     </div>
 </div>
+
 {# Delete Customer Modal #}
-<div class="modal fade" id="deleteCustomerModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirmer la suppression</h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer ce client ?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-delete" id="confirmDelete">Supprimer</button>
-            </div>
+<div id="deleteCustomerModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button type="button" class="modal-close" id="closeDeleteModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Êtes-vous sûr de vouloir supprimer ce client ?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" id="cancelDelete">Annuler</button>
+            <button type="button" class="btn-delete" id="confirmDelete">Supprimer</button>
         </div>
     </div>
 </div>
 
 {% block javascripts %}
-<script src="{{ asset('script/parameter/customer.js') }}"></script>
+<script src="{{ asset('script/parameter/customers.js') }}"></script>
 {% endblock %}
+
 {% endblock %}
