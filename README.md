@@ -133,7 +133,6 @@ Digi-3 utilise un système de sécurité avancé basé sur les Voters de Symfony
 
 ## Conventions de code
 
-- **PSR-1, PSR-2 et PSR-4**
 - **Utilisation des attributs PHP 8** pour les annotations
 - **Utilisation des énumérations PHP 8.2+** pour les types énumérés
 - **Injection de dépendances via le constructeur**
