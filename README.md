@@ -9,7 +9,7 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
 1. **Authentification et Gestion des Utilisateurs**
    - Accéder à la page de connexion via le bouton “Se connecter” en haut à droite.
    - Choisir entre s’inscrire ou se connecter avec un email et un mot de passe.
-   - Possibilité de se connecter avec différents rôles (Admin, Manager, Utilisateur, etc.).
+   - Possibilité de se connecter avec différents rôles (Admin, Manager, Lead Développeur, Développeur, Utilisateur, etc.).
 
 2. **Tableau de Bord (Dashboard)**
    - Après connexion, accès au dashboard principal affichant les informations clés.
