@@ -25,9 +25,9 @@
                     {{ project.name }}
                 </a>
                 {% if not is_granted('ROLE_DEV') %}
-                <button type="button" class="delete-button" onclick="showDeletePopup({{ project.id }})">
-                    <img src="/img/delete.png" alt="Supprimer" class="delete-icon">
-                </button>
+                    <button type="button" class="delete-button" onclick="showDeletePopup({{ project.id }})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 {% endif %}
             </li>
             {% endfor %}
