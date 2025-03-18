@@ -9,6 +9,7 @@ use App\Form\AppFormParameterType;
 use App\Entity\Parameters;
 use App\Entity\User;
 use App\Entity\Customers;
+use App\Entity\ManagerProject;
 use App\Entity\Tasks;
 use App\Form\CustomerType;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -678,20 +679,30 @@ class ParameterController extends AbstractController
     #[Route('/parameter/projects', name: 'app_parameter_projects')]
     public function projects(EntityManagerInterface $entityManager): Response
     {
-        // Get current user
+        // Récupérer l'utilisateur connecté
         $currentUser = $this->getUser();
-        
-        // Get all tasks (projects)
-        $projects = $entityManager->getRepository(Tasks::class)
-            ->createQueryBuilder('t')
-            ->where('t.taskType = :type')
-            ->setParameter('type', 'PROJECT')
-            ->getQuery()
-            ->getResult();
-
+    
+        // Récupérer tous les projets avec leurs tâches
+        $projects = $entityManager->getRepository(ManagerProject::class)->findAll();
+    
         return $this->render('parameter/projects.html.twig', [
             'user' => $currentUser,
             'projects' => $projects
         ]);
+    }
+ 
+    #[Route('/parameter/projects/delete/{id}', name: 'delete_project', methods: ['DELETE'])]
+    public function deleteProject(int $id, EntityManagerInterface $entityManager): Response
+    {
+        $project = $entityManager->getRepository(ManagerProject::class)->find($id);
+
+        if (!$project) {
+            throw $this->createNotFoundException('Le projet n\'existe pas.');
+        }
+
+        $entityManager->remove($project);
+        $entityManager->flush();
+
+        return new JsonResponse(['status' => 'success']);
     }
 }

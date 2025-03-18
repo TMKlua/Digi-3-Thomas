@@ -32,7 +32,7 @@
 
             <!-- Formulaire d'ajout d'utilisateur -->
             <div id="addUserFormContainer" class="add-user-form-container" style="display: none;">
-                <form id="addUserForm" class="user-form">
+                <form id="addUserForm" class="user-form" action="{{ path('app_parameter_user_add') }}" method="POST">
                     <div class="form-group">
                         <label for="firstName">Prénom</label>
                         <input type="text" id="firstName" name="firstName" required>
@@ -132,6 +132,9 @@
 </section>
 
 {% block javascripts %}
+<script>
+    var addUserUrl = "{{ path('app_parameter_user_add') }}";
+</script>
 <script src="{{ asset('script/parameter/users.js') }}"></script>
 {% endblock %}
 {% endblock %}

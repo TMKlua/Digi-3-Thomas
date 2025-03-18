@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('saveNewUser').addEventListener('click', function() {
         const formData = new FormData(document.getElementById('addUserForm'));
         
-        fetch("{{ path('app_parameter_user_add') }}", {
+        fetch(addUserUrl, {
             method: 'POST',
             body: formData
-        })
+        })        
         .then(response => response.json())
         .then(data => {
             if (data.success) {

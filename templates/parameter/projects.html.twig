@@ -3,6 +3,94 @@
 {% block title %}Digi-3 - Gestion des projets{% endblock %}
 
 {% block body %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('styles/parameter/projects.css') }}" async>
+<style>
+/* Style de la modal */
+.modal {
+    display: none; /* Par défaut la modal est cachée */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8); /* Fond sombre avec opacité plus forte */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-dialog {
+    background-color: #333; /* Fond sombre pour la modal */
+    color: white; /* Texte en blanc pour le contraste */
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    text-align: center;
+}
+
+.modal-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #f1f1f1; /* Texte clair pour l'en-tête */
+}
+
+.modal-body {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #ccc; /* Texte plus clair dans le corps */
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn-cancel, .btn-delete {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+}
+
+.btn-cancel {
+    background-color: #f44336; /* Rouge pour annuler */
+    color: white;
+}
+
+.btn-delete {
+    background-color:rgb(181, 0, 0); /* Vert pour confirmer */
+    color: white;
+}
+
+/* Style de la croix de fermeture */
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 25px;
+    color: #fff; /* Croix de fermeture en blanc */
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.3s ease; /* Transition fluide pour la couleur et la transformation */
+}
+
+/* Effet au survol de la croix de fermeture */
+.btn-close:hover {
+    color: #f44336; /* La croix devient rouge au survol */
+    transform: scale(1.2); /* La croix devient légèrement plus grande */
+}
+
+.btn-close:focus {
+    outline: none; /* Retirer l'outline lorsque la croix est cliquée */
+}
+
+
+</style>
+{% endblock %}
+
 {% include 'includes/header.html.twig' with {'user': user} %}
 
 <section class="parameter_landing flex">
@@ -11,11 +99,6 @@
         <div class="projects-page">
             <div class="projects-header flex">
                 <h2>Gestion des projets</h2>
-                {% if not is_granted('ROLE_DEV') %}
-                <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addProjectModal">
-                    Ajouter un projet
-                </button>
-                {% endif %}
             </div>
 
             {% for message in app.flashes('success') %}
@@ -30,35 +113,31 @@
                     <thead>
                         <tr>
                             <th>Nom</th>
+                            <th>Chef de projet</th>
                             <th>Description</th>
-                            <th>Complexité</th>
-                            <th>Priorité</th>
                             <th>Date début</th>
-                            <th>Date fin</th>
+                            <th>Date fin Prévue</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for project in projects %}
                             <tr>
-                                <td>{{ project.taskName }}</td>
-                                <td>{{ project.taskDescription }}</td> <!-- Utilisez taskDescription -->
-                                <td>{{ project.taskComplexity }}</td>
-                                <td>{{ project.taskPriority }}</td>
-                                <td>{{ project.taskTargetStartDate ? project.taskTargetStartDate|date('d/m/Y') : '' }}</td>
-                                <td>{{ project.taskTargetEndDate ? project.taskTargetEndDate|date('d/m/Y') : '' }}</td>
+                                <td>{{ project.name }}</td>
+                                <td>
+                                    {% if project.projectLeader %}
+                                        {{ project.projectLeader.userFirstName }} {{ project.projectLeader.userLastName }}
+                                    {% else %}
+                                        Non défini
+                                    {% endif %}
+                                </td>
+                                <td>{{ project.description }}</td> 
+                                <td>{{ project.startDate ? project.startDate|date('d/m/Y') : '' }}</td>
+                                <td>{{ project.endDateForecast ? project.endDateForecast|date('d/m/Y') : '' }}</td>
                                 <td class="actions">
-                                    <button class="btn-edit edit-project" 
-                                            data-project-id="{{ project.id }}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editProjectModal">
-                                        <img src="{{ asset('img/icons/edit.png') }}" alt="Modifier" style="height: 50px; width: 50px; object-fit: contain;">
-                                    </button>
                                     <button class="btn-delete delete-project" 
-                                            data-project-id="{{ project.id }}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deleteProjectModal">
-                                        <img src="{{ asset('img/icons/delete.png') }}" alt="Supprimer" style="height: 50px; width: 50px; object-fit: contain;">
+                                            data-project-id="{{ project.id }}">
+                                        <i class="fas fa-trash" style="font-size: 25px;" title="Supprimer"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -70,82 +149,73 @@
                     </tbody>
                 </table>
             </div>
+
         </div>
     </div>
 </section>
 
-{# Add Project Modal #}
-<div class="modal fade" id="addProjectModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Ajouter un projet</h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addProjectForm" class="flex-col">
-                    <div class="form-group">
-                        <label for="name">Nom du projet</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea id="description" name="description" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="complexity">Complexité</label>
-                        <select id="complexity" name="complexity" required>
-                            <option value="FAIBLE">Faible</option>
-                            <option value="MOYENNE">Moyenne</option>
-                            <option value="ELEVEE">Élevée</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="priority">Priorité</label>
-                        <select id="priority" name="priority" required>
-                            <option value="BASSE">Basse</option>
-                            <option value="NORMALE">Normale</option>
-                            <option value="HAUTE">Haute</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="targetStartDate">Date de début prévue</label>
-                        <input type="date" id="targetStartDate" name="targetStartDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="targetEndDate">Date de fin prévue</label>
-                        <input type="date" id="targetEndDate" name="targetEndDate" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-submit" id="saveNewProject">Enregistrer</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 {# Delete Project Modal #}
-<div class="modal fade" id="deleteProjectModal" tabindex="-1">
+<div class="modal" id="deleteProjectModal">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirmer la suppression</h3>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer ce projet ?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn-delete" id="confirmDelete">Supprimer</button>
-            </div>
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button type="button" class="btn-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p>Êtes-vous sûr de vouloir supprimer ce projet ?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+            <button type="button" class="btn-delete" id="confirmDelete">Supprimer</button>
         </div>
     </div>
 </div>
 
 {% block javascripts %}
 <script src="{{ asset('script/parameter/parameter.js') }}"></script>
+<script>
+    // Fonction pour ouvrir la modal
+    function openModal(projectId) {
+        const modal = document.getElementById('deleteProjectModal');
+        const confirmButton = document.getElementById('confirmDelete');
+        confirmButton.setAttribute('data-project-id', projectId);
+        modal.style.display = 'flex'; // Afficher la modal
+    }
+
+    // Fonction pour fermer la modal
+    function closeModal() {
+        const modal = document.getElementById('deleteProjectModal');
+        modal.style.display = 'none'; // Cacher la modal
+    }
+
+    // Ajouter l'événement de clic sur chaque bouton de suppression
+    document.querySelectorAll('.delete-project').forEach(button => {
+        button.addEventListener('click', function() {
+            const projectId = this.getAttribute('data-project-id');
+            openModal(projectId);
+        });
+    });
+
+    // Gérer la confirmation de suppression
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        const projectId = this.getAttribute('data-project-id');
+        
+        if (projectId) {
+            // Effectuer la suppression du projet via AJAX ou une autre méthode
+            fetch('/parameter/projects/delete/' + projectId, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Fermer la modal et recharger la page ou mettre à jour la liste
+                    closeModal();
+                    window.location.reload(); // Ou vous pouvez retirer le projet de la table
+                } else {
+                    alert('Une erreur est survenue lors de la suppression du projet.');
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
 {% endblock %}
