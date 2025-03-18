@@ -21,6 +21,7 @@ Digi-3 est une application web de gestion de projets développée avec Symfony 7
    - Création d’un projet via le bouton “Créer un projet”.
    - Affichage de la liste des projets existants.
    - Sélection d’un projet pour afficher ses détails.
+   - Si vous êtes déjà dans un projet clique sur "Liste des projets pour pouvoir recréer un nouveau projet avec le button "Créer un projet"
 
 4. **Gestion des Tâches (Dans un projet spécifique)**
    - Ajout d’une nouvelle tâche via le bouton “Ajouter une tâche”.
