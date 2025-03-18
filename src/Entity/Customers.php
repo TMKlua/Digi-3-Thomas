@@ -17,10 +17,10 @@ class Customers
     #[ORM\Column(length: 255)]
     private ?string $customerName = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $customerEmail = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $customerPhone = null;
 
     #[ORM\Column(length: 255, nullable: true)]

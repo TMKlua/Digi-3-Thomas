@@ -482,7 +482,7 @@ class ParameterController extends AbstractController
             }
     
             // Validate required fields
-            $requiredFields = ['name', 'street', 'zipcode', 'city', 'country', 'vat', 'siren', 'reference'];
+            $requiredFields = ['name', 'street', 'zipcode', 'city', 'country', 'vat', 'siren', 'reference', 'email'];
             foreach ($requiredFields as $field) {
                 if (!$request->request->get($field)) {
                     return $this->json([
@@ -501,8 +501,14 @@ class ParameterController extends AbstractController
                 ->setCustomerVAT($request->request->get('vat'))
                 ->setCustomerSIREN($request->request->get('siren'))
                 ->setCustomerUserMaj($currentUser->getId())
-                ->setCustomerReference($request->request->get('reference'));
-
+                ->setCustomerReference($request->request->get('reference'))
+                ->setCustomerEmail($request->request->get('email'));
+    
+            // Ajout du téléphone (optionnel)
+            if ($request->request->get('phone')) {
+                $customer->setCustomerPhone($request->request->get('phone'));
+            }
+    
             // Handle dates if provided
             if ($request->request->get('dateFrom')) {
                 $customer->setCustomerDateFrom(new \DateTime($request->request->get('dateFrom')));
@@ -521,7 +527,8 @@ class ParameterController extends AbstractController
                     'id' => $customer->getId(),
                     'name' => $customer->getCustomerName(),
                     'city' => $customer->getCustomerAddressCity(),
-                    'country' => $customer->getCustomerAddressCountry()
+                    'country' => $customer->getCustomerAddressCountry(),
+                    'email' => $customer->getCustomerEmail()
                 ]
             ]);
     
@@ -687,72 +694,4 @@ class ParameterController extends AbstractController
             'projects' => $projects
         ]);
     }
-
-    #[Route('/parameter/project/add', name: 'app_parameter_project_add', methods: ['POST'])]
-    public function addProject(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        try {
-            $currentUser = $this->getUser();
-            if (!$currentUser) {
-                throw new \Exception('User not authenticated');
-            }
-
-            $project = new Tasks();
-            $project->setTaskType('PROJECT')
-                ->setTaskName($request->request->get('name'))
-                ->setTaskText($request->request->get('description'))
-                ->setTaskComplexity($request->request->get('complexity'))
-                ->setTaskPriority($request->request->get('priority'))
-                ->setTaskUser($currentUser->getId())
-                ->setTaskUserMaj($currentUser->getId());
-
-            // Handle dates
-            if ($request->request->get('targetStartDate')) {
-                $project->setTaskTargetStartDate(new \DateTime($request->request->get('targetStartDate')));
-            }
-            if ($request->request->get('targetEndDate')) {
-                $project->setTaskTargetEndDate(new \DateTime($request->request->get('targetEndDate')));
-            }
-            
-            $entityManager->persist($project);
-            $entityManager->flush();
-
-            return $this->json([
-                'success' => true,
-                'message' => 'Projet ajouté avec succès'
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Une erreur est survenue lors de l\'ajout du projet: ' . $e->getMessage()
-            ], 400);
-        }
-    }
-
-    #[Route('/parameter/project/delete/{id}', name: 'app_parameter_project_delete', methods: ['POST'])]
-    public function deleteProject(int $id, EntityManagerInterface $entityManager): JsonResponse
-    {
-        try {
-            $project = $entityManager->getRepository(Tasks::class)->find($id);
-            
-            if (!$project) {
-                throw new \Exception('Projet non trouvé');
-            }
-
-            $entityManager->remove($project);
-            $entityManager->flush();
-
-            return $this->json([
-                'success' => true,
-                'message' => 'Projet supprimé avec succès'
-            ]);
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Erreur lors de la suppression: ' . $e->getMessage()
-            ], 400);
-        }
-    }
-
 }

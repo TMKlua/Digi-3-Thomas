@@ -42,7 +42,7 @@
                         {% for project in projects %}
                             <tr>
                                 <td>{{ project.taskName }}</td>
-                                <td>{{ project.taskText }}</td>
+                                <td>{{ project.taskDescription }}</td> <!-- Utilisez taskDescription -->
                                 <td>{{ project.taskComplexity }}</td>
                                 <td>{{ project.taskPriority }}</td>
                                 <td>{{ project.taskTargetStartDate ? project.taskTargetStartDate|date('d/m/Y') : '' }}</td>

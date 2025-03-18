@@ -1,318 +1,318 @@
 
 /* Style global du formulaire */
 .styled-form {
-    background: #2C2C2C;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Augmentation de l'espace entre les éléments du formulaire */
-    max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
+background: #2C2C2C;
+padding: 20px;
+border-radius: 8px;
+box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+color: white;
+display: flex;
+flex-direction: column;
+gap: 15px; /* Augmentation de l'espace entre les éléments du formulaire */
+max-width: 100%;
+width: 100%;
+box-sizing: border-box;
 }
 
 /* Styles des champs de saisie (input, select, textarea) */
 .styled-form input, .styled-form select, .styled-form textarea {
-    background: #444;
-    border: none;
-    padding: 12px;
-    color: white;
-    border-radius: 5px;
-    margin-bottom: 15px; /* Ajout de l'espace entre le champ et le label */
-    width: 100%;
-    box-sizing: border-box;
+background: #444;
+border: none;
+padding: 12px;
+color: white;
+border-radius: 5px;
+margin-bottom: 15px; /* Ajout de l'espace entre le champ et le label */
+width: 100%;
+box-sizing: border-box;
 }
 
 /* Style des labels */
 .styled-form label {
-    font-weight: bold;
-    margin-bottom: 8px; /* Espacement entre le label et le champ */
+font-weight: bold;
+margin-bottom: 8px; /* Espacement entre le label et le champ */
 }
 
 /* Style du bouton */
 .styled-button {
-    background-color: #249F84;
-    border: none;
-    color: white;
-    padding: 10px 15px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background 0.3s ease;
-    width: auto;
-    align-self: flex-start;
+background-color: #249F84;
+border: none;
+color: white;
+padding: 10px 15px;
+cursor: pointer;
+border-radius: 5px;
+transition: background 0.3s ease;
+width: auto;
+align-self: flex-start;
 }
 
 /* Style du bouton au survol */
 .styled-button:hover {
-    background-color: #1D8E75;
+background-color: #1D8E75;
 }
 
 /* Responsivité pour les petits écrans */
 @media (max-width: 768px) {
-    .styled-form {
-        padding: 15px;
-    }
+.styled-form {
+    padding: 15px;
+}
 
-    .styled-form input, .styled-form select, .styled-form textarea {
-        padding: 10px;
-    }
+.styled-form input, .styled-form select, .styled-form textarea {
+    padding: 10px;
+}
 
-    .styled-button {
-        width: 100%;
-    }
+.styled-button {
+    width: 100%;
+}
 }
 
 /* Responsivité pour les très petits écrans */
 @media (max-width: 480px) {
-    .styled-form {
-        padding: 10px;
-    }
+.styled-form {
+    padding: 10px;
+}
 
-    .styled-button {
-        padding: 12px;
-    }
+.styled-button {
+    padding: 12px;
+}
 }
 
 .project-management-container {
-    display: flex;
-    background-color: #2C2C2C;
-    color: #fff;
-    height: 100vh;
+display: flex;
+background-color: #2C2C2C;
+color: #fff;
+height: 100vh;
 }
 
 .create-project-button {
-    background-color: #249F84;
-    border: none;
-    color: white;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border-radius: 5px;
+background-color: #249F84;
+border: none;
+color: white;
+padding: 10px 15px;
+margin-bottom: 10px;
+cursor: pointer;
+border-radius: 5px;
 }
 
 aside.project-list {
-    background-color: #1D8E75;
-    width: 250px;
-    padding: 20px;
-    overflow-y: auto;
-    border-radius: 10px;
+background-color: #1D8E75;
+width: 250px;
+padding: 20px;
+overflow-y: auto;
+border-radius: 10px;
 }
 
 aside h3 {
-    color: white;
-    margin-bottom: 20px;
+color: white;
+margin-bottom: 20px;
 }
 
 aside ul {
-    list-style: none;
-    padding: 0;
+list-style: none;
+padding: 0;
 }
 
 aside ul li {
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #249F84;
-    border-radius: 5px;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+margin-bottom: 10px;
+padding: 10px;
+background-color: #249F84;
+border-radius: 5px;
+color: white;
+display: flex;
+justify-content: space-between;
+align-items: center;
 }
 
 aside ul li.active {
-    background-color: #249F84;
-    border: 2px solid #00FFCC;
+background-color: #249F84;
+border: 2px solid #00FFCC;
 }
 
 aside ul li a {
-    color: white;
-    text-decoration: none;
-    flex-grow: 1;
+color: white;
+text-decoration: none;
+flex-grow: 1;
 }
 
 .delete-button {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 10px;
+background: none;
+border: none;
+color: white;
+cursor: pointer;
+padding: 0;
+margin-left: 10px;
 }
 
 .delete-icon {
-    width: 25px;
-    height: 25px;
+width: 25px;
+height: 25px;
 }
 
 main.project-details {
-    flex-grow: 1;
-    padding: 40px;
-    background-color: #3C3C3C;
-    border-radius: 10px;
+flex-grow: 1;
+padding: 40px;
+background-color: #3C3C3C;
+border-radius: 10px;
 }
 
 main h2 {
-    font-size: 24px;
-    margin-bottom: 10px;
+font-size: 24px;
+margin-bottom: 10px;
 }
 
 main p {
-    font-size: 18px;
-    margin-bottom: 20px;
+font-size: 18px;
+margin-bottom: 20px;
 }
 
 .project-dates {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    margin-bottom: 30px;
-    gap: 15px;
+display: flex;
+justify-content: space-between;
+font-size: 14px;
+margin-bottom: 30px;
+gap: 15px;
 }
 
 .project-dates div {
-    display: flex;
-    flex-direction: column;
-    background: #3C3C3C; /* Fond sombre */
-    color: #ffffff; /* Texte en blanc */
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* Ombre blanche */
-    min-width: 180px;
-    text-align: center;
+display: flex;
+flex-direction: column;
+background: #3C3C3C; /* Fond sombre */
+color: #ffffff; /* Texte en blanc */
+padding: 15px;
+border-radius: 8px;
+box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* Ombre blanche */
+min-width: 180px;
+text-align: center;
 }
 
 .project-dates span {
-    margin-bottom: 5px;
-    font-weight: bold;
+margin-bottom: 5px;
+font-weight: bold;
 }
 
 .project-dates .real {
-    color: #00FFCC;
-    font-size: 16px;
+color: #00FFCC;
+font-size: 16px;
 }
 
 .project-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 10px;
 }
 
 .project-stat-block {
-    background-color: #444;
-    height: 150px;
-    border-radius: 5px;
+background-color: #444;
+height: 150px;
+border-radius: 5px;
 }
 
 .alert {
-    padding: 10px;
-    margin-top: 20px;
-    background-color: #249F84;
-    color: white;
-    border-radius: 5px;
+padding: 10px;
+margin-top: 20px;
+background-color: #249F84;
+color: white;
+border-radius: 5px;
 }
 
 /* Style global de la popup */
 .popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Fond semi-transparent pour l'arrière-plan */
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* S'assurer que la popup est au-dessus du contenu */
-    padding: 10px;
-    box-sizing: border-box;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.6); /* Fond semi-transparent pour l'arrière-plan */
+display: none;
+justify-content: center;
+align-items: center;
+z-index: 1000; /* S'assurer que la popup est au-dessus du contenu */
+padding: 10px;
+box-sizing: border-box;
 }
 
 /* Contenu de la popup */
 .popup-content {
-    background: #2C2C2C;
-    padding: 20px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 400px; /* Largeur max pour garder la popup compacte */
-    color: white;
-    text-align: center;
-    box-sizing: border-box;
+background: #2C2C2C;
+padding: 20px;
+border-radius: 8px;
+width: 100%;
+max-width: 400px; /* Largeur max pour garder la popup compacte */
+color: white;
+text-align: center;
+box-sizing: border-box;
 }
 
 /* Style du texte dans la popup */
 .popup-content p {
-    font-size: 18px;
-    margin-bottom: 20px;
+font-size: 18px;
+margin-bottom: 20px;
 }
 
 /* Style des boutons de confirmation et d'annulation */
 .confirm-button, .cancel-button {
-    background-color: #249F84;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 5px;
-    transition: background 0.3s ease;
-    font-size: 16px;
+background-color: #249F84;
+border: none;
+color: white;
+padding: 10px 20px;
+cursor: pointer;
+border-radius: 5px;
+margin: 5px;
+transition: background 0.3s ease;
+font-size: 16px;
 }
 
 /* Bouton de confirmation au survol */
 .confirm-button:hover {
-    background-color: #1D8E75;
+background-color: #1D8E75;
 }
 
 /* Bouton d'annulation au survol */
 .cancel-button:hover {
-    background-color: #E74C3C;
+background-color: #E74C3C;
 }
 
 /* Responsivité pour les petits écrans */
 @media (max-width: 768px) {
-    .popup-content {
-        padding: 15px;
-        max-width: 90%; /* Ajuster la largeur sur petits écrans */
-    }
+.popup-content {
+    padding: 15px;
+    max-width: 90%; /* Ajuster la largeur sur petits écrans */
+}
 
-    .confirm-button, .cancel-button {
-        width: 100%;
-        padding: 12px;
-    }
+.confirm-button, .cancel-button {
+    width: 100%;
+    padding: 12px;
+}
 }
 
 /* Responsivité pour les très petits écrans */
 @media (max-width: 480px) {
-    .popup-content {
-        max-width: 95%;
-        padding: 10px;
-    }
+.popup-content {
+    max-width: 95%;
+    padding: 10px;
+}
 
-    .confirm-button, .cancel-button {
-        padding: 10px;
-    }
+.confirm-button, .cancel-button {
+    padding: 10px;
+}
 }
 
 
 .confirm-button, .cancel-button {
-    margin: 10px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+margin: 10px;
+padding: 10px 20px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
 }
 
 .confirm-button {
-    background-color: #28a745;
-    color: white;
+background-color: #28a745;
+color: white;
 }
 
 .cancel-button {
-    background-color: #dc3545;
-    color: white;
+background-color: #dc3545;
+color: white;
 }
 
 .task-cards {
@@ -322,50 +322,50 @@ gap: 16px; /* Espace entre les cartes */
 }
 
 .task-card {
-    flex: 1 1 calc(20% - 16px); /* 20% pour 5 cartes par ligne */
-    box-sizing: border-box;
-    border: 1px solid #ddd;
-    padding: 16px;
-    background-color: #3C3C3C;
-    border-radius: 4px;
+flex: 1 1 calc(20% - 16px); /* 20% pour 5 cartes par ligne */
+box-sizing: border-box;
+border: 1px solid #ddd;
+padding: 16px;
+background-color: #3C3C3C;
+border-radius: 4px;
 }
 
 .task-card {
-    background-color: #3C3C3C;
-    border: 2px solid #fff; /* White border */
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 30px;
-    margin: 30px auto;
-    max-width: 800px;
-    font-family: 'Arial', sans-serif;
-    color: #fff;
+background-color: #3C3C3C;
+border: 2px solid #fff; /* White border */
+border-radius: 8px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+padding: 30px;
+margin: 30px auto;
+max-width: 800px;
+font-family: 'Arial', sans-serif;
+color: #fff;
 }
 
 .task-card h1 {
-    font-size: 26px;
-    color: #00FFCC; /* Greenish color for the title */
-    margin-bottom: 20px;
-    font-weight: bold;
+font-size: 26px;
+color: #00FFCC; /* Greenish color for the title */
+margin-bottom: 20px;
+font-weight: bold;
 }
 
 .task-info p {
-    font-size: 18px;
-    margin: 12px 0;
-    color: black; /* White color for text */
+font-size: 18px;
+margin: 12px 0;
+color: black; /* White color for text */
 }
 
 .task-info strong {
-    color: #00FFCC; /* Greenish color for strong labels */
+color: #00FFCC; /* Greenish color for strong labels */
 }
 
 .task-info p span {
-    font-weight: bold;
-    color: black;
+font-weight: bold;
+color: black;
 }
 
 .task-info p:last-child {
-    margin-bottom: 0;
+margin-bottom: 0;
 }
 
 .clearfix {
@@ -452,4 +452,70 @@ transition: background-color 0.3s ease;
 
 .add-column-button:hover, .add-task-button:hover {
 background-color: #0056b3;
+}
+
+
+/* Style pour la modal du détails des tâches */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #2C2C2C;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    color: white;
+    position: relative;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #fff;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #00FFCC;
+}
+
+#taskTitle {
+    font-size: 24px;
+    color: #00FFCC;
+    margin-bottom: 20px;
+    padding-right: 30px;
+}
+
+.task-description {
+    color: white;
+}
+
+.back-to-project {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 15px;
+    background-color: #249F84;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.back-to-project:hover {
+    background-color: #1D8E75;
 }

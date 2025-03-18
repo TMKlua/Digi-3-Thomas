@@ -8,54 +8,6 @@ function showCreateTaskForm() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    let projectIdToDelete;
-
-    window.showDeletePopup = function (projectId) {
-        projectIdToDelete = projectId;
-        document.getElementById('deletePopup').style.display = 'flex';
-    };
-
-    document.getElementById('confirmDelete').onclick = function () {
-        if (!projectIdToDelete) {
-            console.error('Aucun ID de projet à supprimer.');
-            return;
-        }
-
-        const form = document.createElement('form');
-        form.method = 'post';
-        form.action = "{{ path('app_project_delete', { 'id': '0' }) }}".replace('0', projectIdToDelete);
-
-        document.body.appendChild(form);
-        form.submit();
-    };
-
-    document.getElementById('cancelDelete').onclick = function () {
-        document.getElementById('deletePopup').style.display = 'none';
-    };
-});
-
-function showTaskForm() {
-    document.getElementById('createTaskForm').style.display = 'block';
-}
-
-function showCreateForm() {
-    document.getElementById('createProjectForm').style.display = 'block';
-}
-
-function showDeletePopup(projectId) {
-    const deletePopup = document.getElementById('deletePopup');
-    deletePopup.style.display = 'block';
-
-    document.getElementById('confirmDelete').onclick = function () {
-        window.location.href = `/delete-project/${projectId}`;
-    };
-
-    document.getElementById('cancelDelete').onclick = function () {
-        deletePopup.style.display = 'none';
-    };
-}
-
-document.addEventListener('DOMContentLoaded', function () {
 const columns = document.querySelectorAll('.kanban-column');
 const tasksContainers = document.querySelectorAll('.kanban-tasks');
 let draggedItem = null;
@@ -168,3 +120,40 @@ function displayError(message) {
     }, 3000);
 }
 });
+
+// Fonction pour ouvrir la modal de détail de tâche
+function openTaskModal(id, name, description, type, status, category, dateFrom, dateTo) {
+    // Remplir les détails de la tâche
+    document.getElementById('taskTitle').textContent = name;
+    document.getElementById('taskDescription').textContent = description;
+    document.getElementById('taskType').textContent = type;
+    document.getElementById('taskStatus').textContent = status;
+    document.getElementById('taskCategory').textContent = category;
+    document.getElementById('taskDateFrom').textContent = dateFrom;
+    document.getElementById('taskDateTo').textContent = dateTo;
+    
+    // Configurer le lien de retour
+    document.getElementById('taskProjectLink').href = window.location.href;
+    
+    // Afficher la modal avec flexbox
+    const modal = document.getElementById('taskDetailModal');
+    modal.style.display = 'flex';
+    
+    // Empêcher le défilement de la page
+    document.body.style.overflow = 'hidden';
+}
+
+// Fonction pour fermer la modal
+function closeTaskModal() {
+    document.getElementById('taskDetailModal').style.display = 'none';
+    // Réactiver le défilement
+    document.body.style.overflow = 'auto';
+}
+
+// Fermer la modal si on clique en dehors du contenu
+window.onclick = function(event) {
+    const modal = document.getElementById('taskDetailModal');
+    if (event.target === modal) {
+        closeTaskModal();
+    }
+}
